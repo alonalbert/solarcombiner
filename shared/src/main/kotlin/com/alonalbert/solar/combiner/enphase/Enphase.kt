@@ -58,13 +58,13 @@ class Enphase private constructor(
       repeat(96) {
         add(
           Energy(
-            outerProduction[it],
-            innerProduction[it],
-            consumption[it],
-            charge[it],
-            discharge[it],
-            innerExport[it],
-            import[it],
+            outerProduction[it] / 1000,
+            innerProduction[it] / 1000,
+            consumption[it] / 1000,
+            charge[it] / 1000,
+            discharge[it] / 1000,
+            innerExport[it] / 1000,
+            import[it] / 1000,
             batteryLevel[it],
           )
         )

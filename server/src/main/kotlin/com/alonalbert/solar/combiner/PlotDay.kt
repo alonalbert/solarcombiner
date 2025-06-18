@@ -35,14 +35,14 @@ fun DailyEnergy.plotEnergy(filename: String, batteryCapacity: Double? = null) {
 }
 
 fun DailyEnergy.plotEnergy(batteryCapacity: Double? = null): Plot {
-  val max = 4000
+  val max = 5.0
   val dataFrame = dataFrameOf(
     "time" to List(energies.size) { it.toFloat() / 4 },
     "produced" to energies.map { it.innerProduced + it.outerProduced },
     "consumed" to energies.map { -it.consumed },
     "imported" to energies.map { it.imported - it.innerExported - it.outerProduced },
     "charged" to energies.map { it.discharged - it.charged },
-    "battery" to energies.map { it.battery / (batteryCapacity ?: 1.0) * (max - 0.5) },
+    "battery" to energies.map { it.battery / 100 * (max - 0.5) },
   ).gather(
     "produced",
     "consumed",

@@ -17,7 +17,7 @@ fun main() = runBlocking {
   val mainSiteId = properties.getProperty("site.main")
   val exportSiteId = properties.getProperty("site.export")
   val enphase = Enphase.create(email, password, mainSiteId, exportSiteId)
-  val dailyEnergy = enphase.getDailyEnergy(LocalDate.of(2025, 6, 17))
+  val dailyEnergy = enphase.getDailyEnergy(LocalDate.of(2025, 6, 18))
   println(dailyEnergy)
-  dailyEnergy.plotEnergy("out/test.png")
+  dailyEnergy.plotEnergy("out/test.png", batteryCapacity = 20.0)
 }
