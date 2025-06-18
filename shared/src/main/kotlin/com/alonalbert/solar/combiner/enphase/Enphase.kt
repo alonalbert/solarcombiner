@@ -1,6 +1,7 @@
 package com.alonalbert.solar.combiner.enphase
 
-import com.alonalbert.solar.combiner.enphase.model.Power
+import com.alonalbert.solarsim.simulator.DailyEnergy
+import com.alonalbert.solarsim.simulator.Energy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonNull
@@ -35,7 +36,7 @@ class Enphase private constructor(
 ) {
   private val cache = Cache(cacheDir)
 
-  suspend fun getPower(date: LocalDate): Power {
+  suspend fun getDailyEnergy(date: LocalDate): DailyEnergy {
     val innerData = gson.getObject(loadData(innerSiteId, date))
     val outerData = gson.getObject(loadData(outerSiteId, date))
 
@@ -47,20 +48,30 @@ class Enphase private constructor(
     val consumption = innerStats.getDoubles("consumption")
     val charge = innerStats.getDoubles("charge")
     val discharge = innerStats.getDoubles("discharge")
-    val solarGrid = innerStats.getDoubles("solar_grid")
+    val innerExport = innerStats.getDoubles("solar_grid")
     val gridBattery = innerStats.getDoubles("grid_battery")
     val gridHome = innerStats.getDoubles("grid_home")
     val import = gridHome.zip(gridBattery) { h, b -> h + b }
+    val batteryLevel = innerStats.getDoubles("soc")
 
-    return Power(
-      outerProduction,
-      innerProduction,
-      consumption,
-      charge,
-      discharge,
-      solarGrid,
-      import,
-    )
+    val energies = buildList {
+      repeat(96) {
+        add(
+          Energy(
+            outerProduction[it],
+            innerProduction[it],
+            consumption[it],
+            charge[it],
+            discharge[it],
+            innerExport[it],
+            import[it],
+            batteryLevel[it],
+          )
+        )
+      }
+    }
+
+    return DailyEnergy(date, energies)
   }
 
   private suspend fun loadData(siteId: String, date: LocalDate): String {

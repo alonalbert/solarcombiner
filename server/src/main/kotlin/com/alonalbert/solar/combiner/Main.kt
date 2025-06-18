@@ -1,6 +1,7 @@
 package com.alonalbert.solar.combiner
 
 import com.alonalbert.solar.combiner.enphase.Enphase
+import com.alonalbert.solarsim.ui.plotEnergy
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import java.util.Properties
@@ -16,7 +17,7 @@ fun main() = runBlocking {
   val mainSiteId = properties.getProperty("site.main")
   val exportSiteId = properties.getProperty("site.export")
   val enphase = Enphase.create(email, password, mainSiteId, exportSiteId)
-  val power = enphase.getPower(LocalDate.of(2025, 6, 17))
-//  val power = enphase.getPower(LocalDate.now())
-  println(power)
+  val dailyEnergy = enphase.getDailyEnergy(LocalDate.of(2025, 6, 17))
+  println(dailyEnergy)
+  dailyEnergy.plotEnergy("out/test.png")
 }

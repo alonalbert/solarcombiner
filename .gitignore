@@ -16,3 +16,4 @@ run
 local.properties
 /.idea/deploymentTargetSelector.xml
 /cache/
+/out/
