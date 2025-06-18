@@ -1,0 +1,14 @@
+version: "3.3"
+services:
+  pad:
+    image: alonalbert/solar-combiner-server
+    container_name: solar-combiner-server
+    user: "1000"
+    network_mode: host
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - ./config:/config
+    restart: unless-stopped
+
+
