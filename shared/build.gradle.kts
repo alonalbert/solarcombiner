@@ -4,6 +4,11 @@ plugins {
 }
 
 dependencies {
+  implementation(libs.ktor.client.core)
+  implementation(libs.ktor.client.cio)
+  implementation(libs.ktor.client.content.negotiation)
+  implementation(libs.ktor.serialization.kotlinx.json)
+
   implementation(libs.kotlinx.serialization.core)
   implementation(libs.kotlinx.datetime)
   implementation(libs.jakarta.persistence)
