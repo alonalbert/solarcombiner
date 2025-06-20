@@ -11,7 +11,6 @@ class DailyEnergy(val date: LocalDate, val energies: List<Energy>) {
   val innerExported = energies.sumOf { it.innerExported }
   val charged = energies.sumOf { it.charged }
   val discharged = energies.sumOf { it.discharged }
-  val battery = energies.sumOf { it.battery }
 
   override fun toString(): String {
     return buildString {
@@ -21,7 +20,6 @@ class DailyEnergy(val date: LocalDate, val energies: List<Energy>) {
       appendLine("Consumed: ${consumed.kwh}")
       appendLine("Exported: ${innerExported.kwh}")
       appendLine("Charged: ${charged.kwh}")
-      appendLine("Battery: ${battery.kwh}")
       val balance = imported + innerProduced + discharged - consumed - innerExported - charged
       appendLine("Balance: $balance")
     }

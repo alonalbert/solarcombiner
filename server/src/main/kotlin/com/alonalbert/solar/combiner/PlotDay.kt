@@ -41,7 +41,7 @@ fun DailyEnergy.plotEnergy(batteryCapacity: Double? = null): Plot {
     "consumed" to energies.map { -it.consumed },
     "imported" to energies.map { it.imported - it.innerExported - it.outerProduced },
     "charged" to energies.map { it.discharged - it.charged },
-    "battery" to energies.map { it.battery / 100 * (max - 0.5) },
+    "battery" to energies.map { it.battery?.toDouble()?.div(100)?.times(max - 0.5) },
   ).gather(
     "produced",
     "consumed",

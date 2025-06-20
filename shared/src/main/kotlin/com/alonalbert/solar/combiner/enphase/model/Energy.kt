@@ -8,5 +8,5 @@ data class Energy(
   val discharged: Double,
   val innerExported: Double,
   val imported: Double,
-  val battery: Double,
+  val battery: Int?,
 )

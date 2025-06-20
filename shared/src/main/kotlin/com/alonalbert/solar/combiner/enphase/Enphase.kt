@@ -52,7 +52,7 @@ class Enphase private constructor(
     val gridBattery = innerStats.getDoubles("grid_battery")
     val gridHome = innerStats.getDoubles("grid_home")
     val import = gridHome.zip(gridBattery) { h, b -> h + b }
-    val batteryLevel = innerStats.getDoubles("soc")
+    val batteryLevel = innerStats.getAsJsonArray("soc").map { if (it is JsonNull) null else it.asInt}
 
     val energies = buildList {
       repeat(96) {
