@@ -1,6 +1,5 @@
-package com.alonalbert.solarsim.ui
+package com.alonalbert.solar.combiner
 
-import com.alonalbert.solar.combiner.enphase.model.Power
 import com.alonalbert.solarsim.simulator.DailyEnergy
 import org.jetbrains.kotlinx.dataframe.api.dataFrameOf
 import org.jetbrains.kotlinx.dataframe.api.gather
