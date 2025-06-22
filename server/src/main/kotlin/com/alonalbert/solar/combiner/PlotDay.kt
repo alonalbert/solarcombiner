@@ -75,7 +75,8 @@ fun DailyEnergy.plotEnergy(batteryCapacity: Double? = null): Plot {
           "imported" to """
             Imported: %.2f
             Exported: %.2f
-          """.trimIndent().format(imported, innerExported + outerProduced),
+            Net import: %.2f
+          """.trimIndent().format(imported, innerExported + outerProduced, imported - innerExported - outerProduced),
           "charged" to """
             Charged: %.2f
             Discharged: %.2f
