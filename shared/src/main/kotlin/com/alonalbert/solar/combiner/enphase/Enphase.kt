@@ -58,13 +58,13 @@ class Enphase private constructor(
       repeat(96) {
         add(
           Energy(
-            outerProduction[it] / 1000,
-            innerProduction[it] / 1000,
-            consumption[it] / 1000,
-            charge[it] / 1000,
-            discharge[it] / 1000,
-            innerExport[it] / 1000,
-            import[it] / 1000,
+            outerProduction[it].kwh(),
+            innerProduction[it].kwh(),
+            consumption[it].kwh(),
+            charge[it].kwh(),
+            discharge[it].kwh(),
+            innerExport[it].kwh(),
+            import[it].kwh(),
             batteryLevel[it],
           )
         )
@@ -104,9 +104,7 @@ class Enphase private constructor(
       val sessionId = gson.getObject(response.bodyAsText())["session_id"].asString
       return Enphase(client, sessionId, mainSiteId, exportSiteId)
     }
-
   }
-
 }
 
 private suspend fun HttpResponse.bodyAsPrettyJson() = gson.toJson(JsonParser.parseString(bodyAsText()))
@@ -118,3 +116,5 @@ private fun JsonObject.getDoubles(key: String) = getAsJsonArray(key).map {
 }
 
 private fun LocalDate.shouldCache() = this < LocalDate.now()
+
+private fun Double.kwh() = this / 1000 * 4

@@ -34,7 +34,7 @@ fun DailyEnergy.plotEnergy(filename: String, batteryCapacity: Double? = null) {
 }
 
 fun DailyEnergy.plotEnergy(batteryCapacity: Double? = null): Plot {
-  val max = 5.0
+  val max = energies.maxOf { it.imported + it.outerProduced + it.innerProduced } * 1.1
   val dataFrame = dataFrameOf(
     "time" to List(energies.size) { it.toFloat() / 4 },
     "produced" to energies.map { it.innerProduced + it.outerProduced },
