@@ -10,7 +10,7 @@ android {
 
   defaultConfig {
     applicationId = "com.alonalbert.enphase.monitor"
-    minSdk = 24
+    minSdk = 36
     targetSdk = 36
     versionCode = 1
     versionName = "1.0"
@@ -46,6 +46,7 @@ dependencies {
   implementation(libs.androidx.ui.graphics)
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.compose.material3)
+  implementation(libs.androidx.compose.material.icons.extended)
   testImplementation(libs.junit4)
   androidTestImplementation(libs.runner)
   androidTestImplementation(libs.espresso.core)
