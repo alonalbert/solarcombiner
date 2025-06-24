@@ -20,3 +20,5 @@ object Colors {
   val Battery = Color(EnergyColors.battery).copy(alpha = 1.0f)
 }
 
+fun Color.toInt(): Int = (value shr 32).toInt()
+

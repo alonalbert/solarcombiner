@@ -1,9 +1,13 @@
 package com.alonalbert.solar.combiner.enphase.util
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
+import java.time.format.FormatStyle.MEDIUM
+import kotlin.math.abs
 
 val Double.kwh get() = "%.2f kWh".format(this)
+val Double.kw get() = "%.2f kW".format(this)
 
 operator fun LocalDate.plus(days: Int): LocalDate = plusDays(days.toLong())
 
@@ -29,3 +33,7 @@ infix operator fun LocalDate.rangeTo(other: LocalDate): Sequence<LocalDate> {
     }
   }
 }
+
+fun LocalDate.format(): String = format(DateTimeFormatter.ofLocalizedDate(MEDIUM))
+
+fun Double.zerofy() = if (abs(this) < 0.0000001) 0.0 else this

@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alonalbert.enphase.monitor.ui.theme.Colors.Grey55
-import com.alonalbert.enphase.monitor.util.format
+import com.alonalbert.solar.combiner.enphase.util.format
 import java.time.LocalDate
 
 val color = Grey55

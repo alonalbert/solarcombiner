@@ -40,6 +40,7 @@ internal fun rememberMarker(
   valueFormatter: DefaultCartesianMarker.ValueFormatter =
     DefaultCartesianMarker.ValueFormatter.default(),
   showIndicator: Boolean = true,
+  lineCount: Int = 1,
 ): CartesianMarker {
   val labelBackgroundShape = markerCorneredShape(CorneredShape.Corner.Rounded)
   val labelBackground =
@@ -56,6 +57,7 @@ internal fun rememberMarker(
       padding = insets(8.dp, 4.dp),
       background = labelBackground,
       minWidth = TextComponent.MinWidth.fixed(40.dp),
+      lineCount = lineCount,
     )
   val indicatorFrontComponent =
     rememberShapeComponent(fill(MaterialTheme.colorScheme.surface), CorneredShape.Pill)

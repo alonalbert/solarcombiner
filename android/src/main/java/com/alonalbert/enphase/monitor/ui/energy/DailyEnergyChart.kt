@@ -22,34 +22,19 @@ import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.fill
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
-import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
-import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import java.text.DecimalFormat
 
 private val YDecimalFormat = DecimalFormat("#")
 private val StartAxisValueFormatter = CartesianValueFormatter.decimal(YDecimalFormat)
-private val MarkerValueFormatter = DefaultCartesianMarker.ValueFormatter.default(YDecimalFormat)
-
-private val RangeProvider =
-  object : CartesianLayerRangeProvider {
-    override fun getMinX(minX: Double, maxX: Double, extraStore: ExtraStore) =
-      0.0
-
-    override fun getMaxX(minX: Double, maxX: Double, extraStore: ExtraStore) =
-      96.0
-  }
 
 @Composable
 fun DailyEnergyChart(
   dailyEnergy: DailyEnergy,
-//  model: CartesianChartModel,
   modifier: Modifier = Modifier,
 ) {
-
   val x = (0 until 96).toList()
   val model = CartesianChartModel(ColumnCartesianLayerModel.build {
     series(x, dailyEnergy.energies.map { it.innerProduced + it.outerProduced })
@@ -62,7 +47,6 @@ fun DailyEnergyChart(
     chart =
       rememberCartesianChart(
         rememberColumnCartesianLayer(
-          rangeProvider = RangeProvider,
           columnProvider =
             ColumnCartesianLayer.ColumnProvider.series(
               rememberLineComponent(fill = fill(Colors.Produced), thickness = 2.2.dp),
@@ -80,7 +64,7 @@ fun DailyEnergyChart(
 
             valueFormatter = StartAxisValueFormatter,
           ),
-        marker = rememberMarker(MarkerValueFormatter),
+        marker = rememberMarker(DailyEnergyValueFormatter(dailyEnergy), lineCount = 4),
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),
     model = model,
