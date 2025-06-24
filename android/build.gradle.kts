@@ -37,6 +37,7 @@ android {
 }
 
 dependencies {
+  implementation(project(":shared"))
 
   implementation(libs.appcompat.v7)
   implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -47,6 +48,8 @@ dependencies {
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.compose.material3)
   implementation(libs.androidx.compose.material.icons.extended)
+  implementation(libs.vico.compose)
+  implementation(libs.vico.compose.m3)
   testImplementation(libs.junit4)
   androidTestImplementation(libs.runner)
   androidTestImplementation(libs.espresso.core)

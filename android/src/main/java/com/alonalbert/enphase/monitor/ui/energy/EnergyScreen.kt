@@ -18,6 +18,7 @@ fun EnergyScreen(modifier: Modifier = Modifier) {
     var day by remember { mutableStateOf(LocalDate.now()) }
 
     DayPicker(day, { day = it })
+    DailyEnergyChart()
   }
 }
 

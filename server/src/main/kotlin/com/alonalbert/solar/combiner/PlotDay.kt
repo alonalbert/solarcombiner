@@ -1,5 +1,6 @@
 package com.alonalbert.solar.combiner
 
+import com.alonalbert.solar.combiner.enphase.EnergyColors
 import com.alonalbert.solarsim.simulator.DailyEnergy
 import org.jetbrains.kotlinx.dataframe.api.dataFrameOf
 import org.jetbrains.kotlinx.dataframe.api.gather
@@ -23,10 +24,10 @@ import org.jetbrains.kotlinx.kandy.util.color.Color
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 
-private val COLOR_PRODUCED = Color.hex("#01b4de")
-private val COLOR_CONSUMED = Color.hex("#f37320")
-private val COLOR_IMPORTED = Color.hex("#6c7073")
-private val COLOR_BATTERY = Color.hex("#7acf40")
+private val COLOR_PRODUCED = Color.hex("#%06X".format(EnergyColors.produced))
+private val COLOR_CONSUMED = Color.hex("#%06X".format(EnergyColors.consumed))
+private val COLOR_IMPORTED = Color.hex("#%06X".format(EnergyColors.imported))
+private val COLOR_BATTERY = Color.hex("#%06X".format(EnergyColors.battery))
 
 fun DailyEnergy.plotEnergy(filename: String, batteryCapacity: Double? = null) {
   Path.of(filename).parent.createDirectories()

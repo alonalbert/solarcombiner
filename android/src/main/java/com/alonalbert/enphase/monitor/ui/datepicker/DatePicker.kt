@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.alonalbert.enphase.monitor.ui.theme.Grey55
+import com.alonalbert.enphase.monitor.ui.theme.Colors.Grey55
 import com.alonalbert.enphase.monitor.util.format
 import java.time.LocalDate
 
