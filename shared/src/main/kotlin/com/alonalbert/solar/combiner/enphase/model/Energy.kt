@@ -1,4 +1,4 @@
-package com.alonalbert.solarsim.simulator
+package com.alonalbert.solar.combiner.enphase.model
 
 data class Energy(
   val outerProduced: Double,

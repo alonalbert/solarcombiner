@@ -1,5 +1,6 @@
 package com.alonalbert.solarsim.simulator
 
+import com.alonalbert.solar.combiner.enphase.model.Energy
 import com.alonalbert.solar.combiner.enphase.util.kwh
 import java.time.LocalDate
 

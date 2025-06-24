@@ -1,7 +1,7 @@
 package com.alonalbert.solar.combiner.enphase
 
+import com.alonalbert.solar.combiner.enphase.model.Energy
 import com.alonalbert.solarsim.simulator.DailyEnergy
-import com.alonalbert.solarsim.simulator.Energy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonNull
