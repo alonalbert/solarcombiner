@@ -1,8 +1,8 @@
 package com.alonalbert.enphase.monitor.ui.navigation
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alonalbert.enphase.monitor.TheApplication
 import com.alonalbert.enphase.monitor.settings.LOGGED_IN
 import com.alonalbert.enphase.monitor.settings.dataStore
 import com.alonalbert.enphase.monitor.settings.updateSettings
@@ -16,13 +16,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NavigationViewModel @Inject constructor(
-  private val application: Application,
+  private val application: TheApplication,
 ) : ViewModel() {
 
   val loginState = application.dataStore.data.map {
-    when (it[LOGGED_IN]) {
-      true -> LoggedIn
-      else -> LoggedOut
+    if (it[LOGGED_IN] == true) {
+      application.login()
+      LoggedIn
+    } else {
+      LoggedOut
     }
   }.stateIn(viewModelScope, Loading)
 

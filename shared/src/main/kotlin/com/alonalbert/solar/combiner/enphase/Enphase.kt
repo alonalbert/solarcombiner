@@ -32,7 +32,7 @@ class Enphase private constructor(
   private val sessionId: String,
   private val innerSiteId: String,
   private val outerSiteId: String,
-  cacheDir: Path = Path.of("cache"),
+  cacheDir: Path,
 ) {
   private val cache = Cache(cacheDir)
 
@@ -91,7 +91,13 @@ class Enphase private constructor(
   }
 
   companion object {
-    suspend fun create(email: String, password: String, mainSiteId: String, exportSiteId: String): Enphase {
+    suspend fun create(
+      email: String,
+      password: String,
+      mainSiteId: String,
+      exportSiteId: String,
+      cacheDir: Path = Path.of("cache")
+    ): Enphase {
       val client = HttpClient(CIO) {
         followRedirects = true
       }
@@ -99,10 +105,10 @@ class Enphase private constructor(
         LOGIN_URL,
         parameters {
           append("user[email]", email)
-          append("user[password]", password)
+          append("user[password]", password.trim())
         })
       val sessionId = gson.getObject(response.bodyAsText())["session_id"].asString
-      return Enphase(client, sessionId, mainSiteId, exportSiteId)
+      return Enphase(client, sessionId, mainSiteId, exportSiteId, cacheDir)
     }
   }
 }

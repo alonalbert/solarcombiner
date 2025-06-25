@@ -22,6 +22,12 @@ val INNER_SYSTEM_ID = stringPreferencesKey("innerSystemId")
 val OUTER_SYSTEM_ID = stringPreferencesKey("outerSystemId")
 val LOGGED_IN = booleanPreferencesKey("loggedIn")
 
+val Preferences.email get() = get(EMAIL) ?:""
+val Preferences.password get() = get(PASSWORD) ?:""
+val Preferences.innerSystemId get() = get(INNER_SYSTEM_ID) ?:""
+val Preferences.outerSystemId get() = get(OUTER_SYSTEM_ID) ?:""
+val Preferences.loggedIn get() = get(LOGGED_IN) ?:""
+
 fun Application.updateSettings(scope: CoroutineScope, block: suspend MutablePreferences.() -> Unit) {
   scope.launch {
     dataStore.updateData {

@@ -1,8 +1,8 @@
 package com.alonalbert.enphase.monitor.ui.login
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alonalbert.enphase.monitor.TheApplication
 import com.alonalbert.enphase.monitor.settings.EMAIL
 import com.alonalbert.enphase.monitor.settings.INNER_SYSTEM_ID
 import com.alonalbert.enphase.monitor.settings.OUTER_SYSTEM_ID
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-  private val application: Application,
+  private val application: TheApplication,
 ) : ViewModel() {
 
   val loginInfo = application.dataStore.data.map {
