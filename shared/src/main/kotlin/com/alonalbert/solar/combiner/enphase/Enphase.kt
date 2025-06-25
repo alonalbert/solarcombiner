@@ -52,7 +52,7 @@ class Enphase private constructor(
     val gridBattery = innerStats.getDoubles("grid_battery")
     val gridHome = innerStats.getDoubles("grid_home")
     val import = gridHome.zip(gridBattery) { h, b -> h + b }
-    val batteryLevel = innerStats.getAsJsonArray("soc").map { if (it is JsonNull) null else it.asInt}
+    val batteryLevel = innerStats.getAsJsonArray("soc").map { if (it is JsonNull) null else it.asInt }
 
     val energies = buildList {
       repeat(96) {
@@ -101,14 +101,19 @@ class Enphase private constructor(
       val client = HttpClient(CIO) {
         followRedirects = true
       }
-      val response = client.submitForm(
+
+      val sessionId = client.getSessionId(email, password)
+      return Enphase(client, sessionId, mainSiteId, exportSiteId, cacheDir)
+    }
+
+    suspend fun HttpClient.getSessionId(email: String, password: String): String {
+      val response = submitForm(
         LOGIN_URL,
         parameters {
           append("user[email]", email)
           append("user[password]", password.trim())
         })
-      val sessionId = gson.getObject(response.bodyAsText())["session_id"].asString
-      return Enphase(client, sessionId, mainSiteId, exportSiteId, cacheDir)
+      return gson.getObject(response.bodyAsText())["session_id"].asString
     }
   }
 }
