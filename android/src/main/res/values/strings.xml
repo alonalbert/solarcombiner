@@ -1,4 +1,13 @@
 <resources>
   <string name="app_name">Enphase Monitor</string>
   <string name="title_activity_main">MainActivity</string>
+
+  <string name="hide_password">Hide password</string>
+  <string name="show_password">Show password</string>
+  <string name="email">Email</string>
+  <string name="password">Password</string>
+  <string name="login">Login</string>
+  <string name="welcome">Welcome</string>
+  <string name="inner_system_id">Inner system id</string>
+  <string name="outer_system_id">Outer system id</string>
 </resources>
