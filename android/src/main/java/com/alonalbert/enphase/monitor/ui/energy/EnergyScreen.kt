@@ -1,6 +1,11 @@
 package com.alonalbert.enphase.monitor.ui.energy
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,12 +18,18 @@ import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 import java.time.LocalDate
 
 @Composable
-fun EnergyScreen(modifier: Modifier = Modifier) {
-  Column(modifier = modifier) {
-    var day by remember { mutableStateOf(LocalDate.now()) }
+fun EnergyScreen(onLogout: () -> Unit) {
+  Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    Column(modifier = Modifier.padding(innerPadding)) {
+      var day by remember { mutableStateOf(LocalDate.now()) }
 
-    DayPicker(day, { day = it })
-    DailyEnergyChart()
+      DayPicker(day, { day = it })
+      DailyEnergyChart()
+
+      TextButton(onClick = onLogout) {
+        Text("Logout")
+      }
+    }
   }
 }
 
@@ -26,6 +37,6 @@ fun EnergyScreen(modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
   SolarCombinerTheme {
-    EnergyScreen()
+    EnergyScreen {}
   }
 }

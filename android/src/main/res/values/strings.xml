@@ -10,4 +10,5 @@
   <string name="welcome">Welcome</string>
   <string name="inner_system_id">Inner system id</string>
   <string name="outer_system_id">Outer system id</string>
+  <string name="loading">Loading…</string>
 </resources>

@@ -46,7 +46,7 @@ fun LoginScreen(
 @Composable
 fun LoginScreenContent(
   loginInfo: LoginInfo?,
-  onConnectClick: (String, String, String, String) -> Unit,
+  onLoginClick: (String, String, String, String) -> Unit,
 ) {
   var email by remember { mutableStateOf("") }
   var password by remember { mutableStateOf("") }
@@ -56,6 +56,8 @@ fun LoginScreenContent(
   if (loginInfo != null) {
     email = loginInfo.email
     password = loginInfo.password
+    innerSystemId = loginInfo.innerSystemId
+    outerSystemId = loginInfo.outerSystemId
   }
 
   Surface(
@@ -109,7 +111,7 @@ fun LoginScreenContent(
         ButtonComponent(
           value = stringResource(id = R.string.login),
           onButtonClicked = {
-            onConnectClick(email, password, innerSystemId, outerSystemId)
+            onLoginClick(email, password, innerSystemId, outerSystemId)
           },
           isEnabled = email.isNotEmpty() && password.isNotEmpty() && innerSystemId.isNotEmpty() && outerSystemId.isNotEmpty()
         )
@@ -123,5 +125,5 @@ fun LoginScreenContent(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun PreviewLoginScreen() {
-  LoginScreenContent(loginInfo = LoginInfo(), onConnectClick = { _, _, _, _ -> })
+  LoginScreenContent(loginInfo = LoginInfo(), onLoginClick = { _, _, _, _ -> })
 }
