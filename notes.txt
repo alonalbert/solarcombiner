@@ -1,0 +1,15 @@
+From: https://enphase.com/download/accessing-iq-gateway-local-apis-or-local-ui-token-based-authentication
+
+Shell script-based token retrieval
+user=’<UserName>’
+password='<Password>'
+envoy_serial=’<Envoy_Serial_No>’
+session_id=$(curl -X POST http://enlighten.enphaseenergy.com/login/login.json? -F
+"user[email]=$user" -F "user[password]=$password" | jq -r ".session_id")
+web_token=$(curl -X POST http://entrez.enphaseenergy.com/tokens -H "Content-Type:
+application/json" -d "{\"session_id\": \"$session_id\", \"serial_num\": \"$envoy_serial\",
+\"username\": \"$user\"}")
+
+Read live meter data:
+
+curl -skL -H "Authorization: Bearer $ENVOY_MAIN_TOKEN"  https://www.albertim.us:7771/ivp/livedata/status |
