@@ -4,6 +4,7 @@ import com.alonalbert.solar.combiner.enphase.Enphase
 import com.alonalbert.solar.combiner.enphase.util.rangeTo
 import com.alonalbert.solar.combiner.enphase.util.toText
 import kotlinx.coroutines.runBlocking
+import java.nio.file.Path
 import java.time.LocalDate
 import java.util.Properties
 
@@ -17,7 +18,7 @@ fun main() = runBlocking {
   val password = properties.getProperty("login.password")
   val mainSiteId = properties.getProperty("site.main")
   val exportSiteId = properties.getProperty("site.export")
-  val enphase = Enphase.create(email, password, mainSiteId, exportSiteId)
+  val enphase = Enphase(email, password, mainSiteId, exportSiteId, Path.of("cache"))
   val start = LocalDate.of(2025, 6, 17)
   val end = LocalDate.now()
   (start..end).forEach { date ->

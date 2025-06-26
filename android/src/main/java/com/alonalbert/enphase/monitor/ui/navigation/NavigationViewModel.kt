@@ -21,7 +21,6 @@ class NavigationViewModel @Inject constructor(
 
   val loginState = application.dataStore.data.map {
     if (it[LOGGED_IN] == true) {
-      application.login()
       LoggedIn
     } else {
       LoggedOut

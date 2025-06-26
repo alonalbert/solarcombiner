@@ -1,13 +1,15 @@
 package com.alonalbert.solar.combiner.enphase
 
-import com.alonalbert.solar.combiner.enphase.Enphase.Companion.getSessionId
 import com.alonalbert.solar.combiner.enphase.model.GetTokenRequest
 import com.alonalbert.solar.combiner.enphase.model.RealtimeData
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRedirect
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
+import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -15,15 +17,15 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType.Application
 import io.ktor.http.contentType
+import io.ktor.http.parameters
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.double
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import java.security.cert.X509Certificate
-import javax.net.ssl.X509TrustManager
 
+private const val LOGIN_URL = "https://enlighten.enphaseenergy.com/login/login.json"
 private const val TOKEN_URL = "http://entrez.enphaseenergy.com/tokens"
 private const val LIVE_STREAM_URL = "https://enlighten.enphaseenergy.com/pv/aws_sigv4/livestream.json"
 
@@ -78,7 +80,7 @@ class Envoy private constructor(
         }
         engine {
           https {
-            trustManager = MyTrustManager()
+            trustManager = TrustingManager()
           }
         }
       }
@@ -97,18 +99,21 @@ class Envoy private constructor(
 
     }
   }
-
-  @Suppress("CustomX509TrustManager")
-  private class MyTrustManager : X509TrustManager {
-    @Suppress("TrustAllX509TrustManager")
-    override fun checkClientTrusted(chain: Array<out X509Certificate?>?, authType: String?) {
-    }
-
-    @Suppress("TrustAllX509TrustManager")
-    override fun checkServerTrusted(chain: Array<out X509Certificate?>?, authType: String?) {
-    }
-
-    override fun getAcceptedIssuers(): Array<out X509Certificate?>? = emptyArray()
-
-  }
 }
+
+private val gson = GsonBuilder()
+  .setPrettyPrinting()
+  .create()
+
+private suspend fun HttpClient.getSessionId(email: String, password: String): String {
+  val response = submitForm(
+    LOGIN_URL,
+    parameters {
+      append("user[email]", email)
+      append("user[password]", password.trim())
+    })
+  return gson.getObject(response.bodyAsText())["session_id"].asString
+}
+
+private fun Gson.getObject(json: String) = fromJson(json, com.google.gson.JsonObject::class.java)
+
