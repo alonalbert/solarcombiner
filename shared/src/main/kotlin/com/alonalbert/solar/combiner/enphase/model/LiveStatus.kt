@@ -7,12 +7,20 @@ data class LiveStatus(
   val load: Double,
 ) {
   override fun toString(): String {
-    val format = "%-10s %+1.2f kW\n"
     return buildString {
-      append(format.format("pv:", pv))
-      append(format.format("storage:", storage))
-      append(format.format("grid:", grid))
-      append(format.format("load:", load))
+      append("Producing: ${pv.format()} ")
+      if (storage >= 0) {
+        append("Discharging: ${storage.format()} ")
+      } else {
+        append("Charging: ${(-storage).format()} ")
+      }
+      if (grid >= 0) {
+        append("Importing: ${grid.format()} ")
+      } else {
+        append("Exporting: ${(-grid).format()} ")
+      }
+      append("Consuming: ${load.format()} ")
     }
   }
 }
+private fun Double.format() = "%.2f".format(this)

@@ -33,6 +33,7 @@ fun main() = runBlocking {
     exportHost,
     exportPort,
     Path.of("cache"),
+    this,
   )
   enphase.streamLiveStatus().collect {
     println(it)

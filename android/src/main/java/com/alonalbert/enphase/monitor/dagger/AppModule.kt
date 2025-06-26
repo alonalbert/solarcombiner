@@ -45,6 +45,7 @@ object AppModule {
         preferences.exportHost,
         preferences.exportPort,
         application.cacheDir.toPath(),
+        coroutineScope = MainScope()
       )
     }
   }

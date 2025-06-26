@@ -25,8 +25,9 @@ import io.ktor.http.ContentType.Application
 import io.ktor.http.contentType
 import io.ktor.http.parameters
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -67,11 +68,12 @@ class Enphase(
   exportSiteHost: String,
   exportSitePort: Int,
   cacheDir: Path,
+  coroutineScope: CoroutineScope,
 ) {
   private val cache = Cache(cacheDir)
   private val client = createClient()
   private val _sessionId by lazy(SYNCHRONIZED) {
-    MainScope().async {
+    coroutineScope.async {
       client.getSessionId(email, password)
     }
   }
@@ -125,13 +127,11 @@ class Enphase(
     val exportToken = getEnvoyToken(exportSiteSerialNum)
 
     return flow {
-      withContext(Dispatchers.IO) {
-        val mainStatus = getLiveStatus(mainEnvoyUrl, mainToken)
-        val exportStatus = getLiveStatus(exportEnvoyUrl, exportToken)
-        emit(mainStatus.copy(mainStatus.pv + exportStatus.pv, grid = mainStatus.grid - exportStatus.grid))
-      }
-
-      withContext(Dispatchers.Default) {
+      while (true) {
+        val mainStatus = withContext(IO) { getLiveStatus(mainEnvoyUrl, mainToken) }
+        val exportStatus = withContext(IO) { getLiveStatus(exportEnvoyUrl, exportToken) }
+        val combined = mainStatus.copy(mainStatus.pv + exportStatus.pv, grid = mainStatus.grid - exportStatus.pv)
+        emit(combined)
         delay(delay)
       }
     }
@@ -165,11 +165,11 @@ class Enphase(
   private suspend fun enableLiveStatus(serialNum: String) {
     client.get("$LIVE_STREAM_URL?serial_num=$serialNum") {
       cookie(COOKIE, sessionId())
-    } .bodyAsText()
+    }.bodyAsText()
   }
 
   private suspend fun loadData(siteId: String, date: LocalDate): String {
-    return withContext(Dispatchers.IO) {
+    return withContext(IO) {
       val cached = cache.read(siteId, date)
       if (cached != null) {
         return@withContext cached
@@ -188,7 +188,7 @@ class Enphase(
 }
 
 private suspend fun HttpClient.getSessionId(email: String, password: String): String {
-  return withContext(Dispatchers.IO) {
+  return withContext(IO) {
     val response = submitForm(
       LOGIN_URL,
       parameters {
