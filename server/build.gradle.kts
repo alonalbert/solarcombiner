@@ -13,6 +13,7 @@ dependencies {
   implementation(libs.jakarta.validation)
   implementation(libs.kotlin.reflect)
   implementation(libs.kotlinx.cli)
+  implementation(libs.kotlinx.coroutines.core.jvm)
   implementation(libs.kotlinx.datetime)
   implementation(libs.ktor.client.apache)
   implementation(libs.ktor.client.auth)

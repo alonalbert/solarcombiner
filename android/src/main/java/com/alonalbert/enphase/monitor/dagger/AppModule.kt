@@ -4,7 +4,13 @@ import android.app.Application
 import com.alonalbert.enphase.monitor.TheApplication
 import com.alonalbert.enphase.monitor.settings.dataStore
 import com.alonalbert.enphase.monitor.settings.email
+import com.alonalbert.enphase.monitor.settings.exportHost
+import com.alonalbert.enphase.monitor.settings.exportPort
+import com.alonalbert.enphase.monitor.settings.exportSerialNum
 import com.alonalbert.enphase.monitor.settings.exportSiteId
+import com.alonalbert.enphase.monitor.settings.mainHost
+import com.alonalbert.enphase.monitor.settings.mainPort
+import com.alonalbert.enphase.monitor.settings.mainSerialNum
 import com.alonalbert.enphase.monitor.settings.mainSiteId
 import com.alonalbert.enphase.monitor.settings.password
 import com.alonalbert.solar.combiner.enphase.Enphase
@@ -31,7 +37,13 @@ object AppModule {
         preferences.email,
         preferences.password,
         preferences.mainSiteId,
+        preferences.mainSerialNum,
+        preferences.mainHost,
+        preferences.mainPort,
         preferences.exportSiteId,
+        preferences.exportSerialNum,
+        preferences.exportHost,
+        preferences.exportPort,
         application.cacheDir.toPath(),
       )
     }

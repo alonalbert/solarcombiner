@@ -10,6 +10,7 @@ dependencies {
   implementation(libs.ktor.client.auth)
   implementation(libs.ktor.serialization.kotlinx.json)
   implementation(libs.kotlinx.serialization.core)
+  implementation(libs.kotlinx.serialization.core)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.kotlinx.datetime)
   implementation(libs.jakarta.persistence)

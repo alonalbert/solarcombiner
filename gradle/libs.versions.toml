@@ -16,6 +16,7 @@ javax-inject = "1"
 junit4 = "4.13.2"
 kotlin = "2.1.21"
 kotlinx-cli = "0.3.6"
+kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.6.2"
 kotlinx-serialization = "1.8.1"
 ksp = "2.1.21-2.0.1"
@@ -62,6 +63,8 @@ javax-inject = { module = "javax.inject:javax.inject", version.ref = "javax-inje
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-core-jvm = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }

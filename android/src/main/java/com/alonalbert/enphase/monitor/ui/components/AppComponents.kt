@@ -16,7 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -55,7 +55,7 @@ fun NormalTextComponent(value: String) {
       fontWeight = FontWeight.Normal,
       fontStyle = FontStyle.Normal
     ),
-    color = MaterialTheme.colorScheme.onBackground,
+    color = colorScheme.onBackground,
     textAlign = TextAlign.Center
   )
 }
@@ -72,7 +72,7 @@ fun HeadingTextComponent(value: String) {
       fontWeight = FontWeight.Bold,
       fontStyle = FontStyle.Normal
     ),
-    color = MaterialTheme.colorScheme.onBackground,
+    color = colorScheme.onBackground,
     textAlign = TextAlign.Center
   )
 }
@@ -83,7 +83,8 @@ fun TextFieldComponent(
   labelValue: String,
   painterResource: Painter? = null,
   onTextChanged: (String) -> Unit,
-  isError: Boolean = false
+  isError: Boolean = false,
+  keyboardType: KeyboardType = KeyboardType.Unspecified,
 ) {
 
   OutlinedTextField(
@@ -91,11 +92,11 @@ fun TextFieldComponent(
       .fillMaxWidth(),
     label = { Text(text = labelValue) },
     colors = OutlinedTextFieldDefaults.colors(
-      focusedBorderColor = MaterialTheme.colorScheme.primary,
-      focusedLabelColor = MaterialTheme.colorScheme.primary,
-      cursorColor = MaterialTheme.colorScheme.primary,
+      focusedBorderColor = colorScheme.primary,
+      focusedLabelColor = colorScheme.primary,
+      cursorColor = colorScheme.primary,
     ),
-    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = keyboardType),
     singleLine = true,
     maxLines = 1,
     value = text,
@@ -129,9 +130,9 @@ fun PasswordTextFieldComponent(
       .fillMaxWidth(),
     label = { Text(text = labelValue) },
     colors = OutlinedTextFieldDefaults.colors(
-      focusedBorderColor = MaterialTheme.colorScheme.primary,
-      focusedLabelColor = MaterialTheme.colorScheme.primary,
-      cursorColor = MaterialTheme.colorScheme.primary,
+      focusedBorderColor = colorScheme.primary,
+      focusedLabelColor = colorScheme.primary,
+      cursorColor = colorScheme.primary,
     ),
     keyboardOptions = KeyboardOptions(
       keyboardType = KeyboardType.Password,
@@ -193,7 +194,7 @@ fun ButtonComponent(value: String, onButtonClicked: () -> Unit, isEnabled: Boole
         .fillMaxWidth()
         .heightIn(48.dp)
         .background(
-          color = MaterialTheme.colorScheme.primary,
+          color = if (isEnabled) colorScheme.primary else colorScheme.primary.copy(alpha = 0.4f),
           shape = RoundedCornerShape(50.dp)
         ),
       contentAlignment = Alignment.Center

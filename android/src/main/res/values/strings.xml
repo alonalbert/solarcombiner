@@ -8,7 +8,13 @@
   <string name="password">Password</string>
   <string name="login">Login</string>
   <string name="welcome">Welcome</string>
-  <string name="inner_system_id">Inner system id</string>
-  <string name="outer_system_id">Outer system id</string>
+  <string name="main_site_id">Main site id</string>
+  <string name="main_serial_num">Main serial number</string>
+  <string name="main_host">Main host</string>
+  <string name="main_port">Main port</string>
+  <string name="export_site_id">Export site id</string>
+  <string name="export_serial_num">Export serial number</string>
+  <string name="export_host">Export host</string>
+  <string name="export_port">Export port</string>
   <string name="loading">Loading…</string>
 </resources>

@@ -1,33 +1,52 @@
 package com.alonalbert.solar.combiner.enphase
 
 import com.alonalbert.solar.combiner.enphase.model.Energy
+import com.alonalbert.solar.combiner.enphase.model.GetTokenRequest
+import com.alonalbert.solar.combiner.enphase.model.LiveStatus
 import com.alonalbert.solarsim.simulator.DailyEnergy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonNull
-import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRedirect
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.accept
 import io.ktor.client.request.cookie
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType.Application
+import io.ktor.http.contentType
 import io.ktor.http.parameters
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import java.time.LocalDate
 import kotlin.LazyThreadSafetyMode.SYNCHRONIZED
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import com.google.gson.JsonObject as GsonObject
 
 private const val LOGIN_URL = "https://enlighten.enphaseenergy.com/login/login.json"
+private const val TOKEN_URL = "http://entrez.enphaseenergy.com/tokens"
+private const val LIVE_STREAM_URL = "https://enlighten.enphaseenergy.com/pv/aws_sigv4/livestream.json"
 private const val DAILY_ENERGY =
   "https://enlighten.enphaseenergy.com/pv/systems/%1\$s/daily_energy?start_date=%2\$d-%3$02d-%4$02d&end_date=%2\$d-%3$02d-%4$02d"
 private const val COOKIE = "_enlighten_4_session"
@@ -37,10 +56,16 @@ private val gson = GsonBuilder()
   .create()
 
 class Enphase(
-  email: String,
+  private val email: String,
   password: String,
   private val mainSiteId: String,
+  private val mainSiteSerialNum: String,
+  mainSiteHost: String,
+  mainSitePort: Int,
   private val exportSiteId: String,
+  private val exportSiteSerialNum: String,
+  exportSiteHost: String,
+  exportSitePort: Int,
   cacheDir: Path,
 ) {
   private val cache = Cache(cacheDir)
@@ -50,8 +75,10 @@ class Enphase(
       client.getSessionId(email, password)
     }
   }
-
   private suspend fun sessionId() = _sessionId.await()
+  private val mainEnvoyUrl = "https://$mainSiteHost:$mainSitePort"
+  private val exportEnvoyUrl = "https://$exportSiteHost:$exportSitePort"
+
   suspend fun getDailyEnergy(date: LocalDate): DailyEnergy {
     return withContext(Dispatchers.Unconfined) {
       val mainData = gson.getObject(loadData(mainSiteId, date))
@@ -91,6 +118,55 @@ class Enphase(
     }
   }
 
+  suspend fun streamLiveStatus(delay: Duration = 1.seconds): Flow<LiveStatus> {
+    enableLiveStatus(mainSiteSerialNum)
+    enableLiveStatus(exportSiteSerialNum)
+    val mainToken = getEnvoyToken(mainSiteSerialNum)
+    val exportToken = getEnvoyToken(exportSiteSerialNum)
+
+    return flow {
+      withContext(Dispatchers.IO) {
+        val mainStatus = getLiveStatus(mainEnvoyUrl, mainToken)
+        val exportStatus = getLiveStatus(exportEnvoyUrl, exportToken)
+        emit(mainStatus.copy(mainStatus.pv + exportStatus.pv, grid = mainStatus.grid - exportStatus.grid))
+      }
+
+      withContext(Dispatchers.Default) {
+        delay(delay)
+      }
+    }
+  }
+
+  private suspend fun getLiveStatus(url: String, token: Any): LiveStatus {
+    val response = client.get("$url/ivp/livedata/status") {
+      accept(Application.Json)
+      header("Authorization", "Bearer $token")
+    }
+
+    val json = Json.decodeFromString<JsonObject>(response.bodyAsText())
+
+    val meters = json.getValue("meters").jsonObject
+    val pv = meters.getKiloWatts("pv")
+    val storage = meters.getKiloWatts("storage")
+    val grid = meters.getKiloWatts("grid")
+    val load = meters.getKiloWatts("load")
+    return LiveStatus(pv, storage, grid, load)
+  }
+
+  private suspend fun getEnvoyToken(serialNum: String): String {
+    val response = client.post(TOKEN_URL) {
+      contentType(Application.Json)
+      setBody(GetTokenRequest(sessionId(), serialNum, email))
+    }
+    return response.bodyAsText()
+  }
+
+
+  private suspend fun enableLiveStatus(serialNum: String) {
+    client.get("$LIVE_STREAM_URL?serial_num=$serialNum") {
+      cookie(COOKIE, sessionId())
+    } .bodyAsText()
+  }
 
   private suspend fun loadData(siteId: String, date: LocalDate): String {
     return withContext(Dispatchers.IO) {
@@ -125,9 +201,9 @@ private suspend fun HttpClient.getSessionId(email: String, password: String): St
 
 private suspend fun HttpResponse.bodyAsPrettyJson() = gson.toJson(JsonParser.parseString(bodyAsText()))
 
-private fun Gson.getObject(json: String) = fromJson(json, JsonObject::class.java)
+private fun Gson.getObject(json: String) = fromJson(json, GsonObject::class.java)
 
-private fun JsonObject.getDoubles(key: String) = getAsJsonArray(key).map {
+private fun GsonObject.getDoubles(key: String) = getAsJsonArray(key).map {
   if (it is JsonNull) 0.0 else it.asDouble
 }
 
@@ -154,3 +230,6 @@ private fun createClient(): HttpClient {
     }
   }
 }
+
+private fun JsonObject.getKiloWatts(key: String) =
+  getValue(key).jsonObject.getValue("agg_p_mw").jsonPrimitive.double / 1_000_000

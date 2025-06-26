@@ -1,11 +1,8 @@
 package com.alonalbert.solar.combiner
 
 import com.alonalbert.solar.combiner.enphase.Enphase
-import com.alonalbert.solar.combiner.enphase.util.rangeTo
-import com.alonalbert.solar.combiner.enphase.util.toText
 import kotlinx.coroutines.runBlocking
 import java.nio.file.Path
-import java.time.LocalDate
 import java.util.Properties
 
 fun main() = runBlocking {
@@ -18,12 +15,27 @@ fun main() = runBlocking {
   val password = properties.getProperty("login.password")
   val mainSiteId = properties.getProperty("site.main")
   val exportSiteId = properties.getProperty("site.export")
-  val enphase = Enphase(email, password, mainSiteId, exportSiteId, Path.of("cache"))
-  val start = LocalDate.of(2025, 6, 17)
-  val end = LocalDate.now()
-  (start..end).forEach { date ->
-    println("$date...")
-    val dailyEnergy = enphase.getDailyEnergy(date)
-    dailyEnergy.plotEnergy("out/${date.toText()}.png", batteryCapacity = 20.0)
+  val mainSerialNum = properties.getProperty("envoy.main.serial")
+  val mainHost = properties.getProperty("envoy.main.host")
+  val mainPort = properties.getProperty("envoy.main.port").toInt()
+  val exportSerialNum = properties.getProperty("envoy.export.serial")
+  val exportHost = properties.getProperty("envoy.export.host")
+  val exportPort = properties.getProperty("envoy.export.port").toInt()
+  val enphase = Enphase(
+    email,
+    password,
+    mainSiteId,
+    mainSerialNum,
+    mainHost,
+    mainPort,
+    exportSiteId,
+    exportSerialNum,
+    exportHost,
+    exportPort,
+    Path.of("cache"),
+  )
+  enphase.streamLiveStatus().collect {
+    println(it)
+    println("============================")
   }
 }

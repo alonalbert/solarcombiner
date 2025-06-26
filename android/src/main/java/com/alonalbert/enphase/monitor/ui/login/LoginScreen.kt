@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,7 +29,6 @@ import com.alonalbert.enphase.monitor.ui.components.ButtonComponent
 import com.alonalbert.enphase.monitor.ui.components.HeadingTextComponent
 import com.alonalbert.enphase.monitor.ui.components.PasswordTextFieldComponent
 import com.alonalbert.enphase.monitor.ui.components.TextFieldComponent
-import com.alonalbert.enphase.monitor.ui.login.LoginViewModel.LoginInfo
 
 @Composable
 fun LoginScreen(
@@ -36,29 +36,43 @@ fun LoginScreen(
 ) {
   val viewModel: LoginViewModel = hiltViewModel()
 
-  val loginState by viewModel.loginInfo.collectAsStateWithLifecycle(null)
-
-  LoginScreenContent(loginState) { username, password, innerSystemId, outerSystemId ->
-    viewModel.login(username, password, innerSystemId, outerSystemId, onLoggedIn)
+  val enphaseConfig by viewModel.loginInfo.collectAsStateWithLifecycle(EnphaseConfig())
+  println(enphaseConfig)
+  LoginScreenContent(enphaseConfig) {
+    if (it.isValid()) {
+      viewModel.login(it, onLoggedIn)
+    }
   }
 }
 
 @Composable
 fun LoginScreenContent(
-  loginInfo: LoginInfo?,
-  onLoginClick: (String, String, String, String) -> Unit,
+  enphaseConfig: EnphaseConfig,
+  onLoginClick: (EnphaseConfig) -> Unit,
 ) {
+//  var loginInfo by remember { mutableStateOf(enphaseConfig) }
+
   var email by remember { mutableStateOf("") }
   var password by remember { mutableStateOf("") }
-  var innerSystemId by remember { mutableStateOf("") }
-  var outerSystemId by remember { mutableStateOf("") }
+  var mainSiteId by remember { mutableStateOf("") }
+  var mainSerialNum by remember { mutableStateOf("") }
+  var mainHost by remember { mutableStateOf("") }
+  var mainPort by remember { mutableStateOf("") }
+  var exportSiteId by remember { mutableStateOf("") }
+  var exportSerialNum by remember { mutableStateOf("") }
+  var exportHost by remember { mutableStateOf("") }
+  var exportPort by remember { mutableStateOf("") }
 
-  if (loginInfo != null) {
-    email = loginInfo.email
-    password = loginInfo.password
-    innerSystemId = loginInfo.innerSystemId
-    outerSystemId = loginInfo.outerSystemId
-  }
+  email = enphaseConfig.email
+  password = enphaseConfig.password
+  mainSiteId = enphaseConfig.mainSiteId
+  mainSerialNum = enphaseConfig.mainSerialNum
+  mainHost = enphaseConfig.mainHost
+  mainPort = enphaseConfig.mainPort.toString()
+  exportSiteId = enphaseConfig.exportSiteId
+  exportSerialNum = enphaseConfig.exportSerialNum
+  exportHost = enphaseConfig.exportHost
+  exportPort = enphaseConfig.exportPort.toString()
 
   Surface(
     modifier = Modifier
@@ -94,36 +108,74 @@ fun LoginScreenContent(
           isError = password.isBlank()
         )
         TextFieldComponent(
-          text = innerSystemId,
-          labelValue = stringResource(id = R.string.inner_system_id),
-          onTextChanged = { innerSystemId = it },
-          isError = innerSystemId.isBlank()
+          text = mainSiteId,
+          labelValue = stringResource(id = R.string.main_site_id),
+          onTextChanged = { mainSiteId = it },
+          isError = mainSiteId.isBlank()
         )
         TextFieldComponent(
-          text = outerSystemId,
-          labelValue = stringResource(id = R.string.outer_system_id),
-          onTextChanged = { outerSystemId = it },
-          isError = outerSystemId.isBlank()
+          text = mainSerialNum,
+          labelValue = stringResource(id = R.string.main_serial_num),
+          onTextChanged = { mainSerialNum = it },
+          isError = mainSerialNum.isBlank()
+        )
+        TextFieldComponent(
+          text = mainHost,
+          labelValue = stringResource(id = R.string.main_host),
+          onTextChanged = { mainHost = it },
+          isError = mainHost.isBlank()
+        )
+        TextFieldComponent(
+          text = mainPort,
+          labelValue = stringResource(id = R.string.main_port),
+          onTextChanged = { mainPort = it },
+          isError = mainPort.toPort() <=0,
+          keyboardType = KeyboardType.Number,
+        )
+        TextFieldComponent(
+          text = exportSiteId,
+          labelValue = stringResource(id = R.string.export_site_id),
+          onTextChanged = { exportSiteId = it },
+          isError = exportSiteId.isBlank()
+        )
+        TextFieldComponent(
+          text = exportSerialNum,
+          labelValue = stringResource(id = R.string.export_serial_num),
+          onTextChanged = { exportSerialNum = it },
+          isError = exportSerialNum.isBlank()
+        )
+        TextFieldComponent(
+          text = exportHost,
+          labelValue = stringResource(id = R.string.export_host),
+          onTextChanged = { exportHost = it },
+          isError = exportHost.isBlank()
+        )
+        TextFieldComponent(
+          text = exportPort,
+          labelValue = stringResource(id = R.string.export_port),
+          onTextChanged = { exportPort = it },
+          isError = exportPort.toPort() <=0,
+          keyboardType = KeyboardType.Number,
         )
 
-
         Spacer(modifier = Modifier.height(40.dp))
+        val config =
+          EnphaseConfig(email, password, mainSiteId, mainSerialNum, mainHost, mainPort.toPort(), exportSiteId, exportSerialNum, exportHost, exportPort.toPort())
         ButtonComponent(
           value = stringResource(id = R.string.login),
           onButtonClicked = {
-            onLoginClick(email, password, innerSystemId, outerSystemId)
+            onLoginClick(config)
           },
-          isEnabled = email.isNotEmpty() && password.isNotEmpty() && innerSystemId.isNotEmpty() && outerSystemId.isNotEmpty()
+          isEnabled = config.isValid(),
         )
-
       }
-
     }
   }
 }
+private fun String.toPort() = toIntOrNull() ?: 0
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun PreviewLoginScreen() {
-  LoginScreenContent(loginInfo = LoginInfo(), onLoginClick = { _, _, _, _ -> })
+  LoginScreenContent(enphaseConfig = EnphaseConfig(), onLoginClick = {})
 }

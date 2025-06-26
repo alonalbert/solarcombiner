@@ -1,7 +1,7 @@
 package com.alonalbert.solar.combiner.enphase
 
 import com.alonalbert.solar.combiner.enphase.model.GetTokenRequest
-import com.alonalbert.solar.combiner.enphase.model.RealtimeData
+import com.alonalbert.solar.combiner.enphase.model.LiveStatus
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import io.ktor.client.HttpClient
@@ -40,7 +40,7 @@ class Envoy private constructor(
     client.get("$LIVE_STREAM_URL?serial_num=$serialNum").bodyAsText()
   }
 
-  suspend fun getRealtimeData(): RealtimeData {
+  suspend fun getRealtimeData(): LiveStatus {
     val response = client.get("$baseUrl/ivp/livedata/status") {
       accept(Application.Json)
       header("Authorization", "Bearer $token")
@@ -53,7 +53,7 @@ class Envoy private constructor(
     val storage = meters.getKiloWatts("storage")
     val grid = meters.getKiloWatts("grid")
     val load = meters.getKiloWatts("load")
-    return RealtimeData(pv, storage, grid, load)
+    return LiveStatus(pv, storage, grid, load)
   }
 
   private fun JsonObject.getKiloWatts(key: String) =

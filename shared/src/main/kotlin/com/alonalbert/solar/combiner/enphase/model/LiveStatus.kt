@@ -1,6 +1,6 @@
 package com.alonalbert.solar.combiner.enphase.model
 
-data class RealtimeData(
+data class LiveStatus(
   val pv: Double,
   val storage: Double,
   val grid: Double,

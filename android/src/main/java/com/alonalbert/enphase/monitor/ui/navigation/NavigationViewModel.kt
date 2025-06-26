@@ -6,6 +6,7 @@ import com.alonalbert.enphase.monitor.TheApplication
 import com.alonalbert.enphase.monitor.settings.LOGGED_IN
 import com.alonalbert.enphase.monitor.settings.dataStore
 import com.alonalbert.enphase.monitor.settings.updateSettings
+import com.alonalbert.enphase.monitor.ui.login.EnphaseConfig
 import com.alonalbert.enphase.monitor.ui.navigation.NavigationViewModel.LoginState.Loading
 import com.alonalbert.enphase.monitor.ui.navigation.NavigationViewModel.LoginState.LoggedIn
 import com.alonalbert.enphase.monitor.ui.navigation.NavigationViewModel.LoginState.LoggedOut
@@ -20,10 +21,9 @@ class NavigationViewModel @Inject constructor(
 ) : ViewModel() {
 
   val loginState = application.dataStore.data.map {
-    if (it[LOGGED_IN] == true) {
-      LoggedIn
-    } else {
-      LoggedOut
+    when(EnphaseConfig(it).isValid()) {
+      true -> LoggedIn
+      false -> LoggedOut
     }
   }.stateIn(viewModelScope, Loading)
 
