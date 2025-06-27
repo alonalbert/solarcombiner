@@ -30,9 +30,9 @@ class DailyEnergyValueFormatter(private val dailyEnergy: DailyEnergy):  ValueFor
         appendEnergyColumn("Produced", energy.outerProduced + energy.innerProduced, Colors.Produced)
         val imported = energy.imported - energy.innerExported - energy.outerProduced
         if (imported >= 0) {
-          appendEnergyColumn("Imported", imported, Colors.Imported)
+          appendEnergyColumn("Imported", imported, Colors.Grid)
         } else {
-          appendEnergyColumn("Exported", -imported, Colors.Imported)
+          appendEnergyColumn("Exported", -imported, Colors.Grid)
         }
         appendEnergyColumn("Charged", energy.charged, Colors.Battery)
         appendEnergyColumn("Discharged", energy.discharged, Colors.Battery)

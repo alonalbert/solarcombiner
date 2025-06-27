@@ -16,7 +16,7 @@ object Colors {
 
   val Produced = Color(EnergyColors.produced).copy(alpha = 1.0f)
   val Consumed = Color(EnergyColors.consumed).copy(alpha = 1.0f)
-  val Imported = Color(EnergyColors.imported).copy(alpha = 1.0f)
+  val Grid = Color(EnergyColors.imported).copy(alpha = 1.0f)
   val Battery = Color(EnergyColors.battery).copy(alpha = 1.0f)
 }
 

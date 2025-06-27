@@ -51,7 +51,7 @@ fun DailyEnergyChart(
             ColumnCartesianLayer.ColumnProvider.series(
               rememberLineComponent(fill = fill(Colors.Produced), thickness = 2.2.dp),
               rememberLineComponent(fill = fill(Colors.Consumed), thickness = 2.2.dp),
-              rememberLineComponent(fill = fill(Colors.Imported), thickness = 2.2.dp),
+              rememberLineComponent(fill = fill(Colors.Grid), thickness = 2.2.dp),
               rememberLineComponent(fill = fill(Colors.Battery), thickness = 2.2.dp),
             ),
           columnCollectionSpacing = 0.8.dp,
@@ -71,11 +71,6 @@ fun DailyEnergyChart(
     modifier = modifier.height(252.dp),
     zoomState = rememberVicoZoomState(zoomEnabled = false),
   )
-}
-
-@Composable
-fun DailyEnergyChart(modifier: Modifier = Modifier) {
-  DailyEnergyChart(SampleData.sampleData, modifier)
 }
 
 @Composable

@@ -8,6 +8,7 @@ import kotlin.math.abs
 
 val Double.kwh get() = "%.2f kWh".format(this)
 val Double.kw get() = "%.2f kW".format(this)
+val Double.round get() = "%.2f".format(this)
 
 operator fun LocalDate.plus(days: Int): LocalDate = plusDays(days.toLong())
 
