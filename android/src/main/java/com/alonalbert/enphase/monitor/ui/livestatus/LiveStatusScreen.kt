@@ -12,15 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.alonalbert.enphase.monitor.ui.components.buildPath
-import com.alonalbert.enphase.monitor.ui.components.drawLineWithArrow
+import com.alonalbert.enphase.monitor.ui.components.energyArrow
 import com.alonalbert.enphase.monitor.ui.theme.Colors
 import com.alonalbert.enphase.monitor.util.toDisplay
 
@@ -28,8 +26,7 @@ private val nodeRadius = 20.dp
 private val nodeSize = 80.dp
 private val nodeStroke = 2.dp
 private val storageOffset = 8.dp
-
-private val arrowOffset = storageOffset
+private val offCenter = 8.dp
 private val arrowRadius = 20.dp
 
 @Composable
@@ -56,23 +53,16 @@ fun LiveStatusScreen(
 @Composable
 private fun PvToLoad() {
   Canvas(modifier = Modifier.fillMaxSize()) {
-    val arrowOffsetPx = arrowOffset.toPx()
-    val arrowRadiusPx = arrowRadius.toPx()
-    val x = center.x + arrowOffsetPx
-    val path = buildPath {
-      moveTo(x, nodeSize.toPx())
-      val y1 = middle.y - arrowRadiusPx - arrowOffsetPx
-      lineTo(x, y1)
-      arcTo(Rect(Offset(center.x + arrowRadiusPx + arrowOffsetPx, y1), arrowRadiusPx), 180f, -90f, true)
-    }
-    val color = Colors.Produced
-    drawPath(path, color = color, style = Stroke(1.dp.toPx()))
-    val y2 = middle.y - arrowOffsetPx
-    drawLineWithArrow(
-      start = Offset(x + arrowRadiusPx, y2),
-      end = Offset(size.width - nodeSize.toPx(), y2),
-      color = color,
-      strokeWidth = 1.dp.toPx(),
+    val offset = offCenter.toPx()
+    val x = middle.x + offset
+    val y = middle.y - offset
+    val node = nodeSize.toPx()
+    energyArrow(
+      start = Offset(x, node),
+      corner = Offset(x, y),
+      end = Offset(size.width - node, y),
+      color = Colors.Produced,
+      radius = arrowRadius,
     )
   }
 }
@@ -80,23 +70,16 @@ private fun PvToLoad() {
 @Composable
 private fun PvToGrid() {
   Canvas(modifier = Modifier.fillMaxSize()) {
-    val arrowOffsetPx = arrowOffset.toPx()
-    val arrowRadiusPx = arrowRadius.toPx()
-    val x = center.x - arrowOffsetPx
-    val path = buildPath {
-      moveTo(x, nodeSize.toPx())
-      val y1 = middle.y - arrowRadiusPx - arrowOffsetPx
-      lineTo(x, y1)
-      arcTo(Rect(Offset(center.x - arrowRadiusPx - arrowOffsetPx, y1), arrowRadiusPx), 0f, 90f, true)
-    }
-    val color = Colors.Produced
-    drawPath(path, color = color, style = Stroke(1.dp.toPx()))
-    val y2 = middle.y - arrowOffsetPx
-    drawLineWithArrow(
-      start = Offset(x - arrowRadiusPx, y2),
-      end = Offset(nodeSize.toPx(), y2),
-      color = color,
-      strokeWidth = 1.dp.toPx(),
+    val offset = offCenter.toPx()
+    val x = middle.x - offset
+    val y = middle.y - offset
+    val node = nodeSize.toPx()
+    energyArrow(
+      start = Offset(x, node),
+      corner = Offset(x, y),
+      end = Offset(node, y),
+      color = Colors.Produced,
+      radius = arrowRadius,
     )
   }
 }
@@ -104,23 +87,16 @@ private fun PvToGrid() {
 @Composable
 private fun StorageToLoad() {
   Canvas(modifier = Modifier.fillMaxSize()) {
-    val arrowOffsetPx = arrowOffset.toPx()
-    val arrowRadiusPx = arrowRadius.toPx()
-    val x = center.x + arrowOffsetPx
-    val path = buildPath {
-      moveTo(x, size.height - nodeSize.toPx() - storageOffset.toPx())
-      val y1 = middle.y + arrowRadiusPx + arrowOffsetPx
-      lineTo(x, y1)
-      arcTo(Rect(Offset(center.x + arrowRadiusPx + arrowOffsetPx, y1), arrowRadiusPx), -90f, -90f, true)
-    }
-    val color = Colors.Battery
-    drawPath(path, color = color, style = Stroke(1.dp.toPx()))
-    val y2 = middle.y + arrowOffsetPx
-    drawLineWithArrow(
-      start = Offset(x + arrowRadiusPx, y2),
-      end = Offset(size.width - nodeSize.toPx(), y2),
-      color = color,
-      strokeWidth = 1.dp.toPx(),
+    val offset = offCenter.toPx()
+    val x = middle.x + offset
+    val y = middle.y + offset
+    val node = nodeSize.toPx()
+    energyArrow(
+      start = Offset(x, size.height - node - storageOffset.toPx()),
+      corner = Offset(x, y),
+      end = Offset(size.width - node, y),
+      color = Colors.Battery,
+      radius = arrowRadius,
     )
   }
 }
@@ -128,7 +104,7 @@ private fun StorageToLoad() {
 @Composable
 private fun PvToStorage() {
   Canvas(modifier = Modifier.fillMaxSize()) {
-    drawLineWithArrow(
+    energyArrow(
       start = Offset(center.x, nodeSize.toPx()),
       end = Offset(center.x, size.height - nodeSize.toPx() - storageOffset.toPx()),
       color = Colors.Produced,
@@ -140,7 +116,7 @@ private fun PvToStorage() {
 @Composable
 private fun GridToLoad() {
   Canvas(modifier = Modifier.fillMaxSize()) {
-    drawLineWithArrow(
+    energyArrow(
       start = Offset(nodeSize.toPx(), middle.y),
       end = Offset(size.width - nodeSize.toPx(), middle.y),
       color = Colors.Grid,
@@ -155,7 +131,6 @@ private fun BoxScope.Node(name: String, value: Double, color: Color, alignment: 
     horizontalAlignment = Alignment.CenterHorizontally,
     modifier = Modifier
       .size(nodeSize)
-//      .offset(x, y)
       .align(alignment)
   ) {
     Canvas(modifier = Modifier.size(nodeRadius * 2)) {
