@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -29,6 +30,7 @@ fun DrawScope.energyArrow(
   strokeWidth: Float = 1.dp.px,
   arrowLengthDp: Dp = 8.dp,
   arrowAngle: Float = 60f,
+  pointPosition: Float? = null,
 ) {
   assert(
     (corner.x == start.x && corner.y == end.y) || (corner.x == end.x && corner.y == start.y)
@@ -63,12 +65,19 @@ fun DrawScope.energyArrow(
   val linePath = buildPath {
     moveTo(start)
     lineTo(line1End)
-    arcTo(rect, startAngle, sweepAngle, true)
+    arcTo(rect, startAngle, sweepAngle, false)
     lineTo(line2Start)
     lineTo((arrow1.x + arrow2.x) / 2, (arrow1.y + arrow2.y) / 2)
   }
   drawPath(linePath, color, style = Stroke(strokeWidth))
 
+  val pathMeasure = PathMeasure()
+  if (pointPosition != null) {
+    pathMeasure.setPath(linePath, false)
+    val position = pathMeasure.getPosition(pathMeasure.length * pointPosition)
+    drawCircle(color, radius = strokeWidth * 2f, center = position)
+    drawCircle(color.copy(alpha = 0.25f), radius = strokeWidth * 4, center = position)
+  }
   val arrowPath = buildPath {
     moveTo(end)
     lineTo(arrow1)
@@ -133,6 +142,7 @@ fun EnergyArrow1() {
       end = Offset(380.dp.px, 180.dp.px),
       color = Color.Black,
       radius = 20.dp,
+      pointPosition = .75f,
     )
     energyArrow(
       start = Offset(180.dp.px, 20.dp.px),
