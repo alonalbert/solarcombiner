@@ -31,6 +31,7 @@ android {
     targetCompatibility = JavaVersion.VERSION_11
   }
   kotlinOptions {
+    freeCompilerArgs += "-Xcontext-parameters"
     jvmTarget = "11"
   }
   buildFeatures {

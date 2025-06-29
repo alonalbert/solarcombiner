@@ -1,9 +1,13 @@
 package com.alonalbert.enphase.monitor.util
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.solar.combiner.enphase.util.round
 
@@ -16,3 +20,9 @@ fun Double.toDisplay(unit: String, valueSize: TextUnit = 16.sp, unitSize: TextUn
       append(" $unit")
     }
   }
+
+context(drawScope: DrawScope)
+val Dp.px get() = with(drawScope) { toPx() }
+
+context(drawScope: DrawScope)
+val Offset.px get() = with(drawScope) { Offset(x.dp.px, y.dp.px) }
