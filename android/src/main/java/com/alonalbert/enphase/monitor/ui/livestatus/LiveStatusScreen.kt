@@ -12,9 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,14 +27,11 @@ private val nodeStroke = 2.dp
 private val storagePad = 8.dp
 private val gridPad = 32.dp
 private val loadPad = gridPad
-private val offCenter = 8.dp
-private val arrowRadius = 20.dp
 
 @Composable
 fun LiveStatusScreen(
   modifier: Modifier = Modifier,
 ) {
-//  val nodeRadius = dimensionResource(R.dimen.node_radius)
   Box(modifier = modifier
     .fillMaxSize()
     .aspectRatio(1f)) {
@@ -143,8 +138,6 @@ private fun BoxScope.Node(name: String, value: Double, color: Color, alignment: 
     Text(name, color = Color.Gray, fontSize = 14.sp)
   }
 }
-
-private val DrawScope.middle get() = Offset(center.x, center.y - nodeRadius.toPx())
 
 @Preview(showBackground = true, widthDp = 400, heightDp = 800, backgroundColor = 0xFFE0E0E0)
 @Composable
