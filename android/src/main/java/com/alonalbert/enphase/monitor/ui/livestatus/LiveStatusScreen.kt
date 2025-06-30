@@ -30,6 +30,7 @@ private val loadPad = gridPad
 
 @Composable
 fun LiveStatusScreen(
+//  liveStatus: LiveStatus,
   modifier: Modifier = Modifier,
 ) {
   Box(modifier = modifier

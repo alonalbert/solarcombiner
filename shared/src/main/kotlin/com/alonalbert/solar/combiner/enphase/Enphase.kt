@@ -130,7 +130,12 @@ class Enphase(
       while (true) {
         val mainStatus = withContext(IO) { getLiveStatus(mainEnvoyUrl, mainToken) }
         val exportStatus = withContext(IO) { getLiveStatus(exportEnvoyUrl, exportToken) }
-        val combined = mainStatus.copy(mainStatus.pv + exportStatus.pv, grid = mainStatus.grid - exportStatus.pv)
+        val combined = LiveStatus(
+          pv = mainStatus.pv + exportStatus.pv,
+          storage = mainStatus.storage,
+          grid = mainStatus.grid - exportStatus.pv,
+          load = mainStatus.load,
+        )
         emit(combined)
         delay(delay)
       }

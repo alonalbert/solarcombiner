@@ -1,6 +1,7 @@
 package com.alonalbert.solar.combiner
 
 import com.alonalbert.solar.combiner.enphase.Enphase
+import com.alonalbert.solar.combiner.enphase.calculateEnergyFlow
 import kotlinx.coroutines.runBlocking
 import java.nio.file.Path
 import java.util.Properties
@@ -37,6 +38,6 @@ fun main() = runBlocking {
   )
   enphase.streamLiveStatus().collect {
     println(it)
-    println("============================")
+    println(it.calculateEnergyFlow().toString().prependIndent("  "))
   }
 }
