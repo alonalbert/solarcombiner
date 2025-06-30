@@ -1,7 +1,5 @@
 package com.alonalbert.solar.combiner.enphase.model
 
-import com.alonalbert.solar.combiner.enphase.util.zerofy
-
 private const val format = "%-12s: %.2f"
 
 class LiveEnergyFlow(
@@ -15,25 +13,25 @@ class LiveEnergyFlow(
 ) {
   override fun toString(): String {
     return buildString {
-      if (pvToLoad.zerofy() > 0) {
+      if (pvToLoad > 0) {
         appendLine(format.format("pvToLoad", pvToLoad))
       }
-      if (pvToStorage.zerofy() > 0) {
+      if (pvToStorage > 0) {
         appendLine(format.format("pvToStorage", pvToStorage))
       }
-      if (pvToGrid.zerofy() > 0) {
+      if (pvToGrid > 0) {
         appendLine(format.format("pvToGrid", pvToGrid))
       }
-      if (storageToLoad.zerofy() > 0) {
+      if (storageToLoad > 0) {
         appendLine(format.format("storageToLoad", storageToLoad))
       }
-      if (storageToGrid.zerofy() > 0) {
+      if (storageToGrid > 0) {
         appendLine(format.format("storageToGrid", storageToGrid))
       }
-      if (gridToLoad.zerofy() > 0) {
+      if (gridToLoad > 0) {
         appendLine(format.format("gridToLoad", gridToLoad))
       }
-      if (gridToStorage.zerofy() > 0) {
+      if (gridToStorage > 0) {
         appendLine(format.format("gridToStorage", gridToStorage))
       }
     }

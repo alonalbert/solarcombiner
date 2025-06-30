@@ -81,11 +81,19 @@ fun LiveStatus.calculateEnergyFlow(): LiveEnergyFlow {
   assert(grid.zerofy() == 0.0)
   assert(load.zerofy() == 0.0)
 
-  return LiveEnergyFlow(pvToLoad, pvToStorage, pvToGrid, gridToLoad, gridToStorage, storageToLoad, storageToGrid)
+  return LiveEnergyFlow(
+    pvToLoad.zerofy(),
+    pvToStorage.zerofy(),
+    pvToGrid.zerofy(),
+    gridToLoad.zerofy(),
+    gridToStorage.zerofy(),
+    storageToLoad.zerofy(),
+    storageToGrid.zerofy(),
+  )
 }
 
 fun main() {
-  val liveStatus = LiveStatus(pv = 10.2, storage = 0.6, grid = -3.84, load = 6.69)
+  val liveStatus = LiveStatus(pv = 10.2, storage = 0.6, grid = -3.84, load = 6.96)
   println(liveStatus)
   println(liveStatus.calculateEnergyFlow())
 }
