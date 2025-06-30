@@ -9,7 +9,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonNull
 import com.google.gson.JsonParser
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpRedirect
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
@@ -39,14 +39,17 @@ import kotlinx.serialization.json.double
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
+import java.security.SecureRandom
 import java.time.LocalDate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 import kotlin.LazyThreadSafetyMode.SYNCHRONIZED
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import com.google.gson.JsonObject as GsonObject
 
 private const val LOGIN_URL = "https://enlighten.enphaseenergy.com/login/login.json"
-private const val TOKEN_URL = "http://entrez.enphaseenergy.com/tokens"
+private const val TOKEN_URL = "https://entrez.enphaseenergy.com/tokens"
 private const val LIVE_STREAM_URL = "https://enlighten.enphaseenergy.com/pv/aws_sigv4/livestream.json"
 private const val DAILY_ENERGY =
   "https://enlighten.enphaseenergy.com/pv/systems/%1\$s/daily_energy?start_date=%2\$d-%3$02d-%4$02d&end_date=%2\$d-%3$02d-%4$02d"
@@ -217,7 +220,7 @@ private fun LocalDate.shouldCache() = this < LocalDate.now()
 private fun Double.kwh() = this / 1000 * 4
 
 private fun createClient(): HttpClient {
-  return HttpClient(CIO) {
+  return HttpClient(OkHttp) {
     install(ContentNegotiation) {
       json(Json {
         prettyPrint = true
@@ -229,8 +232,12 @@ private fun createClient(): HttpClient {
       checkHttpMethod = false
     }
     engine {
-      https {
-        trustManager = TrustingManager()
+      config {
+        val trustAllCertificates = arrayOf(TrustingManager())
+        val sslContext = SSLContext.getInstance("SSL") // Or "TLS"
+        sslContext.init(null, trustAllCertificates, SecureRandom())
+        sslSocketFactory(sslContext.socketFactory, trustAllCertificates[0] as X509TrustManager)
+        hostnameVerifier { _, _ -> true }
       }
     }
   }
