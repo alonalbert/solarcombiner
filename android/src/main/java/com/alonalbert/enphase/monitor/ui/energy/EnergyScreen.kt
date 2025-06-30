@@ -51,6 +51,6 @@ fun EnergyScreen(dailyEnergy: DailyEnergy, onDayChanged: (LocalDate) -> Unit, on
 @Composable
 fun GreetingPreview() {
   SolarCombinerTheme {
-    EnergyScreen {}
+    EnergyScreen(SampleData.sampleData, {}) {}
   }
 }
