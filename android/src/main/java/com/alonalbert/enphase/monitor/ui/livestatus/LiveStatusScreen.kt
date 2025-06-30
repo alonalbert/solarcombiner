@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,69 +53,74 @@ fun LiveStatusScreen(
   liveStatus: LiveStatus,
   modifier: Modifier = Modifier,
 ) {
-  Box(
-    modifier = modifier
-      .fillMaxSize()
-      .aspectRatio(1f)
-  ) {
-    var pv by remember { mutableDoubleStateOf(0.0) }
-    var storage by remember { mutableDoubleStateOf(0.0) }
-    var grid by remember { mutableDoubleStateOf(0.0) }
-    var load by remember { mutableDoubleStateOf(0.0) }
-    val energyFlow = try {
-       liveStatus.calculateEnergyFlow()
-    } catch (e: IllegalArgumentException) {
-      Timber.e(e)
-      return
-    }
-    var pvToLoad by remember { mutableDoubleStateOf(0.0) }
-    var pvToStorage by remember { mutableDoubleStateOf(0.0) }
-    var pvToGrid by remember { mutableDoubleStateOf(0.0) }
-    var storageToLoad by remember { mutableDoubleStateOf(0.0) }
-    var storageToGrid by remember { mutableDoubleStateOf(0.0) }
-    var gridToLoad by remember { mutableDoubleStateOf(0.0) }
-    var gridToStorage by remember { mutableDoubleStateOf(0.0) }
+  Scaffold(
+    modifier = Modifier.fillMaxSize(),
+  ) { innerPadding ->
+    Box(
+      modifier = modifier
+        .padding(innerPadding)
+        .fillMaxSize()
+        .aspectRatio(1f)
+    ) {
+      var pv by remember { mutableDoubleStateOf(0.0) }
+      var storage by remember { mutableDoubleStateOf(0.0) }
+      var grid by remember { mutableDoubleStateOf(0.0) }
+      var load by remember { mutableDoubleStateOf(0.0) }
+      val energyFlow = try {
+        liveStatus.calculateEnergyFlow()
+      } catch (e: IllegalArgumentException) {
+        Timber.e(e)
+        return@Box
+      }
+      var pvToLoad by remember { mutableDoubleStateOf(0.0) }
+      var pvToStorage by remember { mutableDoubleStateOf(0.0) }
+      var pvToGrid by remember { mutableDoubleStateOf(0.0) }
+      var storageToLoad by remember { mutableDoubleStateOf(0.0) }
+      var storageToGrid by remember { mutableDoubleStateOf(0.0) }
+      var gridToLoad by remember { mutableDoubleStateOf(0.0) }
+      var gridToStorage by remember { mutableDoubleStateOf(0.0) }
 
-    pv = liveStatus.pv
-    storage = liveStatus.storage
-    grid = liveStatus.grid
-    load = liveStatus.load
-    pvToLoad = energyFlow.pvToLoad
-    pvToStorage = energyFlow.pvToStorage
-    pvToGrid = energyFlow.pvToGrid
-    storageToLoad = energyFlow.storageToLoad
-    storageToGrid = energyFlow.storageToGrid
-    gridToLoad = energyFlow.gridToLoad
-    gridToStorage = energyFlow.gridToStorage
+      pv = liveStatus.pv
+      storage = liveStatus.storage
+      grid = liveStatus.grid
+      load = liveStatus.load
+      pvToLoad = energyFlow.pvToLoad
+      pvToStorage = energyFlow.pvToStorage
+      pvToGrid = energyFlow.pvToGrid
+      storageToLoad = energyFlow.storageToLoad
+      storageToGrid = energyFlow.storageToGrid
+      gridToLoad = energyFlow.gridToLoad
+      gridToStorage = energyFlow.gridToStorage
 
-    Node("Producing", pv, Colors.Produced, Alignment.TopCenter)
-    Node("Consuming", load, Colors.Consumed, Alignment.CenterEnd, Modifier.padding(top = loadPad))
-    Node("Discharging", storage, Colors.Battery, Alignment.BottomCenter, alternateName = "Charging")
-    Node("Importing", grid, Colors.Grid, Alignment.CenterStart, Modifier.padding(top = gridPad), alternateName = "Exporting")
+      Node("Producing", pv, Colors.Produced, Alignment.TopCenter)
+      Node("Consuming", load, Colors.Consumed, Alignment.CenterEnd, Modifier.padding(top = loadPad))
+      Node("Discharging", storage, Colors.Battery, Alignment.BottomCenter, alternateName = "Charging")
+      Node("Importing", grid, Colors.Grid, Alignment.CenterStart, Modifier.padding(top = gridPad), alternateName = "Exporting")
 
-    val modifier = Modifier
-      .fillMaxSize()
-      .padding(nodeSize, nodeSize, nodeSize, bottom = nodeSize + storagePad)
-    if (pvToLoad > 0) {
-      PvToLoad(modifier)
-    }
-    if (pvToStorage > 0) {
-      PvToStorage(modifier)
-    }
-    if (pvToGrid > 0) {
-      PvToGrid(modifier)
-    }
-    if (storageToLoad > 0) {
-      StorageToLoad(modifier)
-    }
-    if (storageToGrid > 0) {
-      StorageToGrid(modifier)
-    }
-    if (gridToLoad > 0) {
-      GridToLoad(modifier)
-    }
-    if (gridToStorage > 0) {
-      GridToStorage(modifier)
+      val modifier = Modifier
+        .fillMaxSize()
+        .padding(nodeSize, nodeSize, nodeSize, bottom = nodeSize + storagePad)
+      if (pvToLoad > 0) {
+        PvToLoad(modifier)
+      }
+      if (pvToStorage > 0) {
+        PvToStorage(modifier)
+      }
+      if (pvToGrid > 0) {
+        PvToGrid(modifier)
+      }
+      if (storageToLoad > 0) {
+        StorageToLoad(modifier)
+      }
+      if (storageToGrid > 0) {
+        StorageToGrid(modifier)
+      }
+      if (gridToLoad > 0) {
+        GridToLoad(modifier)
+      }
+      if (gridToStorage > 0) {
+        GridToStorage(modifier)
+      }
     }
   }
 }
