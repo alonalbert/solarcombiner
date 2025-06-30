@@ -76,10 +76,9 @@ fun LiveStatus.calculateEnergyFlow(): LiveEnergyFlow {
       gridToStorage += e
     }
   }
-  assert(pv.zerofy() == 0.0)
-  assert(storage.zerofy() == 0.0)
-  assert(grid.zerofy() == 0.0)
-  assert(load.zerofy() == 0.0)
+  if (pv.zerofy() != 0.0 || storage.zerofy() != 0.0 || grid.zerofy() != 0.0 || load.zerofy() != 0.0 ) {
+    throw IllegalArgumentException("Unexpected LiveStatus: $this")
+  }
 
   return LiveEnergyFlow(
     pvToLoad.zerofy(),

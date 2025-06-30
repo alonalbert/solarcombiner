@@ -37,3 +37,9 @@ java {
 springBoot {
   mainClass.set("com.alonalbert.pad.server.ServerKt")
 }
+
+kotlin {
+  compilerOptions {
+    freeCompilerArgs.add("-Xcontext-parameters")
+  }
+}

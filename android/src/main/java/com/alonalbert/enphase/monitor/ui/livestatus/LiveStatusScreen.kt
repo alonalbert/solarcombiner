@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,18 +21,31 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.ui.components.EnergyArrow
 import com.alonalbert.enphase.monitor.ui.theme.Colors
 import com.alonalbert.enphase.monitor.util.toDisplay
 import com.alonalbert.solar.combiner.enphase.calculateEnergyFlow
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
+import timber.log.Timber
+import kotlin.math.abs
 
 private val nodeRadius = 20.dp
-private val nodeSize = 80.dp
+private val nodeSize = 100.dp
 private val nodeStroke = 2.dp
 private val storagePad = 8.dp
 private val gridPad = 32.dp
 private val loadPad = gridPad
+
+@Composable
+fun LiveStatusScreen(
+  modifier: Modifier = Modifier,
+) {
+  val viewModel: LiveStatusViewModel = hiltViewModel()
+  val liveStatus by viewModel.liveStatusFlow.collectAsStateWithLifecycle()
+  LiveStatusScreen(liveStatus, modifier)
+}
 
 @Composable
 fun LiveStatusScreen(
@@ -43,23 +57,39 @@ fun LiveStatusScreen(
       .fillMaxSize()
       .aspectRatio(1f)
   ) {
-    val pv by remember { mutableDoubleStateOf(liveStatus.pv) }
-    val storage by remember { mutableDoubleStateOf(liveStatus.storage) }
-    val grid by remember { mutableDoubleStateOf(liveStatus.grid) }
-    val load by remember { mutableDoubleStateOf(liveStatus.load) }
+    var pv by remember { mutableDoubleStateOf(0.0) }
+    var storage by remember { mutableDoubleStateOf(0.0) }
+    var grid by remember { mutableDoubleStateOf(0.0) }
+    var load by remember { mutableDoubleStateOf(0.0) }
+    val energyFlow = try {
+       liveStatus.calculateEnergyFlow()
+    } catch (e: IllegalArgumentException) {
+      Timber.e(e)
+      return
+    }
+    var pvToLoad by remember { mutableDoubleStateOf(0.0) }
+    var pvToStorage by remember { mutableDoubleStateOf(0.0) }
+    var pvToGrid by remember { mutableDoubleStateOf(0.0) }
+    var storageToLoad by remember { mutableDoubleStateOf(0.0) }
+    var storageToGrid by remember { mutableDoubleStateOf(0.0) }
+    var gridToLoad by remember { mutableDoubleStateOf(0.0) }
+    var gridToStorage by remember { mutableDoubleStateOf(0.0) }
 
-    val energyFlow = liveStatus.calculateEnergyFlow()
-    val pvToLoad by remember { mutableDoubleStateOf(energyFlow.pvToLoad) }
-    val pvToStorage by remember { mutableDoubleStateOf(energyFlow.pvToStorage) }
-    val pvToGrid by remember { mutableDoubleStateOf(energyFlow.pvToGrid) }
-    val storageToLoad by remember { mutableDoubleStateOf(energyFlow.storageToLoad) }
-    val storageToGrid by remember { mutableDoubleStateOf(energyFlow.storageToGrid) }
-    val gridToLoad by remember { mutableDoubleStateOf(energyFlow.gridToLoad) }
-    val gridToStorage by remember { mutableDoubleStateOf(energyFlow.gridToStorage) }
+    pv = liveStatus.pv
+    storage = liveStatus.storage
+    grid = liveStatus.grid
+    load = liveStatus.load
+    pvToLoad = energyFlow.pvToLoad
+    pvToStorage = energyFlow.pvToStorage
+    pvToGrid = energyFlow.pvToGrid
+    storageToLoad = energyFlow.storageToLoad
+    storageToGrid = energyFlow.storageToGrid
+    gridToLoad = energyFlow.gridToLoad
+    gridToStorage = energyFlow.gridToStorage
 
     Node("Producing", pv, Colors.Produced, Alignment.TopCenter)
     Node("Consuming", load, Colors.Consumed, Alignment.CenterEnd, Modifier.padding(top = loadPad))
-    Node("Charging", storage, Colors.Battery, Alignment.BottomCenter, alternateName = "Discharging")
+    Node("Discharging", storage, Colors.Battery, Alignment.BottomCenter, alternateName = "Charging")
     Node("Importing", grid, Colors.Grid, Alignment.CenterStart, Modifier.padding(top = gridPad), alternateName = "Exporting")
 
     val modifier = Modifier
@@ -183,7 +213,7 @@ private fun BoxScope.Node(
       value < 0 -> alternateName
       else -> name
     }
-    Text(value.toDisplay("kW"), color = color)
+    Text(abs(value).toDisplay("kW"), color = color)
     Text(label, color = Color.Gray, fontSize = 14.sp)
   }
 }

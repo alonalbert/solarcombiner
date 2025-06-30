@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.ui.energy.EnergyScreen
+import com.alonalbert.enphase.monitor.ui.livestatus.LiveStatusScreen
 import com.alonalbert.enphase.monitor.ui.login.LoginScreen
 import com.alonalbert.enphase.monitor.ui.navigation.NavigationViewModel.LoginState.Loading
 import com.alonalbert.enphase.monitor.ui.navigation.NavigationViewModel.LoginState.LoggedIn
@@ -45,7 +46,8 @@ fun MainNavigation() {
 
   val startDestination = when (loginState) {
     Loading -> "loading"
-    LoggedIn -> "energy"
+    LoggedIn -> "live-status"
+//    LoggedIn -> "energy"
     LoggedOut -> "login"
   }
 
@@ -60,6 +62,9 @@ fun MainNavigation() {
       EnergyScreen(
         onLogout = onLogout,
       )
+    }
+    composable("live-status") {
+      LiveStatusScreen()
     }
   }
 }

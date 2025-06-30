@@ -7,20 +7,6 @@ class LiveStatus(
   val load: Double,
 ) {
   override fun toString(): String {
-    return buildString {
-      append("Producing: ${pv.format()} ")
-      if (storage >= 0) {
-        append("Discharging: ${storage.format()} ")
-      } else {
-        append("Charging: ${(-storage).format()} ")
-      }
-      if (grid >= 0) {
-        append("Importing: ${grid.format()} ")
-      } else {
-        append("Exporting: ${(-grid).format()} ")
-      }
-      append("Consuming: ${load.format()} ")
-    }
+    return "LiveStatus(pv = %f, storage = %f, grid = %f, load = %f)"
   }
 }
-private fun Double.format() = "%.2f".format(this)
