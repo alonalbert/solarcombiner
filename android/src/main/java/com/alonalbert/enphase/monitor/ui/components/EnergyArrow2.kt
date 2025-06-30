@@ -1,8 +1,18 @@
 package com.alonalbert.enphase.monitor.ui.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.CenterEnd
@@ -14,6 +24,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -33,12 +44,40 @@ fun EnergyArrow(
   strokeWidth: Dp = 1.dp,
   arrowLength: Dp = 8.dp,
   arrowAngle: Float = 60f,
-  pointPosition: Float? = null,
   modifier: Modifier = Modifier
 ) {
   assert(start.isValid())
   assert(end.isValid())
   assert(end != start)
+
+  val linePath = Path()
+
+  val pathMeasure = remember { PathMeasure() }
+  var pathLength by remember { mutableFloatStateOf(0f) }
+  val animatedPosition = remember { Animatable(0f) }
+
+  // Set up PathMeasure and get path length.
+  // This LaunchedEffect will run when `path` changes.
+  LaunchedEffect(linePath) {
+    pathMeasure.setPath(linePath, false)
+    pathLength = pathMeasure.length
+  }
+
+  LaunchedEffect(pathLength) {
+    if (pathLength > 0f) {
+      animatedPosition.snapTo(0f) // Reset to start
+      animatedPosition.animateTo(
+        targetValue = pathLength,
+        animationSpec = infiniteRepeatable(
+          animation = tween(
+            durationMillis = 5_000,
+            easing = LinearEasing
+          ),
+          repeatMode = RepeatMode.Restart
+        )
+      )
+    }
+  }
 
   Canvas(modifier = modifier.fillMaxSize()) {
     val hasCorner = start.vBias() != end.vBias() && start.hBias() != end.hBias()
@@ -51,14 +90,20 @@ fun EnergyArrow(
     val arrow1 = Offset(arrowBase.x + height * end.vBias(), arrowBase.y + height * end.hBias())
     val arrow2 = Offset(arrowBase.x - height * end.vBias(), arrowBase.y - height * end.hBias())
 
-    val linePath = buildPath {
+    with(linePath) {
       moveTo(startOffset)
       if (hasCorner) {
         addArc(start, end, padPx, radius.px)
       }
       lineTo(arrowBase)
     }
-    drawPath(linePath, color, style = Stroke(strokeWidth.px))
+    val stroke = strokeWidth.px
+    drawPath(linePath, color, style = Stroke(stroke))
+
+    pathMeasure.setPath(linePath, false)
+    val position = pathMeasure.getPosition(animatedPosition.value)
+    drawCircle(color, radius = stroke * 2f, center = position)
+    drawCircle(color.copy(alpha = 0.25f), radius = stroke * 4, center = position)
 
     val arrowPath = buildPath {
       moveTo(endOffset)

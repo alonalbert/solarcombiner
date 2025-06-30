@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,14 +19,16 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.alonalbert.enphase.monitor.ui.components.energyArrow
+import com.alonalbert.enphase.monitor.ui.components.EnergyArrow
 import com.alonalbert.enphase.monitor.ui.theme.Colors
 import com.alonalbert.enphase.monitor.util.toDisplay
 
 private val nodeRadius = 20.dp
 private val nodeSize = 80.dp
 private val nodeStroke = 2.dp
-private val storageOffset = 8.dp
+private val storagePad = 8.dp
+private val gridPad = 32.dp
+private val loadPad = gridPad
 private val offCenter = 8.dp
 private val arrowRadius = 20.dp
 
@@ -38,98 +41,97 @@ fun LiveStatusScreen(
     .fillMaxSize()
     .aspectRatio(1f)) {
     Node("Producing", 1.5, Colors.Produced, Alignment.TopCenter)
-    Node("Consuming", 3.0, Colors.Consumed, Alignment.CenterEnd)
+    Node("Consuming", 3.0, Colors.Consumed, Alignment.CenterEnd, Modifier.padding(top = loadPad))
     Node("Charging", 1.5, Colors.Battery, Alignment.BottomCenter)
-    Node("Idle", 0.0, Colors.Grid, Alignment.CenterStart)
+    Node("Idle", 0.0, Colors.Grid, Alignment.CenterStart, Modifier.padding(top = gridPad))
 
-    PvToStorage()
-    GridToLoad()
-    PvToLoad()
-    PvToGrid()
-    StorageToLoad()
+    val modifier = Modifier.fillMaxSize().padding(nodeSize, nodeSize, nodeSize, bottom = nodeSize + storagePad)
+
+    PvToStorage(modifier)
+    GridToLoad(modifier)
+    GridToStorage(modifier)
+    PvToLoad(modifier)
+    PvToGrid(modifier)
+    StorageToLoad(modifier)
+    StorageToGrid(modifier)
   }
 }
 
 @Composable
-private fun PvToLoad() {
-  Canvas(modifier = Modifier.fillMaxSize()) {
-    val offset = offCenter.toPx()
-    val x = middle.x + offset
-    val y = middle.y - offset
-    val node = nodeSize.toPx()
-    energyArrow(
-      start = Offset(x, node),
-      corner = Offset(x, y),
-      end = Offset(size.width - node, y),
-      color = Colors.Produced,
-      radius = arrowRadius,
+private fun PvToLoad(modifier: Modifier) {
+  EnergyArrow(
+    start = Alignment.TopCenter,
+    end = Alignment.CenterEnd,
+    color =  Colors.Produced,
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun PvToGrid(modifier: Modifier) {
+  EnergyArrow(
+    start = Alignment.TopCenter,
+    end = Alignment.CenterStart,
+    color =  Colors.Produced,
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun StorageToLoad(modifier: Modifier) {
+  EnergyArrow(
+    start = Alignment.BottomCenter,
+    end = Alignment.CenterEnd,
+    color =  Colors.Battery,
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun StorageToGrid(modifier: Modifier) {
+  EnergyArrow(
+    start = Alignment.BottomCenter,
+    end = Alignment.CenterStart,
+    color =  Colors.Battery,
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun PvToStorage(modifier: Modifier) {
+  EnergyArrow(
+    start = Alignment.TopCenter,
+    end = Alignment.BottomCenter,
+    color =  Colors.Produced,
+    modifier = modifier,
     )
-  }
 }
 
 @Composable
-private fun PvToGrid() {
-  Canvas(modifier = Modifier.fillMaxSize()) {
-    val offset = offCenter.toPx()
-    val x = middle.x - offset
-    val y = middle.y - offset
-    val node = nodeSize.toPx()
-    energyArrow(
-      start = Offset(x, node),
-      corner = Offset(x, y),
-      end = Offset(node, y),
-      color = Colors.Produced,
-      radius = arrowRadius,
+private fun GridToLoad(modifier: Modifier) {
+  EnergyArrow(
+    start = Alignment.CenterStart,
+    end = Alignment.CenterEnd,
+    color =  Colors.Grid,
+    modifier = modifier,
     )
-  }
 }
 
 @Composable
-private fun StorageToLoad() {
-  Canvas(modifier = Modifier.fillMaxSize()) {
-    val offset = offCenter.toPx()
-    val x = middle.x + offset
-    val y = middle.y + offset
-    val node = nodeSize.toPx()
-    energyArrow(
-      start = Offset(x, size.height - node - storageOffset.toPx()),
-      corner = Offset(x, y),
-      end = Offset(size.width - node, y),
-      color = Colors.Battery,
-      radius = arrowRadius,
+private fun GridToStorage(modifier: Modifier) {
+  EnergyArrow(
+    start = Alignment.CenterStart,
+    end = Alignment.BottomCenter,
+    color =  Colors.Grid,
+    modifier = modifier,
     )
-  }
 }
 
 @Composable
-private fun PvToStorage() {
-  Canvas(modifier = Modifier.fillMaxSize()) {
-    energyArrow(
-      start = Offset(center.x, nodeSize.toPx()),
-      end = Offset(center.x, size.height - nodeSize.toPx() - storageOffset.toPx()),
-      color = Colors.Produced,
-      strokeWidth = 1.dp.toPx(),
-      )
-  }
-}
-
-@Composable
-private fun GridToLoad() {
-  Canvas(modifier = Modifier.fillMaxSize()) {
-    energyArrow(
-      start = Offset(nodeSize.toPx(), middle.y),
-      end = Offset(size.width - nodeSize.toPx(), middle.y),
-      color = Colors.Grid,
-      strokeWidth = 1.dp.toPx(),
-      )
-  }
-}
-
-@Composable
-private fun BoxScope.Node(name: String, value: Double, color: Color, alignment: Alignment) {
+private fun BoxScope.Node(name: String, value: Double, color: Color, alignment: Alignment, modifier: Modifier = Modifier) {
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
-    modifier = Modifier
+    modifier = modifier
       .size(nodeSize)
       .align(alignment)
   ) {
