@@ -37,17 +37,20 @@ fun MainNavigation() {
     navController.navigateToEnergyScreen()
   }
 
-  val onLogout = {
+  val onSettings = {
     viewModel.setLoggedIn(false)
     navController.navigateToLogin()
+  }
+
+  val onLiveStatus = {
+    navController.navigateToLiveStatus()
   }
 
   val loginState by viewModel.loginState.collectAsStateWithLifecycle()
 
   val startDestination = when (loginState) {
     Loading -> "loading"
-    LoggedIn -> "live-status"
-//    LoggedIn -> "energy"
+    LoggedIn -> "energy"
     LoggedOut -> "login"
   }
 
@@ -60,7 +63,8 @@ fun MainNavigation() {
     }
     composable("energy") {
       EnergyScreen(
-        onLogout = onLogout,
+        onSettings = onSettings,
+        onLiveStatus = onLiveStatus,
       )
     }
     composable("live-status") {
@@ -94,4 +98,8 @@ private fun NavHostController.navigateToLogin() {
 
 private fun NavHostController.navigateToEnergyScreen() {
   navigate("energy")
+}
+
+private fun NavHostController.navigateToLiveStatus() {
+  navigate("live-status")
 }
