@@ -15,21 +15,23 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.alonalbert.enphase.monitor.util.px
+import kotlin.math.tan
 
 @Composable
 fun EnergyArrow(
   start: Alignment,
   end: Alignment,
   color: Color = Color.Black,
-  pad: Dp = 8.dp,
+  pad: Dp = 10.dp,
   radius: Dp = 20.dp,
   strokeWidth: Dp = 1.dp,
-  arrowLengthDp: Dp = 8.dp,
+  arrowLength: Dp = 8.dp,
   arrowAngle: Float = 60f,
   pointPosition: Float? = null,
   modifier: Modifier = Modifier
@@ -43,16 +45,28 @@ fun EnergyArrow(
     val padPx = if (hasCorner) pad.px else 0f
     val startOffset = start.toOffset(padPx, end)
     val endOffset = end.toOffset(padPx, start)
+    val length = arrowLength.px
+    val height =  (tan(Math.toRadians(arrowAngle.toDouble() / 2).toFloat()) * length)
+    val arrowBase = Offset(endOffset.x - length * end.hBias(), endOffset.y - length * end.vBias())
+    val arrow1 = Offset(arrowBase.x + height * end.vBias(), arrowBase.y + height * end.hBias())
+    val arrow2 = Offset(arrowBase.x - height * end.vBias(), arrowBase.y - height * end.hBias())
 
     val linePath = buildPath {
       moveTo(startOffset)
       if (hasCorner) {
         addArc(start, end, padPx, radius.px)
       }
-      lineTo(endOffset)
+      lineTo(arrowBase)
     }
     drawPath(linePath, color, style = Stroke(strokeWidth.px))
-    drawCircle(Color.Red, 4.dp.px, startOffset)
+
+    val arrowPath = buildPath {
+      moveTo(endOffset)
+      lineTo(arrow1)
+      lineTo(arrow2)
+      close()
+    }
+    drawPath(arrowPath, color, style = Fill)
   }
 }
 
