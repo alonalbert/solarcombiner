@@ -61,7 +61,7 @@ fun LiveStatus.calculateEnergyFlow(): LiveEnergyFlow {
   }
 
   if (grid.zerofy() > 0) {
-    if (load.zerofy() < 0) {
+    if (load.zerofy() > 0) {
       val e = min(grid, load)
       grid -= e
       load -= e
@@ -92,7 +92,7 @@ fun LiveStatus.calculateEnergyFlow(): LiveEnergyFlow {
 }
 
 fun main() {
-  val liveStatus = LiveStatus(pv = 10.2, storage = 0.6, grid = -3.84, load = 6.96)
+  val liveStatus = LiveStatus(pv = 2.448289, storage = 0.000000, grid = 0.023099, load = 2.471388)
   println(liveStatus)
   println(liveStatus.calculateEnergyFlow())
 }

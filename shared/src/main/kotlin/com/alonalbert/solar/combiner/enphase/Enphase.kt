@@ -38,6 +38,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.double
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import okio.IOException
 import java.nio.file.Path
 import java.security.SecureRandom
 import java.time.LocalDate
@@ -152,19 +153,25 @@ class Enphase(
   }
 
   private suspend fun getLiveStatus(url: String, token: Any): LiveStatus {
-    val response = client.get("$url/ivp/livedata/status") {
-      accept(Application.Json)
-      header("Authorization", "Bearer $token")
+    return try {
+      val response = client.get("$url/ivp/livedata/status") {
+        accept(Application.Json)
+        header("Authorization", "Bearer $token")
+      }
+
+      val json = Json.decodeFromString<JsonObject>(response.bodyAsText())
+
+      val meters = json.getValue("meters").jsonObject
+      val pv = meters.getKiloWatts("pv")
+      val storage = meters.getKiloWatts("storage")
+      val grid = meters.getKiloWatts("grid")
+      val load = meters.getKiloWatts("load")
+      LiveStatus(pv, storage, grid, load)
+    } catch (e: IOException) {
+      // TODO: Log
+      e.printStackTrace()
+      LiveStatus(pv = 0.0, storage = 0.0, grid = 0.0, load = 0.0)
     }
-
-    val json = Json.decodeFromString<JsonObject>(response.bodyAsText())
-
-    val meters = json.getValue("meters").jsonObject
-    val pv = meters.getKiloWatts("pv")
-    val storage = meters.getKiloWatts("storage")
-    val grid = meters.getKiloWatts("grid")
-    val load = meters.getKiloWatts("load")
-    return LiveStatus(pv, storage, grid, load)
   }
 
   private suspend fun getEnvoyToken(serialNum: String): String {
