@@ -4,13 +4,13 @@ import com.alonalbert.solar.combiner.enphase.util.kwh
 import java.time.LocalDate
 
 class DailyEnergy(val date: LocalDate, val energies: List<Energy>) {
-  val outerProduced = energies.sumOf { it.outerProduced }
-  val innerProduced = energies.sumOf { it.innerProduced }
-  val consumed = energies.sumOf { it.consumed }
-  val imported = energies.sumOf { it.imported }
-  val innerExported = energies.sumOf { it.innerExported }
-  val charged = energies.sumOf { it.charged }
-  val discharged = energies.sumOf { it.discharged }
+  val outerProduced = energies.sumOf { it.outerProduced } / 4
+  val innerProduced = energies.sumOf { it.innerProduced } / 4
+  val consumed = energies.sumOf { it.consumed } / 4
+  val imported = energies.sumOf { it.imported } /4
+  val innerExported = energies.sumOf { it.innerExported } / 4
+  val charged = energies.sumOf { it.charged } / 4
+  val discharged = energies.sumOf { it.discharged } / 4
   val produced get() = outerProduced + innerProduced
   val exported get() = innerExported + outerProduced
   val netImported get() = imported - exported

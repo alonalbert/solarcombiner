@@ -23,20 +23,20 @@ import com.alonalbert.enphase.monitor.util.toDisplay
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 
 @Composable
-fun TotalEnergy(sampleData: DailyEnergy) {
+fun TotalEnergy(dailyEnergy: DailyEnergy) {
   Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-      EnergyBox("Imported", R.drawable.grid, R.color.grid, sampleData.imported)
-      EnergyBox("Produced", R.drawable.solar, R.color.solar, sampleData.produced)
-      EnergyBox("Discharged", R.drawable.battery, R.color.battery, sampleData.discharged)
+      EnergyBox("Imported", R.drawable.grid, R.color.grid, dailyEnergy.imported)
+      EnergyBox("Produced", R.drawable.solar, R.color.solar, dailyEnergy.produced)
+      EnergyBox("Discharged", R.drawable.battery, R.color.battery, dailyEnergy.discharged)
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-      EnergyBox("Exported", R.drawable.grid, R.color.grid, sampleData.exported)
-      when (sampleData.netImported > 0) {
-        true -> EnergyBox("Net Imported", R.drawable.net_import, R.color.consumption, sampleData.netImported)
-        false -> EnergyBox("Net Exported", R.drawable.net_export, R.color.solar, -sampleData.netImported)
+      EnergyBox("Exported", R.drawable.grid, R.color.grid, dailyEnergy.exported)
+      when (dailyEnergy.netImported > 0) {
+        true -> EnergyBox("Net Imported", R.drawable.net_import, R.color.consumption, dailyEnergy.netImported)
+        false -> EnergyBox("Net Exported", R.drawable.net_export, R.color.solar, -dailyEnergy.netImported)
       }
-      EnergyBox("Charged", R.drawable.battery, R.color.battery, sampleData.charged)
+      EnergyBox("Charged", R.drawable.battery, R.color.battery, dailyEnergy.charged)
     }
   }
 }
