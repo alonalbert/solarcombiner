@@ -173,7 +173,8 @@ class Enphase(
       val load = meters.getKiloWatts("load")
       LiveStatus(pv, storage, grid, load)
     } catch (e: IOException) {
-      logger.atError().setCause(e).log("Failed to get Live Status from $url")
+      logger.atTrace().setCause(e).log("Failed to get Live Status from $url")
+      logger.atError().log("Failed to get Live Status from $url")
       LiveStatus(pv = 0.0, storage = 0.0, grid = 0.0, load = 0.0)
     }
   }

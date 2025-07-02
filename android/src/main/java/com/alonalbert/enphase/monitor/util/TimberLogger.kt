@@ -24,5 +24,5 @@ private val Level.priority
     Level.WARN -> Log.WARN
     Level.INFO -> Log.INFO
     Level.DEBUG -> Log.DEBUG
-    Level.TRACE -> Log.DEBUG
+    Level.TRACE -> Log.VERBOSE
   }
