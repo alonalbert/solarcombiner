@@ -44,6 +44,7 @@ import java.time.LocalDate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 import kotlin.LazyThreadSafetyMode.SYNCHRONIZED
+import kotlin.math.abs
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import com.google.gson.JsonObject as GsonObject
@@ -54,6 +55,7 @@ private const val LIVE_STREAM_URL = "https://enlighten.enphaseenergy.com/pv/aws_
 private const val DAILY_ENERGY =
   "https://enlighten.enphaseenergy.com/pv/systems/%1\$s/daily_energy?start_date=%2\$d-%3$02d-%4$02d&end_date=%2\$d-%3$02d-%4$02d"
 private const val COOKIE = "_enlighten_4_session"
+private const val BAD_VALUE = 30_000
 
 private val gson = GsonBuilder()
   .setPrettyPrinting()
@@ -217,7 +219,11 @@ private fun Gson.getObject(json: String) = fromJson(json, GsonObject::class.java
 
 private fun GsonObject?.getDoubles(key: String): List<Double> {
   return this?.getAsJsonArray(key)?.map {
-    if (it is JsonNull) 0.0 else it.asDouble
+    when {
+      it is JsonNull -> 0.0
+      (abs(it.asDouble)) > BAD_VALUE -> 0.0
+      else -> it.asDouble
+    }
   } ?: List(96) { 0.0 }
 }
 
