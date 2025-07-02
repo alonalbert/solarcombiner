@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alonalbert.enphase.monitor.ui.theme.Colors
-import com.alonalbert.solarsim.simulator.DailyEnergy
+import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.cartesianLayerPadding

@@ -8,9 +8,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.text.buildSpannedString
 import com.alonalbert.enphase.monitor.ui.theme.Colors
 import com.alonalbert.enphase.monitor.ui.theme.toInt
+import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.alonalbert.solar.combiner.enphase.util.kw
 import com.alonalbert.solar.combiner.enphase.util.zerofy
-import com.alonalbert.solarsim.simulator.DailyEnergy
 import com.patrykandpatrick.vico.core.cartesian.CartesianDrawingContext
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
 import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarkerTarget

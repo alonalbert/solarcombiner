@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alonalbert.enphase.monitor.util.stateIn
 import com.alonalbert.solar.combiner.enphase.Enphase
-import com.alonalbert.solarsim.simulator.DailyEnergy
+import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow

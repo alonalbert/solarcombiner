@@ -1,7 +1,7 @@
 package com.alonalbert.enphase.monitor.ui.energy
 
+import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.alonalbert.solar.combiner.enphase.model.Energy
-import com.alonalbert.solarsim.simulator.DailyEnergy
 import java.time.LocalDate
 
 object SampleData {

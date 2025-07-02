@@ -1,6 +1,5 @@
-package com.alonalbert.solarsim.simulator
+package com.alonalbert.solar.combiner.enphase.model
 
-import com.alonalbert.solar.combiner.enphase.model.Energy
 import com.alonalbert.solar.combiner.enphase.util.kwh
 import java.time.LocalDate
 
@@ -12,6 +11,9 @@ class DailyEnergy(val date: LocalDate, val energies: List<Energy>) {
   val innerExported = energies.sumOf { it.innerExported }
   val charged = energies.sumOf { it.charged }
   val discharged = energies.sumOf { it.discharged }
+  val produced get() = outerProduced + innerProduced
+  val exported get() = innerExported + outerProduced
+  val netImported get() = imported - exported
 
   override fun toString(): String {
     return buildString {

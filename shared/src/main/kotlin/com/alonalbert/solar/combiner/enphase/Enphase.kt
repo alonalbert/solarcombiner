@@ -1,9 +1,9 @@
 package com.alonalbert.solar.combiner.enphase
 
+import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.alonalbert.solar.combiner.enphase.model.Energy
 import com.alonalbert.solar.combiner.enphase.model.GetTokenRequest
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
-import com.alonalbert.solarsim.simulator.DailyEnergy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonNull

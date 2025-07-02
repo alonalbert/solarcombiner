@@ -1,7 +1,9 @@
 package com.alonalbert.enphase.monitor.ui.energy
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusWeak
@@ -17,6 +19,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,7 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
-import com.alonalbert.solarsim.simulator.DailyEnergy
+import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import java.time.LocalDate
 
 @Composable
@@ -59,8 +62,10 @@ fun EnergyScreen(
     modifier = Modifier.fillMaxSize(),
   ) { innerPadding ->
     Column(modifier = Modifier.padding(innerPadding)) {
-
       DayPicker(dailyEnergy.date, onDayChanged)
+      Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+        TotalEnergy(dailyEnergy)
+      }
       DailyEnergyChart(dailyEnergy)
     }
   }
