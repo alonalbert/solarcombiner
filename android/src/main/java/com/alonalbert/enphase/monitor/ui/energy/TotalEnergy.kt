@@ -33,8 +33,8 @@ fun TotalEnergy(sampleData: DailyEnergy) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
       EnergyBox("Exported", R.drawable.grid, R.color.grid, sampleData.exported)
       when (sampleData.netImported > 0) {
-        true -> EnergyBox("Net Imported", R.drawable.grid, R.color.consumption, sampleData.netImported)
-        false -> EnergyBox("Net Exported", R.drawable.grid, R.color.solar, -sampleData.netImported)
+        true -> EnergyBox("Net Imported", R.drawable.net_import, R.color.consumption, sampleData.netImported)
+        false -> EnergyBox("Net Exported", R.drawable.net_export, R.color.solar, -sampleData.netImported)
       }
       EnergyBox("Charged", R.drawable.battery, R.color.battery, sampleData.charged)
     }
