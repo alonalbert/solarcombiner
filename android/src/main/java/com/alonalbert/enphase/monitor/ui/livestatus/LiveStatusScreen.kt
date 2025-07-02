@@ -1,6 +1,8 @@
 package com.alonalbert.enphase.monitor.ui.livestatus
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -19,11 +21,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.ui.components.EnergyArrow
 import com.alonalbert.enphase.monitor.ui.theme.Colors
 import com.alonalbert.enphase.monitor.util.toDisplay
@@ -92,10 +96,10 @@ fun LiveStatusScreen(
       gridToLoad = energyFlow.gridToLoad
       gridToStorage = energyFlow.gridToStorage
 
-      Node("Producing", pv, Colors.Produced, Alignment.TopCenter)
-      Node("Consuming", load, Colors.Consumed, Alignment.CenterEnd, Modifier.padding(top = loadPad))
-      Node("Discharging", storage, Colors.Battery, Alignment.BottomCenter, alternateName = "Charging")
-      Node("Importing", grid, Colors.Grid, Alignment.CenterStart, Modifier.padding(top = gridPad), alternateName = "Exporting")
+      Node("Producing", R.drawable.solar, pv, Colors.Produced, Alignment.TopCenter)
+      Node("Consuming", R.drawable.house, load, Colors.Consumed, Alignment.CenterEnd, Modifier.padding(top = loadPad))
+      Node("Discharging", R.drawable.battery, storage, Colors.Battery, Alignment.BottomCenter, alternateName = "Charging")
+      Node("Importing", R.drawable.grid, grid, Colors.Grid, Alignment.CenterStart, Modifier.padding(top = gridPad), alternateName = "Exporting")
 
       val modifier = Modifier
         .fillMaxSize()
@@ -198,6 +202,7 @@ private fun GridToStorage(modifier: Modifier) {
 @Composable
 private fun BoxScope.Node(
   name: String,
+  @DrawableRes iconRes: Int,
   value: Double,
   color: Color,
   alignment: Alignment,
@@ -210,8 +215,19 @@ private fun BoxScope.Node(
       .size(nodeSize)
       .align(alignment)
   ) {
-    Canvas(modifier = Modifier.size(nodeRadius * 2)) {
-      drawCircle(color = color, style = Stroke(nodeStroke.toPx()))
+    Box(
+      modifier = Modifier.size(nodeRadius * 2),
+      contentAlignment = Alignment.Center,
+    ) {
+      Canvas(modifier = Modifier.fillMaxSize()) {
+        drawCircle(color = color, style = Stroke(nodeStroke.toPx()))
+      }
+      Image(
+        painterResource(iconRes),
+        contentDescription = null,
+        modifier = Modifier.fillMaxSize(0.7f),
+        alignment = Alignment.Center,
+      )
     }
     val label = when {
       value == 0.0 -> "Idle"
