@@ -84,15 +84,19 @@ class Enphase(
   private val mainEnvoyUrl = "https://$mainSiteHost:$mainSitePort"
   private val exportEnvoyUrl = "https://$exportSiteHost:$exportSitePort"
 
+  private fun GsonObject.getStats(): GsonObject? {
+    val array = getAsJsonArray("stats")
+    return if (array.size() < 1) null else array[0].asJsonObject
+  }
   suspend fun getDailyEnergy(date: LocalDate): DailyEnergy {
     return withContext(Dispatchers.Unconfined) {
       val mainData = gson.getObject(loadData(mainSiteId, date))
       val exportData = gson.getObject(loadData(exportSiteId, date))
 
-      val outerStats = exportData.getAsJsonArray("stats")[0].asJsonObject
+      val outerStats = exportData.getStats()
       val outerProduction = outerStats.getDoubles("production")
 
-      val innerStats = mainData.getAsJsonArray("stats")[0].asJsonObject
+      val innerStats = mainData.getStats()
       val innerProduction = innerStats.getDoubles("production")
       val consumption = innerStats.getDoubles("consumption")
       val charge = innerStats.getDoubles("charge")
@@ -101,7 +105,7 @@ class Enphase(
       val gridBattery = innerStats.getDoubles("grid_battery")
       val gridHome = innerStats.getDoubles("grid_home")
       val import = gridHome.zip(gridBattery) { h, b -> h + b }
-      val batteryLevel = innerStats.getAsJsonArray("soc").map { if (it is JsonNull) null else it.asInt }
+      val batteryLevel = innerStats?.getAsJsonArray("soc")?.map { if (it is JsonNull) null else it.asInt } ?: emptyList()
 
       val energies = buildList {
         repeat(96) {
@@ -211,8 +215,10 @@ private suspend fun HttpResponse.bodyAsPrettyJson() = gson.toJson(JsonParser.par
 
 private fun Gson.getObject(json: String) = fromJson(json, GsonObject::class.java)
 
-private fun GsonObject.getDoubles(key: String) = getAsJsonArray(key).map {
-  if (it is JsonNull) 0.0 else it.asDouble
+private fun GsonObject?.getDoubles(key: String): List<Double> {
+  return this?.getAsJsonArray(key)?.map {
+    if (it is JsonNull) 0.0 else it.asDouble
+  } ?: List(96) { 0.0 }
 }
 
 private fun LocalDate.shouldCache() = this < LocalDate.now()
