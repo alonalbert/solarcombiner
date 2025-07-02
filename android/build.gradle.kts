@@ -65,6 +65,7 @@ dependencies {
   implementation(libs.appcompat.v7)
   implementation(libs.hilt.android)
   implementation(libs.timber)
+  implementation(libs.slf4j)
   implementation(libs.vico.compose)
   implementation(libs.vico.compose.m3)
   implementation(platform(libs.androidx.compose.bom))

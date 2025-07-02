@@ -4,6 +4,7 @@ import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.alonalbert.solar.combiner.enphase.model.Energy
 import com.alonalbert.solar.combiner.enphase.model.GetTokenRequest
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
+import com.alonalbert.solar.combiner.enphase.util.DefaultLogger
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonNull
@@ -39,6 +40,7 @@ import kotlinx.serialization.json.double
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okio.IOException
+import org.slf4j.Logger
 import java.nio.file.Path
 import java.security.SecureRandom
 import java.time.LocalDate
@@ -75,6 +77,7 @@ class Enphase(
   exportSitePort: Int,
   cacheDir: Path,
   coroutineScope: CoroutineScope,
+  private val logger: Logger = DefaultLogger()
 ) {
   private val cache = Cache(cacheDir)
   private val client = createClient()
@@ -83,6 +86,7 @@ class Enphase(
       client.getSessionId(email, password)
     }
   }
+
   private suspend fun sessionId() = _sessionId.await()
   private val mainEnvoyUrl = "https://$mainSiteHost:$mainSitePort"
   private val exportEnvoyUrl = "https://$exportSiteHost:$exportSitePort"
@@ -91,6 +95,7 @@ class Enphase(
     val array = getAsJsonArray("stats")
     return if (array.size() < 1) null else array[0].asJsonObject
   }
+
   suspend fun getDailyEnergy(date: LocalDate): DailyEnergy {
     return withContext(Dispatchers.Unconfined) {
       val mainData = gson.getObject(loadData(mainSiteId, date))
@@ -168,8 +173,7 @@ class Enphase(
       val load = meters.getKiloWatts("load")
       LiveStatus(pv, storage, grid, load)
     } catch (e: IOException) {
-      // TODO: Log
-      e.printStackTrace()
+      logger.atError().setCause(e).log("Failed to get Live Status from $url")
       LiveStatus(pv = 0.0, storage = 0.0, grid = 0.0, load = 0.0)
     }
   }

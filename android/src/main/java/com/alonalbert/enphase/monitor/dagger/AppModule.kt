@@ -13,6 +13,7 @@ import com.alonalbert.enphase.monitor.settings.mainPort
 import com.alonalbert.enphase.monitor.settings.mainSerialNum
 import com.alonalbert.enphase.monitor.settings.mainSiteId
 import com.alonalbert.enphase.monitor.settings.password
+import com.alonalbert.enphase.monitor.util.TimberLogger
 import com.alonalbert.solar.combiner.enphase.Enphase
 import dagger.Module
 import dagger.Provides
@@ -45,7 +46,9 @@ object AppModule {
         preferences.exportHost,
         preferences.exportPort,
         application.cacheDir.toPath(),
-        coroutineScope = MainScope()
+        coroutineScope = MainScope(),
+        logger = TimberLogger(),
+
       )
     }
   }
