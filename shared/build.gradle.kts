@@ -15,6 +15,7 @@ dependencies {
   implementation(libs.kotlinx.datetime)
   implementation(libs.jakarta.persistence)
   implementation(libs.gson)
+  implementation(libs.slf4j.nop)
 }
 
 java {
