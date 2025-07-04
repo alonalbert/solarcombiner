@@ -15,6 +15,7 @@ dependencies {
   implementation(project(":shared"))
   implementation(libs.kotlinx.cli)
   implementation(libs.kotlinx.coroutines.core.jvm)
+  implementation(libs.slf4j)
 }
 
 application {

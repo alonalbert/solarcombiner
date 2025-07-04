@@ -232,7 +232,10 @@ class Enphase(
   }
 
   companion object {
-    fun fromProperties(coroutineScope: CoroutineScope): Enphase {
+    fun fromProperties(
+      coroutineScope: CoroutineScope,
+      logger: Logger = DefaultLogger(),
+      ): Enphase {
       val properties = ClassLoader.getSystemClassLoader().getResourceAsStream("local.properties").use {
         Properties().apply {
           load(it)
@@ -261,6 +264,7 @@ class Enphase(
         exportPort,
         Path.of("cache"),
         coroutineScope,
+        logger,
       )
     }
   }

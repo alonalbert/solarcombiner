@@ -2,6 +2,7 @@
 package com.alonalbert.solar.reservemanager
 
 import com.alonalbert.solar.combiner.enphase.Enphase
+import com.alonalbert.solar.combiner.enphase.util.DefaultLogger
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
@@ -12,6 +13,8 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
+
+private val logger = DefaultLogger()
 
 fun main(args: Array<String>) {
   val parser = ArgParser("reserve-manager")
@@ -37,15 +40,15 @@ fun main(args: Array<String>) {
 private fun setReserve(idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargingRange: IntRange) {
   val reserve = calculateReserve(LocalTime.now(ZoneId.systemDefault()), idleLoad, batteryCapacity, minReserve, chargingRange)
   if (reserve == null) {
-    println("Charging time active. Skipping.")
+    logger.info("Charging time active. Skipping.")
     return
   }
 
   runBlocking {
     launch {
-      Enphase.fromProperties(this) .use { enphase ->
+      Enphase.fromProperties(this, logger) .use { enphase ->
         val result = enphase.setBatteryReserve(reserve)
-        println("Setting reserve to $reserve: $result")
+        logger.info("Setting reserve to $reserve: $result")
       }
     }
   }
