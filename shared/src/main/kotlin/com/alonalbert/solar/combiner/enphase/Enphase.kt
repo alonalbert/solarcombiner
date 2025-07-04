@@ -42,8 +42,10 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.double
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.internal.closeQuietly
 import okio.IOException
 import org.slf4j.Logger
+import java.io.Closeable
 import java.nio.file.Path
 import java.security.SecureRandom
 import java.time.LocalDate
@@ -82,7 +84,7 @@ class Enphase(
   cacheDir: Path,
   coroutineScope: CoroutineScope,
   private val logger: Logger = DefaultLogger()
-) {
+) : Closeable {
   private val cache = Cache(cacheDir)
   private val client = createClient()
   private val _sessionId by lazy(SYNCHRONIZED) {
@@ -94,11 +96,6 @@ class Enphase(
   private suspend fun sessionId() = _sessionId.await()
   private val mainEnvoyUrl = "https://$mainSiteHost:$mainSitePort"
   private val exportEnvoyUrl = "https://$exportSiteHost:$exportSitePort"
-
-  private fun GsonObject.getStats(): GsonObject? {
-    val array = getAsJsonArray("stats")
-    return if (array.size() < 1) null else array[0].asJsonObject
-  }
 
   suspend fun getDailyEnergy(date: LocalDate): DailyEnergy {
     return withContext(Dispatchers.Unconfined) {
@@ -183,6 +180,11 @@ class Enphase(
     }
   }
 
+  private fun GsonObject.getStats(): GsonObject? {
+    val array = getAsJsonArray("stats")
+    return if (array.size() < 1) null else array[0].asJsonObject
+  }
+
   private suspend fun getEnvoyToken(serialNum: String): String {
     val response = client.post(TOKEN_URL) {
       contentType(Application.Json)
@@ -223,6 +225,10 @@ class Enphase(
       setBody(SetProfileRequest("self-consumption", reserve.toString()))
     }.body<JsonObject>()
     return response["message"]?.jsonPrimitive?.content ?: "Unexpected error"
+  }
+
+  override fun close() {
+    client.closeQuietly()
   }
 
   companion object {
