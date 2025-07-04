@@ -21,6 +21,16 @@ application {
   mainClass.set("com.alonalbert.solar.reservemanager.ReserveManager")
 }
 
+tasks.jar {
+  enabled = true
+  manifest {
+    attributes["Main-Class"] = "com.alonalbert.solar.reservemanager.ReserveManager"
+  }
+  from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  }
+}
+
 tasks.register("selfRunningJar") {
   dependsOn("jar")
   group = "custom"
