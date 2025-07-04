@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GetTokenRequest(
+data class  GetTokenRequest(
   @SerialName("session_id")
   val sessionId: String,
   @SerialName("serial_num")

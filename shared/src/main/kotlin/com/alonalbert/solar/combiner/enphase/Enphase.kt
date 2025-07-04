@@ -4,12 +4,14 @@ import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.alonalbert.solar.combiner.enphase.model.Energy
 import com.alonalbert.solar.combiner.enphase.model.GetTokenRequest
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
+import com.alonalbert.solar.combiner.enphase.model.SetProfileRequest
 import com.alonalbert.solar.combiner.enphase.util.DefaultLogger
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonNull
 import com.google.gson.JsonParser
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpRedirect
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -19,6 +21,7 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -44,6 +47,7 @@ import org.slf4j.Logger
 import java.nio.file.Path
 import java.security.SecureRandom
 import java.time.LocalDate
+import java.util.Properties
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 import kotlin.LazyThreadSafetyMode.SYNCHRONIZED
@@ -209,6 +213,49 @@ class Enphase(
         cache.write(siteId, date, data)
       }
       return@withContext data
+    }
+  }
+
+  suspend fun  setBatteryReserve(reserve: Int): String {
+    val response = client.put("https://enlighten.enphaseenergy.com/service/batteryConfig/api/v1/profile/${this.mainSiteId}") {
+      cookie(COOKIE, sessionId())
+      contentType(Application.Json)
+      setBody(SetProfileRequest("self-consumption", reserve.toString()))
+    }.body<JsonObject>()
+    return response["message"]?.jsonPrimitive?.content ?: "Unexpected error"
+  }
+
+  companion object {
+    fun fromProperties(coroutineScope: CoroutineScope): Enphase {
+      val properties = ClassLoader.getSystemClassLoader().getResourceAsStream("local.properties").use {
+        Properties().apply {
+          load(it)
+        }
+      }
+      val email = properties.getProperty("login.email")
+      val password = properties.getProperty("login.password")
+      val mainSiteId = properties.getProperty("site.main")
+      val exportSiteId = properties.getProperty("site.export")
+      val mainSerialNum = properties.getProperty("envoy.main.serial")
+      val mainHost = properties.getProperty("envoy.main.host")
+      val mainPort = properties.getProperty("envoy.main.port").toInt()
+      val exportSerialNum = properties.getProperty("envoy.export.serial")
+      val exportHost = properties.getProperty("envoy.export.host")
+      val exportPort = properties.getProperty("envoy.export.port").toInt()
+      return Enphase(
+        email,
+        password,
+        mainSiteId,
+        mainSerialNum,
+        mainHost,
+        mainPort,
+        exportSiteId,
+        exportSerialNum,
+        exportHost,
+        exportPort,
+        Path.of("cache"),
+        coroutineScope,
+      )
     }
   }
 }

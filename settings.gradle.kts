@@ -18,3 +18,4 @@ rootProject.name = "Solar Combiner"
 include(":server")
 include(":shared")
 include(":android")
+include(":reserve-manager")
