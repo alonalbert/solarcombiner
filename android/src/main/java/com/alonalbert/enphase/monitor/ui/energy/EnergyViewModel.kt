@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alonalbert.enphase.monitor.util.stateIn
 import com.alonalbert.solar.combiner.enphase.Enphase
+import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.CACHE_ONLY
+import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.NO_CACHE
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
@@ -24,7 +26,8 @@ class EnergyViewModel @Inject constructor(
 
   fun setDay(day: LocalDate) {
     viewModelScope.launch {
-      dailyEnergyFlow.value = enphase().getDailyEnergy(day)
+      dailyEnergyFlow.value = enphase().getDailyEnergy(day, CACHE_ONLY)
+      dailyEnergyFlow.value = enphase().getDailyEnergy(day, NO_CACHE)
     }
   }
 }

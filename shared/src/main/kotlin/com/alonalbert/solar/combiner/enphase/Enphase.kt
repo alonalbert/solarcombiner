@@ -1,5 +1,8 @@
 package com.alonalbert.solar.combiner.enphase
 
+import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.CACHE
+import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.CACHE_ONLY
+import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.NO_CACHE
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.alonalbert.solar.combiner.enphase.model.Energy
 import com.alonalbert.solar.combiner.enphase.model.GetTokenRequest
@@ -97,15 +100,25 @@ class Enphase(
   private val mainEnvoyUrl = "https://$mainSiteHost:$mainSitePort"
   private val exportEnvoyUrl = "https://$exportSiteHost:$exportSitePort"
 
-  suspend fun getDailyEnergy(date: LocalDate): DailyEnergy {
+  enum class CacheMode {
+    NO_CACHE,
+    CACHE_ONLY,
+    CACHE,
+  }
+
+  suspend fun getDailyEnergy(date: LocalDate, cacheMode: CacheMode = CACHE): DailyEnergy? {
     return withContext(Dispatchers.Unconfined) {
-      val mainData = gson.getObject(loadData(mainSiteId, date))
-      val exportData = gson.getObject(loadData(exportSiteId, date))
+      val innerStats = loadData(mainSiteId, date, cacheMode)
+      val outerStats = loadData(exportSiteId, date, cacheMode)
+      if (innerStats == null && outerStats == null) {
+        if (cacheMode == CACHE_ONLY) {
+          return@withContext null
+        } else {
+          throw IllegalStateException("Failed to load data")
+        }
+      }
 
-      val outerStats = exportData.getStats()
       val outerProduction = outerStats.getDoubles("production")
-
-      val innerStats = mainData.getStats()
       val innerProduction = innerStats.getDoubles("production")
       val consumption = innerStats.getDoubles("consumption")
       val charge = innerStats.getDoubles("charge")
@@ -200,25 +213,25 @@ class Enphase(
     }.bodyAsText()
   }
 
-  private suspend fun loadData(siteId: String, date: LocalDate): String {
+  private suspend fun loadData(siteId: String, date: LocalDate, cacheMode: CacheMode): GsonObject? {
     return withContext(IO) {
-      val cached = cache.read(siteId, date)
-      if (cached != null) {
-        return@withContext cached
+      if (cacheMode != NO_CACHE) {
+        val cached = cache.read(siteId, date)
+        if (cached != null) {
+          return@withContext gson.getObject(cached).getStats()
+        }
       }
 
       val response = client.get(DAILY_ENERGY.format(siteId, date.year, date.month.value, date.dayOfMonth)) {
         cookie(COOKIE, sessionId())
       }
       val data = response.bodyAsPrettyJson()
-      if (date.shouldCache()) {
-        cache.write(siteId, date, data)
-      }
-      return@withContext data
+      cache.write(siteId, date, data)
+      return@withContext gson.getObject(data).getStats()
     }
   }
 
-  suspend fun  setBatteryReserve(reserve: Int): String {
+  suspend fun setBatteryReserve(reserve: Int): String {
     val response = client.put("https://enlighten.enphaseenergy.com/service/batteryConfig/api/v1/profile/${this.mainSiteId}") {
       cookie(COOKIE, sessionId())
       contentType(Application.Json)
@@ -235,7 +248,7 @@ class Enphase(
     fun fromProperties(
       coroutineScope: CoroutineScope,
       logger: Logger = DefaultLogger(),
-      ): Enphase {
+    ): Enphase {
       val properties = ClassLoader.getSystemClassLoader().getResourceAsStream("local.properties").use {
         Properties().apply {
           load(it)
@@ -295,8 +308,6 @@ private fun GsonObject?.getDoubles(key: String): List<Double> {
     }
   } ?: List(96) { 0.0 }
 }
-
-private fun LocalDate.shouldCache() = this < LocalDate.now()
 
 private fun Double.kwh() = this / 1000 * 4
 
