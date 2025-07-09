@@ -300,13 +300,21 @@ private suspend fun HttpResponse.bodyAsPrettyJson() = gson.toJson(JsonParser.par
 private fun Gson.getObject(json: String) = fromJson(json, GsonObject::class.java)
 
 private fun GsonObject?.getDoubles(key: String): List<Double> {
-  return this?.getAsJsonArray(key)?.map {
+  val values = this?.getAsJsonArray(key)
+  if (values == null) {
+    return List(96) { 0.0 }
+  }
+  val result = values.map {
     when {
       it is JsonNull -> 0.0
       (abs(it.asDouble)) > BAD_VALUE -> 0.0
       else -> it.asDouble
     }
-  } ?: List(96) { 0.0 }
+  }
+  return when (result.size < 96) {
+    true -> result + List(96 - result.size) { 0.0 }
+    false -> result
+  }
 }
 
 private fun Double.kwh() = this / 1000 * 4
