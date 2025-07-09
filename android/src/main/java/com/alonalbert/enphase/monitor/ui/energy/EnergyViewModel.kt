@@ -28,6 +28,16 @@ class EnergyViewModel @Inject constructor(
 
   private suspend fun enphase() = enphaseAsync.await()
 
+  fun refreshData() {
+    viewModelScope.launch {
+      val date = dailyEnergyState.value?.date ?: return@launch
+      val dailyEnergy = enphase().getDailyEnergy(date, NO_CACHE) ?: return@launch
+      if (dailyEnergy.date == dailyEnergyState.value?.date) {
+        dailyEnergyFlow.value = dailyEnergy
+      }
+    }
+  }
+
   fun setDay(day: LocalDate) {
     job?.cancel()
     job = viewModelScope.launch {

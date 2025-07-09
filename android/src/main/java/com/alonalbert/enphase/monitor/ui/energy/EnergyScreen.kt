@@ -29,7 +29,9 @@ import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
+import kotlinx.coroutines.delay
 import java.time.LocalDate
+import kotlin.time.Duration.Companion.minutes
 
 @Composable
 fun EnergyScreen(
@@ -40,6 +42,10 @@ fun EnergyScreen(
 
   LaunchedEffect(Unit) {
     viewModel.setDay(LocalDate.now())
+    while (true) {
+      delay(5.minutes)
+      viewModel.refreshData()
+    }
   }
   val dailyEnergy by viewModel.dailyEnergyState.collectAsStateWithLifecycle()
 
