@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
-import com.alonalbert.enphase.monitor.ui.BatteryBar
+import com.alonalbert.enphase.monitor.ui.batterybar.BatteryBar
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 import com.alonalbert.solar.combiner.enphase.model.BatteryState
