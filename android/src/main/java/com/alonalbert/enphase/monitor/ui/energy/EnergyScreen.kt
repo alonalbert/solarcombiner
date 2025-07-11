@@ -23,11 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
+import com.alonalbert.enphase.monitor.ui.BatteryBar
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
+import com.alonalbert.solar.combiner.enphase.model.BatteryState
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -48,10 +51,11 @@ fun EnergyScreen(
     }
   }
   val dailyEnergy by viewModel.dailyEnergyState.collectAsStateWithLifecycle()
+  val batteryState by viewModel.batteryStateState.collectAsStateWithLifecycle()
 
 
   dailyEnergy?.let {
-    EnergyScreen(it, { date -> viewModel.setDay(date) }, onSettings, onLiveStatus)
+    EnergyScreen(it, batteryState, { date -> viewModel.setDay(date) }, onSettings, onLiveStatus)
   }
 
 }
@@ -59,6 +63,7 @@ fun EnergyScreen(
 @Composable
 fun EnergyScreen(
   dailyEnergy: DailyEnergy,
+  batteryState: BatteryState,
   onDayChanged: (LocalDate) -> Unit,
   onSettings: () -> Unit,
   onLiveStatus: () -> Unit,
@@ -69,6 +74,9 @@ fun EnergyScreen(
   ) { innerPadding ->
     Column(modifier = Modifier.padding(innerPadding)) {
       DayPicker(dailyEnergy.date, onDayChanged)
+      Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+        BatteryBar(batteryState.soc ?: 0, 20.0, batteryState.reserve ?: 0)
+      }
       Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
         TotalEnergy(dailyEnergy)
       }
@@ -116,6 +124,6 @@ private fun TopBar(
 @Composable
 fun GreetingPreview() {
   SolarCombinerTheme {
-    EnergyScreen(SampleData.sampleData, {}, {}) {}
+    EnergyScreen(SampleData.sampleData, BatteryState(null, null), {}, {}) {}
   }
 }

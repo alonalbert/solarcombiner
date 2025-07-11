@@ -3,6 +3,7 @@ package com.alonalbert.solar.combiner.enphase
 import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.CACHE
 import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.CACHE_ONLY
 import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.NO_CACHE
+import com.alonalbert.solar.combiner.enphase.model.BatteryState
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.alonalbert.solar.combiner.enphase.model.Energy
 import com.alonalbert.solar.combiner.enphase.model.GetTokenRequest
@@ -43,6 +44,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.double
+import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.internal.closeQuietly
@@ -61,11 +63,13 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import com.google.gson.JsonObject as GsonObject
 
-private const val LOGIN_URL = "https://enlighten.enphaseenergy.com/login/login.json"
+private const val BASE_URL = "https://enlighten.enphaseenergy.com"
+
+private const val LOGIN_URL = "$BASE_URL/login/login.json"
 private const val TOKEN_URL = "https://entrez.enphaseenergy.com/tokens"
-private const val LIVE_STREAM_URL = "https://enlighten.enphaseenergy.com/pv/aws_sigv4/livestream.json"
-private const val DAILY_ENERGY =
-  "https://enlighten.enphaseenergy.com/pv/systems/%1\$s/daily_energy?start_date=%2\$d-%3$02d-%4$02d&end_date=%2\$d-%3$02d-%4$02d"
+private const val LIVE_STREAM_URL = "$BASE_URL/pv/aws_sigv4/livestream.json"
+private const val DAILY_ENERGY_URL = "$BASE_URL/pv/systems/%1\$s/daily_energy?start_date=%2\$d-%3$02d-%4$02d&end_date=%2\$d-%3$02d-%4$02d"
+private const val TODAY_URL = "$BASE_URL/pv/systems/%s/today"
 private const val COOKIE = "_enlighten_4_session"
 private const val BAD_VALUE = 30_000
 
@@ -106,10 +110,21 @@ class Enphase(
     CACHE,
   }
 
+  suspend fun getBatteryState(): BatteryState {
+    val response = client.get(TODAY_URL.format(mainSiteId)) {
+      cookie(COOKIE, sessionId())
+    }
+    val body = response.body<JsonObject>()
+    val soc = body.jsonObject["battery_details"]?.jsonObject["aggregate_soc"]?.jsonPrimitive?.int
+    val reserve = body.jsonObject["batteryConfig"]?.jsonObject["battery_backup_percentage"]?.jsonPrimitive?.int
+
+    return BatteryState(soc,  reserve)
+  }
+
   suspend fun getDailyEnergy(date: LocalDate, cacheMode: CacheMode = CACHE): DailyEnergy? {
     return withContext(Dispatchers.Unconfined) {
-      val innerStats = loadData(mainSiteId, date, cacheMode)
-      val outerStats = loadData(exportSiteId, date, cacheMode)
+      val innerStats = loadDailyEnergy(mainSiteId, date, cacheMode)
+      val outerStats = loadDailyEnergy(exportSiteId, date, cacheMode)
       if (innerStats == null && outerStats == null) {
         if (cacheMode == CACHE_ONLY) {
           return@withContext null
@@ -164,6 +179,8 @@ class Enphase(
           storage = mainStatus.storage,
           grid = mainStatus.grid - exportStatus.pv,
           load = mainStatus.load,
+          soc = mainStatus.soc,
+          reserve = mainStatus.reserve,
         )
         emit(combined)
         delay(delay)
@@ -185,11 +202,13 @@ class Enphase(
       val storage = meters.getKiloWatts("storage")
       val grid = meters.getKiloWatts("grid")
       val load = meters.getKiloWatts("load")
-      LiveStatus(pv, storage, grid, load)
+      val soc = meters.getValue("soc").jsonPrimitive.int
+      val reserve = meters.getValue("backup_soc").jsonPrimitive.int
+      LiveStatus(pv, storage, grid, load, soc, reserve)
     } catch (e: IOException) {
       logger.atTrace().setCause(e).log("Failed to get Live Status from $url")
       logger.atError().log("Failed to get Live Status from $url")
-      LiveStatus(pv = 0.0, storage = 0.0, grid = 0.0, load = 0.0)
+      LiveStatus(pv = 0.0, storage = 0.0, grid = 0.0, load = 0.0, soc = 0, reserve = 0)
     }
   }
 
@@ -213,7 +232,7 @@ class Enphase(
     }.bodyAsText()
   }
 
-  private suspend fun loadData(siteId: String, date: LocalDate, cacheMode: CacheMode): GsonObject? {
+  private suspend fun loadDailyEnergy(siteId: String, date: LocalDate, cacheMode: CacheMode): GsonObject? {
     return withContext(IO) {
       if (cacheMode != NO_CACHE) {
         val cached = cache.read(siteId, date)
@@ -222,7 +241,7 @@ class Enphase(
         }
       }
 
-      val response = client.get(DAILY_ENERGY.format(siteId, date.year, date.month.value, date.dayOfMonth)) {
+      val response = client.get(DAILY_ENERGY_URL.format(siteId, date.year, date.month.value, date.dayOfMonth)) {
         cookie(COOKIE, sessionId())
       }
       val data = response.bodyAsPrettyJson()
@@ -232,7 +251,7 @@ class Enphase(
   }
 
   suspend fun setBatteryReserve(reserve: Int): String {
-    val response = client.put("https://enlighten.enphaseenergy.com/service/batteryConfig/api/v1/profile/${this.mainSiteId}") {
+    val response = client.put("$BASE_URL/service/batteryConfig/api/v1/profile/${this.mainSiteId}") {
       cookie(COOKIE, sessionId())
       contentType(Application.Json)
       setBody(SetProfileRequest("self-consumption", reserve.toString()))

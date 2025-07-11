@@ -3,11 +3,13 @@ package com.alonalbert.enphase.monitor.ui.livestatus
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Scaffold
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
+import com.alonalbert.enphase.monitor.ui.BatteryBar
 import com.alonalbert.enphase.monitor.ui.components.EnergyArrow
 import com.alonalbert.enphase.monitor.ui.theme.Colors
 import com.alonalbert.enphase.monitor.util.toDisplay
@@ -60,72 +63,82 @@ fun LiveStatusScreen(
   Scaffold(
     modifier = Modifier.fillMaxSize(),
   ) { innerPadding ->
-    Box(
-      modifier = modifier
-        .padding(innerPadding)
-        .fillMaxSize()
-        .aspectRatio(1f)
-    ) {
-      var pv by remember { mutableDoubleStateOf(0.0) }
-      var storage by remember { mutableDoubleStateOf(0.0) }
-      var grid by remember { mutableDoubleStateOf(0.0) }
-      var load by remember { mutableDoubleStateOf(0.0) }
-      val energyFlow = try {
-        liveStatus.calculateEnergyFlow()
-      } catch (e: IllegalArgumentException) {
-        Timber.e(e)
-        return@Box
+    Column(
+      modifier = modifier.padding(innerPadding).fillMaxSize(),
+      verticalArrangement = Arrangement.Center
+      ) {
+      Box(contentAlignment = Alignment.Center, modifier = Modifier
+        .fillMaxWidth()
+        .padding(8.dp)) {
+        BatteryBar(liveStatus.soc, 20.0, liveStatus.reserve)
       }
-      var pvToLoad by remember { mutableDoubleStateOf(0.0) }
-      var pvToStorage by remember { mutableDoubleStateOf(0.0) }
-      var pvToGrid by remember { mutableDoubleStateOf(0.0) }
-      var storageToLoad by remember { mutableDoubleStateOf(0.0) }
-      var storageToGrid by remember { mutableDoubleStateOf(0.0) }
-      var gridToLoad by remember { mutableDoubleStateOf(0.0) }
-      var gridToStorage by remember { mutableDoubleStateOf(0.0) }
+      Box(
+        modifier = modifier
+          .fillMaxWidth()
+          .aspectRatio(1f)
+      ) {
+        var pv by remember { mutableDoubleStateOf(0.0) }
+        var storage by remember { mutableDoubleStateOf(0.0) }
+        var grid by remember { mutableDoubleStateOf(0.0) }
+        var load by remember { mutableDoubleStateOf(0.0) }
+        val energyFlow = try {
+          liveStatus.calculateEnergyFlow()
+        } catch (e: IllegalArgumentException) {
+          Timber.e(e)
+          return@Box
+        }
+        var pvToLoad by remember { mutableDoubleStateOf(0.0) }
+        var pvToStorage by remember { mutableDoubleStateOf(0.0) }
+        var pvToGrid by remember { mutableDoubleStateOf(0.0) }
+        var storageToLoad by remember { mutableDoubleStateOf(0.0) }
+        var storageToGrid by remember { mutableDoubleStateOf(0.0) }
+        var gridToLoad by remember { mutableDoubleStateOf(0.0) }
+        var gridToStorage by remember { mutableDoubleStateOf(0.0) }
 
-      pv = liveStatus.pv
-      storage = liveStatus.storage
-      grid = liveStatus.grid
-      load = liveStatus.load
-      pvToLoad = energyFlow.pvToLoad
-      pvToStorage = energyFlow.pvToStorage
-      pvToGrid = energyFlow.pvToGrid
-      storageToLoad = energyFlow.storageToLoad
-      storageToGrid = energyFlow.storageToGrid
-      gridToLoad = energyFlow.gridToLoad
-      gridToStorage = energyFlow.gridToStorage
+        pv = liveStatus.pv
+        storage = liveStatus.storage
+        grid = liveStatus.grid
+        load = liveStatus.load
+        pvToLoad = energyFlow.pvToLoad
+        pvToStorage = energyFlow.pvToStorage
+        pvToGrid = energyFlow.pvToGrid
+        storageToLoad = energyFlow.storageToLoad
+        storageToGrid = energyFlow.storageToGrid
+        gridToLoad = energyFlow.gridToLoad
+        gridToStorage = energyFlow.gridToStorage
 
-      Node("Producing", R.drawable.solar, pv, Colors.Produced, Alignment.TopCenter)
-      Node("Consuming", R.drawable.house, load, Colors.Consumed, Alignment.CenterEnd, Modifier.padding(top = loadPad))
-      Node("Discharging", R.drawable.battery, storage, Colors.Battery, Alignment.BottomCenter, alternateName = "Charging")
-      Node("Importing", R.drawable.grid, grid, Colors.Grid, Alignment.CenterStart, Modifier.padding(top = gridPad), alternateName = "Exporting")
+        Node("Producing", R.drawable.solar, pv, Colors.Produced, Alignment.TopCenter)
+        Node("Consuming", R.drawable.house, load, Colors.Consumed, Alignment.CenterEnd, Modifier.padding(top = loadPad))
+        Node("Discharging", R.drawable.battery, storage, Colors.Battery, Alignment.BottomCenter, alternateName = "Charging")
+        Node("Importing", R.drawable.grid, grid, Colors.Grid, Alignment.CenterStart, Modifier.padding(top = gridPad), alternateName = "Exporting")
 
-      val modifier = Modifier
-        .fillMaxSize()
-        .padding(nodeSize, nodeSize, nodeSize, bottom = nodeSize + storagePad)
-      if (pvToLoad > 0) {
-        PvToLoad(modifier)
-      }
-      if (pvToStorage > 0) {
-        PvToStorage(modifier)
-      }
-      if (pvToGrid > 0) {
-        PvToGrid(modifier)
-      }
-      if (storageToLoad > 0) {
-        StorageToLoad(modifier)
-      }
-      if (storageToGrid > 0) {
-        StorageToGrid(modifier)
-      }
-      if (gridToLoad > 0) {
-        GridToLoad(modifier)
-      }
-      if (gridToStorage > 0) {
-        GridToStorage(modifier)
+        val modifier = Modifier
+          .fillMaxSize()
+          .padding(nodeSize, nodeSize, nodeSize, bottom = nodeSize + storagePad)
+        if (pvToLoad > 0) {
+          PvToLoad(modifier)
+        }
+        if (pvToStorage > 0) {
+          PvToStorage(modifier)
+        }
+        if (pvToGrid > 0) {
+          PvToGrid(modifier)
+        }
+        if (storageToLoad > 0) {
+          StorageToLoad(modifier)
+        }
+        if (storageToGrid > 0) {
+          StorageToGrid(modifier)
+        }
+        if (gridToLoad > 0) {
+          GridToLoad(modifier)
+        }
+        if (gridToStorage > 0) {
+          GridToStorage(modifier)
+        }
       }
     }
+
   }
 }
 
@@ -243,5 +256,5 @@ private fun BoxScope.Node(
 @Preview(showBackground = true, widthDp = 400, heightDp = 800, backgroundColor = 0xFFE0E0E0)
 @Composable
 fun LiveStatusScreenPreview() {
-  LiveStatusScreen(LiveStatus(pv = 10.2, storage = 0.6, grid = -3.84, load = 6.96))
+  LiveStatusScreen(LiveStatus(pv = 10.2, storage = 0.6, grid = -3.84, load = 6.96, soc = 20, reserve = 24))
 }

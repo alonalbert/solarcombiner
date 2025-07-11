@@ -5,8 +5,10 @@ class LiveStatus(
   val storage: Double,
   val grid: Double,
   val load: Double,
+  val soc: Int,
+  val reserve: Int,
 ) {
   override fun toString(): String {
-    return "LiveStatus(pv = %f, storage = %f, grid = %f, load = %f)".format(pv, storage, grid, load)
+    return "LiveStatus(pv = $pv, storage = $storage, grid = $grid, load = $load soc=$soc reserve=$reserve)"
   }
 }
