@@ -81,9 +81,5 @@ private fun calculateReserve(now: LocalTime, idleLoad: Double, batteryCapacity: 
   }
   val min = batteryCapacity * minReserve / 100
   val needed = min + idleLoad * hours
-  val reserve = (needed / batteryCapacity * 100).roundToInt()
-  if (reserve > 100) {
-    return null
-  }
-  return reserve
+  return (needed / batteryCapacity * 100).roundToInt().coerceAtMost(100)
 }
