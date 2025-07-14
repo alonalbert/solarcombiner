@@ -51,6 +51,7 @@ import okhttp3.internal.closeQuietly
 import okio.IOException
 import org.slf4j.Logger
 import java.io.Closeable
+import java.io.InputStream
 import java.nio.file.Path
 import java.security.SecureRandom
 import java.time.LocalDate
@@ -58,6 +59,7 @@ import java.util.Properties
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 import kotlin.LazyThreadSafetyMode.SYNCHRONIZED
+import kotlin.io.path.inputStream
 import kotlin.math.abs
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -81,13 +83,13 @@ class Enphase(
   private val email: String,
   password: String,
   private val mainSiteId: String,
-  private val mainSiteSerialNum: String,
-  mainSiteHost: String,
-  mainSitePort: Int,
-  private val exportSiteId: String,
-  private val exportSiteSerialNum: String,
-  exportSiteHost: String,
-  exportSitePort: Int,
+  private val mainSiteSerialNum: String?,
+  mainSiteHost: String?,
+  mainSitePort: Int?,
+  private val exportSiteId: String?,
+  private val exportSiteSerialNum: String?,
+  exportSiteHost: String?,
+  exportSitePort: Int?,
   cacheDir: Path,
   coroutineScope: CoroutineScope,
   private val logger: Logger = DefaultLogger()
@@ -118,13 +120,16 @@ class Enphase(
     val soc = body.jsonObject["battery_details"]?.jsonObject["aggregate_soc"]?.jsonPrimitive?.int
     val reserve = body.jsonObject["batteryConfig"]?.jsonObject["battery_backup_percentage"]?.jsonPrimitive?.int
 
-    return BatteryState(soc,  reserve)
+    return BatteryState(soc, reserve)
   }
 
   suspend fun getDailyEnergy(date: LocalDate, cacheMode: CacheMode = CACHE): DailyEnergy? {
     return withContext(Dispatchers.Unconfined) {
       val innerStats = loadDailyEnergy(mainSiteId, date, cacheMode)
-      val outerStats = loadDailyEnergy(exportSiteId, date, cacheMode)
+      val outerStats = when (exportSiteId) {
+        null -> null
+        else -> loadDailyEnergy(exportSiteId, date, cacheMode)
+      }
       if (innerStats == null && outerStats == null) {
         if (cacheMode == CACHE_ONLY) {
           return@withContext null
@@ -165,19 +170,34 @@ class Enphase(
   }
 
   suspend fun streamLiveStatus(delay: Duration = 1.seconds): Flow<LiveStatus> {
+    if (mainSiteSerialNum == null) {
+      throw IllegalStateException("Main site serial number is not provided")
+    }
     enableLiveStatus(mainSiteSerialNum)
-    enableLiveStatus(exportSiteSerialNum)
     val mainToken = getEnvoyToken(mainSiteSerialNum)
-    val exportToken = getEnvoyToken(exportSiteSerialNum)
+
+    val exportToken = when {
+      exportSiteSerialNum != null -> {
+        enableLiveStatus(exportSiteSerialNum)
+        getEnvoyToken(exportSiteSerialNum)
+      }
+
+      else -> null
+    }
+
 
     return flow {
       while (true) {
         val mainStatus = withContext(IO) { getLiveStatus(mainEnvoyUrl, mainToken) }
-        val exportStatus = withContext(IO) { getLiveStatus(exportEnvoyUrl, exportToken) }
+        val exportStatus = when (exportToken) {
+          null -> null
+          else -> withContext(IO) { getLiveStatus(exportEnvoyUrl, exportToken) }
+        }
+        val exportPv = exportStatus?.pv ?: 0.0
         val combined = LiveStatus(
-          pv = mainStatus.pv + exportStatus.pv,
+          pv = mainStatus.pv + exportPv,
           storage = mainStatus.storage,
-          grid = mainStatus.grid - exportStatus.pv,
+          grid = mainStatus.grid - exportPv,
           load = mainStatus.load,
           soc = mainStatus.soc,
           reserve = mainStatus.reserve,
@@ -264,25 +284,33 @@ class Enphase(
   }
 
   companion object {
-    fun fromProperties(
-      coroutineScope: CoroutineScope,
-      logger: Logger = DefaultLogger(),
-    ): Enphase {
-      val properties = ClassLoader.getSystemClassLoader().getResourceAsStream("local.properties").use {
-        Properties().apply {
-          load(it)
-        }
+    fun fromResourceProperties(coroutineScope: CoroutineScope, logger: Logger = DefaultLogger()): Enphase {
+      val stream = ClassLoader.getSystemClassLoader().getResourceAsStream("local.properties")
+        ?: throw IllegalStateException("Could not find local.properties in resources")
+      return stream.use {
+        fromPropertiesStream(it, coroutineScope, logger)
       }
+    }
+
+    fun fromProperties(path: Path, coroutineScope: CoroutineScope, logger: Logger = DefaultLogger()): Enphase {
+      return path.inputStream().use {
+        fromPropertiesStream(it, coroutineScope, logger)
+      }
+    }
+
+    private fun fromPropertiesStream(stream: InputStream, coroutineScope: CoroutineScope, logger: Logger = DefaultLogger()): Enphase {
+      val properties = Properties()
+      properties.load(stream)
       val email = properties.getProperty("login.email")
       val password = properties.getProperty("login.password")
       val mainSiteId = properties.getProperty("site.main")
       val exportSiteId = properties.getProperty("site.export")
       val mainSerialNum = properties.getProperty("envoy.main.serial")
       val mainHost = properties.getProperty("envoy.main.host")
-      val mainPort = properties.getProperty("envoy.main.port").toInt()
+      val mainPort = properties.getProperty("envoy.main.port")?.toIntOrNull()
       val exportSerialNum = properties.getProperty("envoy.export.serial")
       val exportHost = properties.getProperty("envoy.export.host")
-      val exportPort = properties.getProperty("envoy.export.port").toInt()
+      val exportPort = properties.getProperty("envoy.export.port")?.toIntOrNull()
       return Enphase(
         email,
         password,

@@ -12,6 +12,8 @@ import kotlinx.coroutines.runBlocking
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.io.path.Path
+import kotlin.io.path.notExists
 import kotlin.math.roundToInt
 
 private val logger = DefaultLogger()
@@ -45,8 +47,13 @@ private fun setReserve(idleLoad: Double, batteryCapacity: Double, minReserve: In
   }
 
   runBlocking {
+    val propertiesPath = Path(System.getProperty("user.home"), ".reserve-manager")
+    if (propertiesPath.notExists()) {
+      System.err.println("Warning: $propertiesPath does not exist")
+      return@runBlocking
+    }
     launch {
-      Enphase.fromProperties(this, logger) .use { enphase ->
+      Enphase.fromProperties(propertiesPath, this, logger) .use { enphase ->
         val result = enphase.setBatteryReserve(reserve)
         logger.info("Setting reserve to $reserve: $result")
       }
