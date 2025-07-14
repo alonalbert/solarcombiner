@@ -36,6 +36,7 @@ import com.alonalbert.enphase.monitor.ui.theme.Colors
 import com.alonalbert.enphase.monitor.util.toDisplay
 import com.alonalbert.solar.combiner.enphase.calculateEnergyFlow
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
+import com.alonalbert.solar.combiner.enphase.util.zerofy
 import timber.log.Timber
 import kotlin.math.abs
 
@@ -64,7 +65,9 @@ fun LiveStatusScreen(
     modifier = Modifier.fillMaxSize(),
   ) { innerPadding ->
     Column(
-      modifier = modifier.padding(innerPadding).fillMaxSize(),
+      modifier = modifier
+        .padding(innerPadding)
+        .fillMaxSize(),
       verticalArrangement = Arrangement.Center
       ) {
       Box(contentAlignment = Alignment.Center, modifier = Modifier
@@ -100,12 +103,12 @@ fun LiveStatusScreen(
         grid = liveStatus.grid
         load = liveStatus.load
         pvToLoad = energyFlow.pvToLoad
-        pvToStorage = energyFlow.pvToStorage
-        pvToGrid = energyFlow.pvToGrid
-        storageToLoad = energyFlow.storageToLoad
-        storageToGrid = energyFlow.storageToGrid
-        gridToLoad = energyFlow.gridToLoad
-        gridToStorage = energyFlow.gridToStorage
+        pvToStorage = energyFlow.pvToStorage.zerofy()
+        pvToGrid = energyFlow.pvToGrid.zerofy()
+        storageToLoad = energyFlow.storageToLoad.zerofy()
+        storageToGrid = energyFlow.storageToGrid.zerofy()
+        gridToLoad = energyFlow.gridToLoad.zerofy()
+        gridToStorage = energyFlow.gridToStorage.zerofy()
 
         Node("Producing", R.drawable.solar, pv, Colors.Produced, Alignment.TopCenter)
         Node("Consuming", R.drawable.house, load, Colors.Consumed, Alignment.CenterEnd, Modifier.padding(top = loadPad))

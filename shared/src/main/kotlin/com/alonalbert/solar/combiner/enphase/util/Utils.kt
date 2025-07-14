@@ -37,4 +37,4 @@ infix operator fun LocalDate.rangeTo(other: LocalDate): Sequence<LocalDate> {
 
 fun LocalDate.format(): String = format(DateTimeFormatter.ofLocalizedDate(MEDIUM))
 
-fun Double.zerofy() = if (abs(this) < 0.0000001) 0.0 else this
+fun Double.zerofy() = if (abs(this) < 0.01) 0.0 else this
