@@ -1,12 +1,13 @@
 package com.alonalbert.enphase.monitor.ui.energy
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusWeak
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -16,6 +17,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,14 +55,23 @@ fun EnergyScreen(
   }
   val dailyEnergy by viewModel.dailyEnergyState.collectAsStateWithLifecycle()
   val batteryState by viewModel.batteryStateState.collectAsStateWithLifecycle()
-
+  val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
   dailyEnergy?.let {
-    EnergyScreen(it, batteryState, { date -> viewModel.setDay(date) }, onSettings, onLiveStatus)
+    EnergyScreen(
+      it,
+      batteryState,
+      { date -> viewModel.setDay(date) },
+      onSettings,
+      onLiveStatus,
+      isRefreshing = isRefreshing,
+      onRefresh = { viewModel.refreshData() },
+    )
   }
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EnergyScreen(
   dailyEnergy: DailyEnergy,
@@ -67,21 +79,45 @@ fun EnergyScreen(
   onDayChanged: (LocalDate) -> Unit,
   onSettings: () -> Unit,
   onLiveStatus: () -> Unit,
+  isRefreshing: Boolean,
+  onRefresh: () -> Unit,
 ) {
+  val pullRefreshState = rememberPullToRefreshState()
   Scaffold(
-    topBar = { TopBar(onSettings, onLiveStatus) },
+    topBar = { TopBar(onSettings, onLiveStatus, onRefresh) },
+
     modifier = Modifier.fillMaxSize(),
   ) { innerPadding ->
-    Column(modifier = Modifier.padding(innerPadding)) {
-      DayPicker(dailyEnergy.date, onDayChanged)
-      Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-        BatteryBar(batteryState.soc ?: 0, 20.0, batteryState.reserve ?: 0)
+    PullToRefreshBox(
+      modifier = Modifier.padding(innerPadding),
+      state = pullRefreshState,
+      isRefreshing = isRefreshing,
+      onRefresh = onRefresh,
+    ) {
+      LazyColumn {
+        item {
+          DayPicker(dailyEnergy.date, onDayChanged)
+        }
+        item {
+          Box(
+            contentAlignment = Alignment.Center, modifier = Modifier
+              .fillMaxWidth()
+              .padding(8.dp)
+          ) {
+            BatteryBar(batteryState.soc ?: 0, 20.0, batteryState.reserve ?: 0)
+          }
+        }
+        item {
+          Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+            TotalEnergy(dailyEnergy)
+          }
+        }
+        item {
+          DailyEnergyChart(dailyEnergy)
+        }
       }
-      Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-        TotalEnergy(dailyEnergy)
-      }
-      DailyEnergyChart(dailyEnergy)
     }
+
   }
 }
 
@@ -90,6 +126,7 @@ fun EnergyScreen(
 private fun TopBar(
   onSettingsClick: () -> Unit,
   onLiveStatusClick: () -> Unit,
+  onRefresh: () -> Unit,
 ) {
   TopAppBar(
     colors = TopAppBarDefaults.topAppBarColors(
@@ -116,6 +153,14 @@ private fun TopBar(
           contentDescription = stringResource(id = R.string.live_status),
         )
       }
+      IconButton(onClick = onRefresh) {
+        Icon(
+          imageVector = Icons.Filled.Refresh,
+          tint = MaterialTheme.colorScheme.onPrimary,
+          contentDescription = "Refresh"
+        )
+      }
+
     }
   )
 }
@@ -124,6 +169,14 @@ private fun TopBar(
 @Composable
 fun GreetingPreview() {
   SolarCombinerTheme {
-    EnergyScreen(SampleData.sampleData, BatteryState(null, null), {}, {}) {}
+    EnergyScreen(
+      dailyEnergy = SampleData.sampleData,
+      batteryState = BatteryState(null, null),
+      onDayChanged = {},
+      onSettings = {},
+      onLiveStatus = {},
+      isRefreshing = false,
+      onRefresh = {},
+    )
   }
 }

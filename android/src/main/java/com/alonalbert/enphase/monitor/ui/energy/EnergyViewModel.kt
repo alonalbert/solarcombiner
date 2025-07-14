@@ -13,6 +13,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -30,17 +31,24 @@ class EnergyViewModel @Inject constructor(
   val dailyEnergyState: StateFlow<DailyEnergy?> = dailyEnergyFlow.stateIn(viewModelScope, null)
   val batteryStateState: StateFlow<BatteryState> = batteryStateFlow.stateIn(viewModelScope, BatteryState(null, null))
 
+  private val isRefreshingStateFlow = MutableStateFlow(false)
+  val isRefreshing = isRefreshingStateFlow.asStateFlow()
+
   private suspend fun enphase() = enphaseAsync.await()
 
   fun refreshData() {
     viewModelScope.launch {
-      batteryStateFlow.value = enphase().getBatteryState()
+      refreshData {
+        batteryStateFlow.value = enphase().getBatteryState()
+      }
     }
     job?.cancel()
     job = viewModelScope.launch {
-      val dailyEnergy = enphase().getDailyEnergy(day, NO_CACHE) ?: return@launch
-      if (dailyEnergy.date == day) {
-        dailyEnergyFlow.value = dailyEnergy
+      refreshData {
+        val dailyEnergy = enphase().getDailyEnergy(day, NO_CACHE) ?: return@refreshData
+        if (dailyEnergy.date == day) {
+          dailyEnergyFlow.value = dailyEnergy
+        }
       }
     }
   }
@@ -51,5 +59,14 @@ class EnergyViewModel @Inject constructor(
       dailyEnergyFlow.value = enphase().getDailyEnergy(day, CACHE_ONLY)
     }
     refreshData()
+  }
+
+  private suspend fun refreshData(block: suspend () -> Unit) {
+    isRefreshingStateFlow.value = true
+    try {
+      block()
+    } finally {
+      isRefreshingStateFlow.value = false
+    }
   }
 }
