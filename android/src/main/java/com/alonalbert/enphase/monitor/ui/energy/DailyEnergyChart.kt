@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.alonalbert.enphase.monitor.ui.theme.Colors
+import com.alonalbert.enphase.monitor.R
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
@@ -49,10 +51,10 @@ fun DailyEnergyChart(
         rememberColumnCartesianLayer(
           columnProvider =
             ColumnCartesianLayer.ColumnProvider.series(
-              rememberLineComponent(fill = fill(Colors.Produced), thickness = 2.2.dp),
-              rememberLineComponent(fill = fill(Colors.Consumed), thickness = 2.2.dp),
-              rememberLineComponent(fill = fill(Colors.Grid), thickness = 2.2.dp),
-              rememberLineComponent(fill = fill(Colors.Battery), thickness = 2.2.dp),
+              rememberLineComponent(fill = fill(colorResource(R.color.solar)), thickness = 2.2.dp),
+              rememberLineComponent(fill = fill(colorResource(R.color.consumption)), thickness = 2.2.dp),
+              rememberLineComponent(fill = fill(colorResource(R.color.grid)), thickness = 2.2.dp),
+              rememberLineComponent(fill = fill(colorResource(R.color.battery)), thickness = 2.2.dp),
             ),
           columnCollectionSpacing = 0.8.dp,
 
@@ -64,7 +66,7 @@ fun DailyEnergyChart(
 
             valueFormatter = StartAxisValueFormatter,
           ),
-        marker = rememberMarker(DailyEnergyValueFormatter(dailyEnergy), lineCount = 4),
+        marker = rememberMarker(DailyEnergyValueFormatter(LocalContext.current, dailyEnergy), lineCount = 4),
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),
     model = model,

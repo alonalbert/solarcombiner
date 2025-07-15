@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
@@ -25,10 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
-import com.alonalbert.enphase.monitor.ui.theme.Colors.Battery
-import com.alonalbert.enphase.monitor.ui.theme.Colors.Consumed
-import com.alonalbert.enphase.monitor.ui.theme.Colors.Grid
-import com.alonalbert.enphase.monitor.ui.theme.Colors.Produced
+import com.alonalbert.enphase.monitor.ui.theme.colorOf
 import com.alonalbert.enphase.monitor.util.px
 import com.alonalbert.enphase.monitor.util.toDisplay
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
@@ -60,18 +58,20 @@ private fun ConsumedBox(dailyEnergy: DailyEnergy) {
   val dischargedAngle = ((dailyEnergy.discharged / total) * 360).toFloat()
   val importedAngle = 360 - producedAngle - dischargedAngle
   Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-      drawArc(Produced, -90f, producedAngle, useCenter = false, size = size, style = Stroke(6.dp.px))
-      drawArc(Battery, -90 + producedAngle, dischargedAngle, useCenter = false, size = size, style = Stroke(6.dp.px))
-      drawArc(Grid, -90 - importedAngle, importedAngle, useCenter = false, size = size, style = Stroke(6.dp.px))
-    }
-    Column(horizontalAlignment = CenterHorizontally) {
-      Image(
-        painterResource(R.drawable.house),
-        contentDescription = null,
-        modifier = Modifier.size(40.dp),
-      )
-      Text(dailyEnergy.consumed.toDisplay("kWh", valueWeight = Bold), color = Consumed)
+    with (LocalContext.current) {
+      Canvas(modifier = Modifier.fillMaxSize()) {
+        drawArc(colorOf(R.color.solar), -90f, producedAngle, useCenter = false, size = size, style = Stroke(6.dp.px))
+        drawArc(colorOf(R.color.battery), -90 + producedAngle, dischargedAngle, useCenter = false, size = size, style = Stroke(6.dp.px))
+        drawArc(colorOf(R.color.grid), -90 - importedAngle, importedAngle, useCenter = false, size = size, style = Stroke(6.dp.px))
+      }
+      Column(horizontalAlignment = CenterHorizontally) {
+        Image(
+          painterResource(R.drawable.house),
+          contentDescription = null,
+          modifier = Modifier.size(40.dp),
+        )
+        Text(dailyEnergy.consumed.toDisplay("kWh", valueWeight = Bold), color = colorOf(R.color.consumption))
+      }
     }
   }
 }

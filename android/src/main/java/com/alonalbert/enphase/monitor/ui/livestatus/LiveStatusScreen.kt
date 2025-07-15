@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,7 +33,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.ui.batterybar.BatteryBar
 import com.alonalbert.enphase.monitor.ui.components.EnergyArrow
-import com.alonalbert.enphase.monitor.ui.theme.Colors
 import com.alonalbert.enphase.monitor.util.toDisplay
 import com.alonalbert.solar.combiner.enphase.calculateEnergyFlow
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
@@ -110,10 +110,10 @@ fun LiveStatusScreen(
         gridToLoad = energyFlow.gridToLoad.zerofy()
         gridToStorage = energyFlow.gridToStorage.zerofy()
 
-        Node("Producing", R.drawable.solar, pv, Colors.Produced, Alignment.TopCenter)
-        Node("Consuming", R.drawable.house, load, Colors.Consumed, Alignment.CenterEnd, Modifier.padding(top = loadPad))
-        Node("Discharging", R.drawable.battery, storage, Colors.Battery, Alignment.BottomCenter, alternateName = "Charging")
-        Node("Importing", R.drawable.grid, grid, Colors.Grid, Alignment.CenterStart, Modifier.padding(top = gridPad), alternateName = "Exporting")
+        Node("Producing", R.drawable.solar, pv, colorResource(R.color.solar), Alignment.TopCenter)
+        Node("Consuming", R.drawable.house, load, colorResource(R.color.consumption), Alignment.CenterEnd, Modifier.padding(top = loadPad))
+        Node("Discharging", R.drawable.battery, storage, colorResource(R.color.battery), Alignment.BottomCenter, alternateName = "Charging")
+        Node("Importing", R.drawable.grid, grid, colorResource(R.color.grid), Alignment.CenterStart, Modifier.padding(top = gridPad), alternateName = "Exporting")
 
         val modifier = Modifier
           .fillMaxSize()
@@ -150,7 +150,7 @@ private fun PvToLoad(modifier: Modifier) {
   EnergyArrow(
     start = Alignment.TopCenter,
     end = Alignment.CenterEnd,
-    color = Colors.Produced,
+    color = colorResource(R.color.solar),
     modifier = modifier,
   )
 }
@@ -160,7 +160,7 @@ private fun PvToGrid(modifier: Modifier) {
   EnergyArrow(
     start = Alignment.TopCenter,
     end = Alignment.CenterStart,
-    color = Colors.Produced,
+    color = colorResource(R.color.solar),
     modifier = modifier,
   )
 }
@@ -170,7 +170,7 @@ private fun StorageToLoad(modifier: Modifier) {
   EnergyArrow(
     start = Alignment.BottomCenter,
     end = Alignment.CenterEnd,
-    color = Colors.Battery,
+    color = colorResource(R.color.battery),
     modifier = modifier,
   )
 }
@@ -180,7 +180,7 @@ private fun StorageToGrid(modifier: Modifier) {
   EnergyArrow(
     start = Alignment.BottomCenter,
     end = Alignment.CenterStart,
-    color = Colors.Battery,
+    color = colorResource(R.color.battery),
     modifier = modifier,
   )
 }
@@ -190,7 +190,7 @@ private fun PvToStorage(modifier: Modifier) {
   EnergyArrow(
     start = Alignment.TopCenter,
     end = Alignment.BottomCenter,
-    color = Colors.Produced,
+    color = colorResource(R.color.solar),
     modifier = modifier,
   )
 }
@@ -200,7 +200,7 @@ private fun GridToLoad(modifier: Modifier) {
   EnergyArrow(
     start = Alignment.CenterStart,
     end = Alignment.CenterEnd,
-    color = Colors.Grid,
+    color = colorResource(R.color.grid),
     modifier = modifier,
   )
 }
@@ -210,7 +210,7 @@ private fun GridToStorage(modifier: Modifier) {
   EnergyArrow(
     start = Alignment.CenterStart,
     end = Alignment.BottomCenter,
-    color = Colors.Grid,
+    color = colorResource(R.color.grid),
     modifier = modifier,
   )
 }
