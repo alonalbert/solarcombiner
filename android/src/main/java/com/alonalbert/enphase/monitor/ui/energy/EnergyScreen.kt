@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusWeak
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -84,7 +83,7 @@ fun EnergyScreen(
 ) {
   val pullRefreshState = rememberPullToRefreshState()
   Scaffold(
-    topBar = { TopBar(onSettings, onLiveStatus, onRefresh) },
+    topBar = { TopBar(onSettings, onLiveStatus) },
 
     modifier = Modifier.fillMaxSize(),
   ) { innerPadding ->
@@ -126,7 +125,6 @@ fun EnergyScreen(
 private fun TopBar(
   onSettingsClick: () -> Unit,
   onLiveStatusClick: () -> Unit,
-  onRefresh: () -> Unit,
 ) {
   TopAppBar(
     colors = TopAppBarDefaults.topAppBarColors(
@@ -153,14 +151,6 @@ private fun TopBar(
           contentDescription = stringResource(id = R.string.live_status),
         )
       }
-      IconButton(onClick = onRefresh) {
-        Icon(
-          imageVector = Icons.Filled.Refresh,
-          tint = MaterialTheme.colorScheme.onPrimary,
-          contentDescription = "Refresh"
-        )
-      }
-
     }
   )
 }
