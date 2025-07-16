@@ -10,6 +10,7 @@ import com.alonalbert.solar.combiner.enphase.model.GetTokenRequest
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
 import com.alonalbert.solar.combiner.enphase.model.SetProfileRequest
 import com.alonalbert.solar.combiner.enphase.util.DefaultLogger
+import com.alonalbert.solar.combiner.enphase.util.toText
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonNull
@@ -147,7 +148,7 @@ class Enphase(
       val gridBattery = innerStats.getDoubles("grid_battery")
       val gridHome = innerStats.getDoubles("grid_home")
       val import = gridHome.zip(gridBattery) { h, b -> h + b }
-      val batteryLevel = innerStats?.getAsJsonArray("soc")?.map { if (it is JsonNull) null else it.asInt } ?: emptyList()
+      val batteryLevel = innerStats?.getAsJsonArray("soc")?.map { if (it is JsonNull) null else it.asInt } ?: List(96) { 0 }
 
       val energies = buildList {
         repeat(96) {
@@ -254,19 +255,24 @@ class Enphase(
 
   private suspend fun loadDailyEnergy(siteId: String, date: LocalDate, cacheMode: CacheMode): GsonObject? {
     return withContext(IO) {
-      if (cacheMode != NO_CACHE) {
-        val cached = cache.read(siteId, date)
-        if (cached != null) {
-          return@withContext gson.getObject(cached).getStats()
+      try {
+        if (cacheMode != NO_CACHE) {
+          val cached = cache.read(siteId, date)
+          if (cached != null) {
+            return@withContext gson.getObject(cached).getStats()
+          }
         }
-      }
 
-      val response = client.get(DAILY_ENERGY_URL.format(siteId, date.year, date.month.value, date.dayOfMonth)) {
-        cookie(COOKIE, sessionId())
+        val response = client.get(DAILY_ENERGY_URL.format(siteId, date.year, date.month.value, date.dayOfMonth)) {
+          cookie(COOKIE, sessionId())
+        }
+        val data = response.bodyAsPrettyJson()
+        cache.write(siteId, date, data)
+        gson.getObject(data).getStats()
+      } catch (e: IOException) {
+        logger.error("Failed to load data for ${date.toText()}", e)
+        null
       }
-      val data = response.bodyAsPrettyJson()
-      cache.write(siteId, date, data)
-      return@withContext gson.getObject(data).getStats()
     }
   }
 
