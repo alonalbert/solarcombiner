@@ -17,6 +17,7 @@ import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.cartesianLayerPadding
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.layer.stacked
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
@@ -26,7 +27,10 @@ import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineStroke
 import java.text.DecimalFormat
 
 private val YDecimalFormat = DecimalFormat("#")
@@ -38,12 +42,17 @@ fun DailyEnergyChart(
   modifier: Modifier = Modifier,
 ) {
   val x = (0 until 96).toList()
-  val model = CartesianChartModel(ColumnCartesianLayerModel.build {
-    series(x, dailyEnergy.energies.map { it.innerProduced + it.outerProduced })
-    series(x, dailyEnergy.energies.map { -it.consumed })
-    series(x, dailyEnergy.energies.map { it.imported - it.innerExported - it.outerProduced })
-    series(x, dailyEnergy.energies.map { it.discharged - it.charged })
-  })
+  val model = CartesianChartModel(
+    ColumnCartesianLayerModel.build {
+      series(x, dailyEnergy.energies.map { it.innerProduced + it.outerProduced })
+      series(x, dailyEnergy.energies.map { -it.consumed })
+      series(x, dailyEnergy.energies.map { it.imported - it.innerExported - it.outerProduced })
+      series(x, dailyEnergy.energies.map { it.discharged - it.charged })
+    },
+    LineCartesianLayerModel.build {
+      series(x, dailyEnergy.energies.map { it.innerProduced })
+    }
+  )
 
   CartesianChartHost(
     chart =
@@ -57,13 +66,20 @@ fun DailyEnergyChart(
               rememberLineComponent(fill = fill(colorResource(R.color.battery)), thickness = 2.2.dp),
             ),
           columnCollectionSpacing = 0.8.dp,
-
           mergeMode = { ColumnCartesianLayer.MergeMode.stacked() },
+        ),
+        rememberLineCartesianLayer(
+          lineProvider = LineCartesianLayer.LineProvider.series(
+            LineCartesianLayer.Line(
+              LineCartesianLayer.LineFill.single(fill(Color.DarkGray.copy(alpha = .5f))),
+              LineStroke.Continuous(1f)
+            )
+          ),
+          pointSpacing = 2.2.dp,
         ),
         startAxis =
           VerticalAxis.rememberStart(
             guideline = null,
-
             valueFormatter = StartAxisValueFormatter,
           ),
         marker = rememberMarker(DailyEnergyValueFormatter(LocalContext.current, dailyEnergy), lineCount = 4),
