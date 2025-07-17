@@ -13,12 +13,21 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -26,20 +35,30 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
-import com.alonalbert.enphase.monitor.ui.theme.Colors.Grey55
 import com.alonalbert.solar.combiner.enphase.util.format
+import com.alonalbert.solar.combiner.enphase.util.toEpochMillis
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneOffset.UTC
 
-val color = Grey55
-val disabledColor = Grey55.copy(alpha = 0.4f)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DayPicker(
   date: LocalDate,
   onDayChanged: (LocalDate) -> Unit,
-  installDate: LocalDate = LocalDate.of(2025, 6, 17),
+  installDate: LocalDate = LocalDate.of(2022, 4, 8),
 ) {
+  val color = MaterialTheme.colorScheme.onBackground
+  val disabledColor = color.copy(alpha = .5f)
+
   val day = date.atStartOfDay().toLocalDate()
+  var showDatePickerDialog by remember { mutableStateOf(false) }
+
+  if (showDatePickerDialog) {
+    DatePickerDialog(day, installDate, { onDayChanged(it) }, { showDatePickerDialog = false })
+  }
   Row(verticalAlignment = CenterVertically) {
     val prevEnabled = day > installDate
     IconButton(
@@ -49,12 +68,12 @@ fun DayPicker(
       Icon(
         Icons.Filled.ChevronLeft,
         "Previous",
-        tint = prevEnabled.toIconColor(),
+        tint = if (prevEnabled) color else disabledColor,
         modifier = Modifier.size(40.dp)
       )
     }
     TextButton(
-      onClick = { },
+      onClick = { showDatePickerDialog = true },
       colors = ButtonDefaults.textButtonColors(contentColor = color)
     ) {
       Row(verticalAlignment = CenterVertically) {
@@ -76,7 +95,7 @@ fun DayPicker(
       Icon(
         Icons.Filled.ChevronRight,
         "Next",
-        tint = nextEnabled.toIconColor(),
+        tint = if (nextEnabled) color else disabledColor,
         modifier = Modifier.size(40.dp)
       )
     }
@@ -103,7 +122,47 @@ fun DayPicker(
   }
 }
 
-private fun Boolean.toIconColor() = if (this) color else disabledColor
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun DatePickerDialog(
+  initialDate: LocalDate,
+  installDate: LocalDate,
+  onDayPicked: (LocalDate) -> Unit,
+  onDialogClosed: () -> Unit,
+) {
+  val now = System.currentTimeMillis()
+  val installMillis = installDate.toEpochSecond(LocalTime.MIN, UTC) * 1_000
+  val datePickerState = rememberDatePickerState(
+    initialSelectedDateMillis = initialDate.toEpochMillis(),
+    selectableDates = object : SelectableDates {
+      override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis in (installMillis..now)
+
+      override fun isSelectableYear(year: Int) = year in installDate.year..LocalDate.now().year
+    }
+  )
+  DatePickerDialog(
+    onDismissRequest = onDialogClosed,
+    confirmButton = {
+      TextButton(
+        onClick = {
+          datePickerState.selectedDateMillis?.let {
+            onDayPicked(LocalDate.ofInstant(Instant.ofEpochMilli(it), UTC))
+          }
+          onDialogClosed()
+        }
+      ) {
+        Text("OK")
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = onDialogClosed) {
+        Text("Cancel")
+      }
+    }
+  ) {
+    DatePicker(state = datePickerState)
+  }
+}
 
 @Preview(name = "Today")
 @Composable
@@ -120,6 +179,6 @@ fun DayPickerPreview_Yesterday() {
 @Preview(name = "First")
 @Composable
 fun DayPickerPreview_First() {
-  DayPicker(LocalDate.of(2025, 6, 17), {})
+  DayPicker(LocalDate.of(2022, 4, 8), {})
 }
 
