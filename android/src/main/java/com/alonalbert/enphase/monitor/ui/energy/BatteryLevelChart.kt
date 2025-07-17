@@ -12,25 +12,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.cartesianLayerPadding
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
 import com.patrykandpatrick.vico.compose.common.fill
+import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis.HorizontalLabelPosition.Inside
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import kotlinx.coroutines.runBlocking
-import java.text.DecimalFormat
-
-private val YDecimalFormat = DecimalFormat("#")
-private val StartAxisValueFormatter = CartesianValueFormatter.decimal(YDecimalFormat)
 
 @Composable
 fun BatteryLevelChart(
@@ -64,7 +64,7 @@ private fun BatteryLevelChart(
           rangeProvider = remember {
             CartesianLayerRangeProvider.fixed(
               minX = 0.0,
-              maxX = 96.0,
+              maxX = 95.0,
               minY = 0.0,
               maxY = 100.0
             )
@@ -74,7 +74,20 @@ private fun BatteryLevelChart(
         startAxis =
           VerticalAxis.rememberStart(
             guideline = null,
-            valueFormatter = StartAxisValueFormatter,
+            valueFormatter = DecimalValueFormatter,
+            horizontalLabelPosition = Inside,
+          ),
+        bottomAxis =
+          HorizontalAxis.rememberBottom(
+            label = rememberAxisLabelComponent(textSize = 10.sp),
+            valueFormatter = TimeOfDayAxisValueFormatter,
+            guideline = null,
+            itemPlacer = remember { HorizontalAxis.ItemPlacer.aligned(
+              spacing = { 12 },
+              offset = { 0 },
+              shiftExtremeLines = false,
+              addExtremeLabelPadding = true
+            ) },
           ),
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),

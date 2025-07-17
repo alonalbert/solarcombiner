@@ -30,23 +30,14 @@ import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.fill
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis.HorizontalLabelPosition.Inside
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineStroke
-import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import kotlinx.coroutines.runBlocking
-import java.text.DecimalFormat
-
-private val YDecimalFormat = DecimalFormat("#")
-private val StartAxisValueFormatter = CartesianValueFormatter.decimal(YDecimalFormat)
-private val BottomAxisLabelKey = ExtraStore.Key<List<String>>()
-private val BottomAxisValueFormatter = CartesianValueFormatter { context, x, _ ->
-  context.model.extraStore[BottomAxisLabelKey][x.toInt()]
-}
 
 @Composable
 fun DailyEnergyChart(
@@ -91,12 +82,13 @@ private fun DailyEnergyChart(
         startAxis =
           VerticalAxis.rememberStart(
             guideline = null,
-            valueFormatter = StartAxisValueFormatter,
+            valueFormatter = DecimalValueFormatter,
+            horizontalLabelPosition = Inside,
           ),
         bottomAxis =
           HorizontalAxis.rememberBottom(
             label = rememberAxisLabelComponent(textSize = 10.sp),
-            valueFormatter = BottomAxisValueFormatter,
+            valueFormatter = TimeOfDayAxisValueFormatter,
             guideline = null,
             itemPlacer = remember { HorizontalAxis.ItemPlacer.aligned(
               spacing = { 12 },
@@ -123,15 +115,6 @@ private suspend fun CartesianChartModelProducer.runTransaction(dailyEnergy: Dail
       series(dailyEnergy.energies.map { it.discharged - it.charged })
     }
     lineSeries { series(dailyEnergy.energies.map { it.innerProduced }) }
-    extras {
-      it[BottomAxisLabelKey] = (0..95).map { x ->
-        when (val h = x / 4) {
-          0 -> "12 am"
-          12 -> "12 pm"
-          else -> (h % 12).toString()
-        }
-      }
-    }
   }
 }
 

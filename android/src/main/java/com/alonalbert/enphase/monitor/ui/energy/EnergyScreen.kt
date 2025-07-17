@@ -93,7 +93,7 @@ fun EnergyScreen(
       isRefreshing = isRefreshing,
       onRefresh = onRefresh,
     ) {
-      LazyColumn {
+      LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
         item {
           DayPicker(dailyEnergy.date, onDayChanged)
         }
@@ -101,7 +101,6 @@ fun EnergyScreen(
           Box(
             contentAlignment = Alignment.Center, modifier = Modifier
               .fillMaxWidth()
-              .padding(8.dp)
           ) {
             BatteryBar(batteryState.soc ?: 0, 20.0, batteryState.reserve ?: 0)
           }
