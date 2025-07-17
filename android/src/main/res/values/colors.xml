@@ -11,5 +11,6 @@
   <color name="grid">#6b7073</color>
   <color name="solar">#01b4de</color>
   <color name="battery">#7acf38</color>
+  <color name="battery_chart">#a3d97e</color>
   <color name="consumption">#f37320</color>
 </resources>

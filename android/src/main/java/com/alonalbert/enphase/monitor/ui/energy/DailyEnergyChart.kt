@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -54,17 +53,8 @@ fun DailyEnergyChart(
   modifier: Modifier = Modifier,
 ) {
   val modelProducer = remember { CartesianChartModelProducer() }
-  LaunchedEffect(Unit) {
-    modelProducer.runTransaction(dailyEnergy)
-  }
-  DailyEnergyChart(modelProducer, modifier)
-}
+  modelProducer.runTransaction(dailyEnergy)
 
-@Composable
-private fun DailyEnergyChart(
-  modelProducer: CartesianChartModelProducer,
-  modifier: Modifier = Modifier,
-) {
   CartesianChartHost(
     chart =
       rememberCartesianChart(
@@ -109,26 +99,28 @@ private fun DailyEnergyChart(
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),
     modelProducer = modelProducer,
-    modifier = modifier.height(400.dp),
+    modifier = modifier.height(300.dp),
     zoomState = rememberVicoZoomState(zoomEnabled = false),
   )
 }
 
-private suspend fun CartesianChartModelProducer.runTransaction(dailyEnergy: DailyEnergy) {
-  runTransaction {
-    columnSeries {
-      series(dailyEnergy.energies.map { it.innerProduced + it.outerProduced })
-      series(dailyEnergy.energies.map { -it.consumed })
-      series(dailyEnergy.energies.map { it.imported - it.innerExported - it.outerProduced })
-      series(dailyEnergy.energies.map { it.discharged - it.charged })
-    }
-    lineSeries { series(dailyEnergy.energies.map { it.innerProduced }) }
-    extras {
-      it[BottomAxisLabelKey] = (0..95).map { x ->
-        when (val h = x / 4) {
-          0 -> "12 am"
-          12 -> "12 pm"
-          else -> (h % 12).toString()
+private fun CartesianChartModelProducer.runTransaction(dailyEnergy: DailyEnergy) {
+  runBlocking {
+    runTransaction {
+      columnSeries {
+        series(dailyEnergy.energies.map { it.innerProduced + it.outerProduced })
+        series(dailyEnergy.energies.map { -it.consumed })
+        series(dailyEnergy.energies.map { it.imported - it.innerExported - it.outerProduced })
+        series(dailyEnergy.energies.map { it.discharged - it.charged })
+      }
+      lineSeries { series(dailyEnergy.energies.map { it.innerProduced }) }
+      extras {
+        it[BottomAxisLabelKey] = (0..95).map { x ->
+          when (val h = x / 4) {
+            0 -> "12 am"
+            12 -> "12 pm"
+            else -> (h % 12).toString()
+          }
         }
       }
     }
@@ -143,12 +135,6 @@ private fun Preview() {
       .background(Color.White)
       .padding(16.dp)
   ) {
-    val modelProducer = remember { CartesianChartModelProducer() }
-    // Use `runBlocking` only for previews, which don’t support asynchronous execution.
-    val dailyEnergy = SampleData.sampleData
-    runBlocking {
-      modelProducer.runTransaction(dailyEnergy)
-    }
-    DailyEnergyChart(modelProducer)
+    DailyEnergyChart(SampleData.sampleData)
   }
 }

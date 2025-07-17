@@ -114,6 +114,9 @@ fun EnergyScreen(
         item {
           DailyEnergyChart(dailyEnergy)
         }
+        item {
+          BatteryLevelChart(dailyEnergy.energies.mapNotNull { it.battery })
+        }
       }
     }
 
