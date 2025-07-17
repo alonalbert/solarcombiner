@@ -1,10 +1,22 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
   <!-- Base application theme. -->
   <style name="Theme.SolarCombiner" parent="Theme.AppCompat.Light.DarkActionBar">
     <!-- Primary brand color. -->
     <item name="colorPrimary">@color/purple_500</item>
     <item name="colorPrimaryDark">@color/purple_700</item>
     <item name="colorAccent">@color/teal_200</item>
-    <!-- Customize your theme here. -->
+
+
+    <item name="android:windowSplashScreenBackground">@color/splash_background_light</item>
+    <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_icon_background_light</item>
+    <item name="postSplashScreenTheme">@style/Theme.SolarCombiner</item>
+  </style>
+
+  <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+    <item name="windowSplashScreenBackground">@color/splash_background_light</item>
+    <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    <item name="windowSplashScreenIconBackgroundColor">@color/splash_icon_background_light</item>
+    <item name="postSplashScreenTheme">@style/Theme.SolarCombiner</item>
   </style>
 </resources>
