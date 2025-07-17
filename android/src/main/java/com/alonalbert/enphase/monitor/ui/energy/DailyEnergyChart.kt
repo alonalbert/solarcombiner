@@ -103,8 +103,8 @@ private fun DailyEnergyChart(
         rememberLineCartesianLayer(
           lineProvider = LineCartesianLayer.LineProvider.series(
             LineCartesianLayer.Line(
-              LineCartesianLayer.LineFill.single(fill(Color.DarkGray.copy(alpha = .5f))),
-              LineStroke.Continuous(1f)
+              LineCartesianLayer.LineFill.single(fill(Color.Black.copy(alpha = .5f))),
+              LineStroke.Continuous(1.5f)
             )
           ),
           pointSpacing = 2.2.dp,
@@ -130,7 +130,7 @@ private fun DailyEnergyChart(
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),
     modelProducer = modelProducer,
-    modifier = modifier.height(252.dp),
+    modifier = modifier.height(400.dp),
     zoomState = rememberVicoZoomState(zoomEnabled = false),
   )
 }
