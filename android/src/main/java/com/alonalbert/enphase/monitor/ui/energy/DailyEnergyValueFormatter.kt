@@ -10,7 +10,6 @@ import androidx.core.text.buildSpannedString
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.ui.theme.colorOf
 import com.alonalbert.enphase.monitor.ui.theme.toInt
-import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.alonalbert.solar.combiner.enphase.util.kw
 import com.alonalbert.solar.combiner.enphase.util.zerofy
 import com.patrykandpatrick.vico.core.cartesian.CartesianDrawingContext
@@ -20,33 +19,31 @@ import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker.Va
 
 class DailyEnergyValueFormatter(
   private val androidContext: Context,
-  private val dailyEnergy: DailyEnergy,
-  ):  ValueFormatter{
+) : ValueFormatter {
   override fun format(
     context: CartesianDrawingContext,
     targets: List<CartesianMarker.Target>
   ): CharSequence {
-    with (androidContext) {
+    with(androidContext) {
       val solarColor = colorOf(R.color.solar)
       val gridColor = colorOf(R.color.grid)
       val batteryColor = colorOf(R.color.battery)
       val consumptionColor = colorOf(R.color.consumption)
-      val energies = dailyEnergy.energies
       return buildSpannedString {
         targets.filterIsInstance<ColumnCartesianLayerMarkerTarget>().forEach { target ->
           val columns = target.columns
-          val i = columns[0].entry.x.toInt()
-          val energy = energies[i]
-          appendEnergyColumn("Produced", energy.outerProduced + energy.innerProduced, solarColor)
-          val imported = energy.imported - energy.innerExported - energy.outerProduced
-          if (imported >= 0) {
-            appendEnergyColumn("Imported", imported, gridColor)
-          } else {
-            appendEnergyColumn("Exported", -imported, gridColor)
+          appendEnergyColumn("Produced", columns[0].entry.y, solarColor)
+          val imported = columns[1].entry.y
+          when (imported >= 0) {
+            true -> appendEnergyColumn("Imported", imported, gridColor)
+            false -> appendEnergyColumn("Exported", -imported, gridColor)
           }
-          appendEnergyColumn("Charged", energy.charged, batteryColor)
-          appendEnergyColumn("Discharged", energy.discharged, batteryColor)
-          appendEnergyColumn("Consumed", energy.consumed, consumptionColor)
+          val battery = columns[2].entry.y
+          when (battery >= 0) {
+            true -> appendEnergyColumn("Discharged", battery, batteryColor)
+            false -> appendEnergyColumn("Charged", -battery, batteryColor)
+          }
+          appendEnergyColumn("Consumed", columns[3].entry.y, consumptionColor)
 
           setSpan(TabStopSpan.Standard(100), 0, length, SPAN_EXCLUSIVE_EXCLUSIVE)
         }
