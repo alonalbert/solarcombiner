@@ -1,23 +1,31 @@
 package com.alonalbert.enphase.monitor.ui.datepicker
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.ui.theme.Colors.Grey55
 import com.alonalbert.solar.combiner.enphase.util.format
 import java.time.LocalDate
@@ -32,12 +40,11 @@ fun DayPicker(
   installDate: LocalDate = LocalDate.of(2025, 6, 17),
 ) {
   val day = date.atStartOfDay().toLocalDate()
-  Row {
+  Row(verticalAlignment = CenterVertically) {
     val prevEnabled = day > installDate
     IconButton(
       onClick = { onDayChanged(day.minusDays(1)) },
       enabled = prevEnabled,
-//      modifier = Modifier.padding(4.dp)
     ) {
       Icon(
         Icons.Filled.ChevronLeft,
@@ -50,7 +57,7 @@ fun DayPicker(
       onClick = { },
       colors = ButtonDefaults.textButtonColors(contentColor = color)
     ) {
-      Row(verticalAlignment = Alignment.CenterVertically) {
+      Row(verticalAlignment = CenterVertically) {
         Icon(
           imageVector = Icons.Filled.CalendarToday,
           contentDescription = "Select Date"
@@ -72,6 +79,26 @@ fun DayPicker(
         tint = nextEnabled.toIconColor(),
         modifier = Modifier.size(40.dp)
       )
+    }
+
+
+    if (nextEnabled) {
+      Spacer(Modifier.width(8.dp))
+      Button(
+        onClick = { onDayChanged(LocalDate.now().atStartOfDay().toLocalDate()) },
+        shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues(horizontal = 32.dp),
+        colors = ButtonDefaults.buttonColors(
+          containerColor = colorResource(R.color.solar),
+          contentColor = MaterialTheme.colorScheme.onPrimary,
+        ),
+        modifier = Modifier.heightIn(min = 32.dp)
+      ) {
+        Text(
+          text = "Today",
+          fontSize = 10.sp,
+        )
+      }
     }
   }
 }
