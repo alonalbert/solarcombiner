@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,7 +39,17 @@ fun BatteryLevelChart(
   modifier: Modifier = Modifier,
 ) {
   val modelProducer = remember { CartesianChartModelProducer() }
-  modelProducer.runTransaction(batteryLevels)
+  LaunchedEffect(batteryLevels) {
+    modelProducer.runTransaction(batteryLevels)
+  }
+  BatteryLevelChart(modelProducer, modifier)
+}
+
+@Composable
+private fun BatteryLevelChart(
+  modelProducer: CartesianChartModelProducer,
+  modifier: Modifier = Modifier,
+) {
   val fill = fill(colorResource(R.color.battery_chart))
   CartesianChartHost(
     chart =
@@ -51,12 +62,14 @@ fun BatteryLevelChart(
                 LineCartesianLayer.AreaFill.single(fill)
             )
           ),
-          rangeProvider = remember { CartesianLayerRangeProvider.fixed(
-            minX = 0.0,
-            maxX = 96.0,
-            minY = 0.0,
-            maxY = 100.0
-          ) },
+          rangeProvider = remember {
+            CartesianLayerRangeProvider.fixed(
+              minX = 0.0,
+              maxX = 96.0,
+              minY = 0.0,
+              maxY = 100.0
+            )
+          },
           pointSpacing = 2.2.dp,
         ),
         startAxis =
@@ -73,11 +86,9 @@ fun BatteryLevelChart(
   )
 }
 
-private fun CartesianChartModelProducer.runTransaction(batteryLevels: List<Int>) {
-  runBlocking {
-    runTransaction {
-      lineSeries { series(batteryLevels) }
-    }
+private suspend fun CartesianChartModelProducer.runTransaction(batteryLevels: List<Int>) {
+  runTransaction {
+    lineSeries { series(batteryLevels) }
   }
 }
 
@@ -89,7 +100,10 @@ private fun Preview() {
       .background(Color.White)
       .padding(16.dp)
   ) {
-    val dailyEnergy = SampleData.sampleData
-    BatteryLevelChart(dailyEnergy.energies.mapNotNull { it.battery }.subList(0, 50))
+    val modelProducer = CartesianChartModelProducer()
+    runBlocking {
+      modelProducer.runTransaction(SampleData.sampleData.energies.mapNotNull { it.battery }.subList(0, 50))
+    }
+    BatteryLevelChart(modelProducer)
   }
 }
