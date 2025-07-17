@@ -60,27 +60,6 @@ fun DailyEnergyChart(
   DailyEnergyChart(modelProducer, modifier)
 }
 
-private suspend fun CartesianChartModelProducer.runTransaction(dailyEnergy: DailyEnergy) {
-  runTransaction {
-    columnSeries {
-      series(dailyEnergy.energies.map { it.innerProduced + it.outerProduced })
-      series(dailyEnergy.energies.map { -it.consumed })
-      series(dailyEnergy.energies.map { it.imported - it.innerExported - it.outerProduced })
-      series(dailyEnergy.energies.map { it.discharged - it.charged })
-    }
-    lineSeries { series(dailyEnergy.energies.map { it.innerProduced }) }
-    extras {
-      it[BottomAxisLabelKey] = (0..95).map { x ->
-        when (val h = x / 4) {
-          0 -> "12 am"
-          12 -> "12 pm"
-          else -> (h % 12).toString()
-        }
-      }
-    }
-  }
-}
-
 @Composable
 private fun DailyEnergyChart(
   modelProducer: CartesianChartModelProducer,
@@ -133,6 +112,27 @@ private fun DailyEnergyChart(
     modifier = modifier.height(400.dp),
     zoomState = rememberVicoZoomState(zoomEnabled = false),
   )
+}
+
+private suspend fun CartesianChartModelProducer.runTransaction(dailyEnergy: DailyEnergy) {
+  runTransaction {
+    columnSeries {
+      series(dailyEnergy.energies.map { it.innerProduced + it.outerProduced })
+      series(dailyEnergy.energies.map { -it.consumed })
+      series(dailyEnergy.energies.map { it.imported - it.innerExported - it.outerProduced })
+      series(dailyEnergy.energies.map { it.discharged - it.charged })
+    }
+    lineSeries { series(dailyEnergy.energies.map { it.innerProduced }) }
+    extras {
+      it[BottomAxisLabelKey] = (0..95).map { x ->
+        when (val h = x / 4) {
+          0 -> "12 am"
+          12 -> "12 pm"
+          else -> (h % 12).toString()
+        }
+      }
+    }
+  }
 }
 
 @Composable
