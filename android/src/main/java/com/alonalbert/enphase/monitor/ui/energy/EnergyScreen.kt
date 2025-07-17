@@ -1,5 +1,6 @@
 package com.alonalbert.enphase.monitor.ui.energy
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -157,9 +159,35 @@ private fun TopBar(
   )
 }
 
-@Preview(showBackground = true)
+@Preview(
+  showBackground = true,
+  showSystemUi = true,
+  device = Devices.PIXEL_7_PRO
+)
 @Composable
-fun GreetingPreview() {
+fun GreetingPreviewLight() {
+  SolarCombinerTheme {
+    EnergyScreen(
+      dailyEnergy = SampleData.sampleData,
+      batteryState = BatteryState(null, null),
+      onDayChanged = {},
+      onSettings = {},
+      onLiveStatus = {},
+      isRefreshing = false,
+      onRefresh = {},
+    )
+  }
+}
+
+@Preview(
+  showBackground = true,
+  showSystemUi = true,
+  device = Devices.PIXEL_7_PRO,
+  uiMode = Configuration.UI_MODE_NIGHT_YES,
+
+)
+@Composable
+fun GreetingPreviewDark() {
   SolarCombinerTheme {
     EnergyScreen(
       dailyEnergy = SampleData.sampleData,
