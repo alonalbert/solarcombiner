@@ -37,7 +37,6 @@ import com.alonalbert.enphase.monitor.util.toDisplay
 import com.alonalbert.solar.combiner.enphase.calculateEnergyFlow
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
 import com.alonalbert.solar.combiner.enphase.util.zerofy
-import timber.log.Timber
 import kotlin.math.abs
 
 private val nodeRadius = 20.dp
@@ -84,12 +83,7 @@ fun LiveStatusScreen(
         var storage by remember { mutableDoubleStateOf(0.0) }
         var grid by remember { mutableDoubleStateOf(0.0) }
         var load by remember { mutableDoubleStateOf(0.0) }
-        val energyFlow = try {
-          liveStatus.calculateEnergyFlow()
-        } catch (e: IllegalArgumentException) {
-          Timber.e(e)
-          return@Box
-        }
+        val energyFlow = liveStatus.calculateEnergyFlow()
         var pvToLoad by remember { mutableDoubleStateOf(0.0) }
         var pvToStorage by remember { mutableDoubleStateOf(0.0) }
         var pvToGrid by remember { mutableDoubleStateOf(0.0) }
