@@ -92,7 +92,7 @@ fun LiveStatus.calculateEnergyFlow(): LiveEnergyFlow {
 }
 
 fun main() {
-  val liveStatus = LiveStatus(pv = 2.448289, storage = 0.000000, grid = 0.023099, load = 2.471388, 20, 24)
+  val liveStatus = LiveStatus(pv = 9.808691, storage = -2.238, grid = -8.6881, load = -1.117409, soc=36, reserve=20)
   println(liveStatus)
   println(liveStatus.calculateEnergyFlow())
 }

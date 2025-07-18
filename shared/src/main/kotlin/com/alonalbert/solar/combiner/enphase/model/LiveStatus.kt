@@ -9,6 +9,6 @@ class LiveStatus(
   val reserve: Int,
 ) {
   override fun toString(): String {
-    return "LiveStatus(pv = $pv, storage = $storage, grid = $grid, load = $load soc=$soc reserve=$reserve)"
+    return "LiveStatus(pv = $pv, storage = $storage, grid = $grid, load = $load, soc=$soc, reserve=$reserve)"
   }
 }
