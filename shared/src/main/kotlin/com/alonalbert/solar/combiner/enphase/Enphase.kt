@@ -216,7 +216,8 @@ class Enphase(
         header("Authorization", "Bearer $token")
       }
 
-      val json = Json.decodeFromString<JsonObject>(response.bodyAsText())
+      val body = response.bodyAsText()
+      val json = Json.decodeFromString<JsonObject>(body)
 
       val meters = json.getValue("meters").jsonObject
       val pv = meters.getKiloWatts("pv")
@@ -225,6 +226,10 @@ class Enphase(
       val load = meters.getKiloWatts("load")
       val soc = meters.getValue("soc").jsonPrimitive.int
       val reserve = meters.getValue("backup_soc").jsonPrimitive.int
+      
+      if (load < 0) {
+        throw IllegalStateException("Invalid status: $body")
+      }
       LiveStatus(pv, storage, grid, load, soc, reserve)
     } catch (e: IOException) {
       logger.atTrace().setCause(e).log("Failed to get Live Status from $url")
