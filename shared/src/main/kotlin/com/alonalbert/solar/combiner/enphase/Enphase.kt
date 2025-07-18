@@ -189,7 +189,7 @@ class Enphase(
 
     return flow {
       while (true) {
-        val mainStatus = withContext(IO) { getLiveStatus(mainEnvoyUrl, mainToken) }
+        val mainStatus = withContext(IO) { getLiveStatus(mainEnvoyUrl, mainToken) } ?: continue
         val exportStatus = when (exportToken) {
           null -> null
           else -> withContext(IO) { getLiveStatus(exportEnvoyUrl, exportToken) }
@@ -209,7 +209,7 @@ class Enphase(
     }
   }
 
-  private suspend fun getLiveStatus(url: String, token: Any): LiveStatus {
+  private suspend fun getLiveStatus(url: String, token: Any): LiveStatus? {
     return try {
       val response = client.get("$url/ivp/livedata/status") {
         accept(Application.Json)
@@ -234,7 +234,7 @@ class Enphase(
     } catch (e: IOException) {
       logger.atTrace().setCause(e).log("Failed to get Live Status from $url")
       logger.atError().log("Failed to get Live Status from $url")
-      LiveStatus(pv = 0.0, storage = 0.0, grid = 0.0, load = 0.0, soc = 0, reserve = 0)
+      null
     }
   }
 
