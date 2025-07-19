@@ -147,7 +147,7 @@ class Enphase(
 
       val outerProduction = outerStats.getDoubles("production")
       val innerProduction = innerStats.getDoubles("production")
-      val consumption = innerStats.getDoubles("consumption")
+      val consumption = innerStats.getDoubles("consumption").map { it.coerceAtLeast(0.0) }
       val charge = innerStats.getDoubles("charge")
       val discharge = innerStats.getDoubles("discharge")
       val innerExport = innerStats.getDoubles("solar_grid")
