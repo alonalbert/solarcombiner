@@ -8,7 +8,6 @@ plugins {
 }
 
 dependencies {
-  implementation(project(":shared"))
   implementation(libs.jakarta.persistence)
   implementation(libs.jakarta.validation)
   implementation(libs.kotlin.reflect)
@@ -25,6 +24,7 @@ dependencies {
   implementation(libs.spring.boot.starter.web)
   implementation(libs.sqlite)
   implementation(libs.sqlite.dialect)
+  implementation(project(":shared"))
 
   implementation(libs.kandy)
 }
