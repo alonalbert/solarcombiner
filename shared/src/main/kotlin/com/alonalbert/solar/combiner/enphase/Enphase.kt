@@ -20,8 +20,9 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpRedirect
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
+import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.request.accept
-import io.ktor.client.request.cookie
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -32,12 +33,11 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType.Application
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import io.ktor.http.parameters
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -59,7 +59,6 @@ import java.time.LocalDate
 import java.util.Properties
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
-import kotlin.LazyThreadSafetyMode.SYNCHRONIZED
 import kotlin.io.path.inputStream
 import kotlin.math.abs
 import kotlin.time.Duration
@@ -73,7 +72,6 @@ private const val TOKEN_URL = "https://entrez.enphaseenergy.com/tokens"
 private const val LIVE_STREAM_URL = "$BASE_URL/pv/aws_sigv4/livestream.json"
 private const val DAILY_ENERGY_URL = "$BASE_URL/pv/systems/%1\$s/daily_energy?start_date=%2\$d-%3$02d-%4$02d&end_date=%2\$d-%3$02d-%4$02d"
 private const val TODAY_URL = "$BASE_URL/pv/systems/%s/today"
-private const val COOKIE = "_enlighten_4_session"
 private const val BAD_VALUE = 30_000
 
 private val gson = GsonBuilder()
@@ -82,7 +80,7 @@ private val gson = GsonBuilder()
 
 class Enphase(
   private val email: String,
-  password: String,
+  private val password: String,
   private val mainSiteId: String,
   private val mainSiteSerialNum: String?,
   mainSiteHost: String?,
@@ -92,20 +90,13 @@ class Enphase(
   exportSiteHost: String?,
   exportSitePort: Int?,
   cacheDir: Path,
-  coroutineScope: CoroutineScope,
   private val logger: Logger = DefaultLogger()
 ) : Closeable {
   private val cache = Cache(cacheDir)
   private val client = createClient()
-  private val _sessionId by lazy(SYNCHRONIZED) {
-    coroutineScope.async {
-      client.getSessionId(email, password)
-    }
-  }
-
-  private suspend fun sessionId() = _sessionId.await()
   private val mainEnvoyUrl = "https://$mainSiteHost:$mainSitePort"
   private val exportEnvoyUrl = "https://$exportSiteHost:$exportSitePort"
+  private var sessionId: String? = null
 
   enum class CacheMode {
     NO_CACHE,
@@ -113,10 +104,24 @@ class Enphase(
     CACHE,
   }
 
-  suspend fun getBatteryState(): BatteryState {
-    val response = client.get(TODAY_URL.format(mainSiteId)) {
-      cookie(COOKIE, sessionId())
+  suspend fun login() {
+    if (sessionId != null) {
+      return
     }
+    val response = client.submitForm(
+      LOGIN_URL,
+      parameters {
+        append("user[email]", email)
+        append("user[password]", password.trim())
+      })
+    if (response.status.isSuccess()) {
+      sessionId = gson.getObject(response.bodyAsText())["session_id"].asString
+    }
+  }
+
+  suspend fun getBatteryState(): BatteryState {
+    login()
+    val response = client.get(TODAY_URL.format(mainSiteId))
     val body = response.body<JsonObject>()
     val soc = body.jsonObject["battery_details"]?.jsonObject["aggregate_soc"]?.jsonPrimitive?.int
     val reserve = body.jsonObject["batteryConfig"]?.jsonObject["battery_backup_percentage"]?.jsonPrimitive?.int
@@ -125,6 +130,7 @@ class Enphase(
   }
 
   suspend fun getDailyEnergy(date: LocalDate, cacheMode: CacheMode = CACHE): DailyEnergy? {
+    login()
     return withContext(Dispatchers.Unconfined) {
       val innerStats = loadDailyEnergy(mainSiteId, date, cacheMode)
       val outerStats = when (exportSiteId) {
@@ -171,6 +177,7 @@ class Enphase(
   }
 
   suspend fun streamLiveStatus(delay: Duration = 1.seconds): Flow<LiveStatus> {
+    login()
     if (mainSiteSerialNum == null) {
       throw IllegalStateException("Main site serial number is not provided")
     }
@@ -209,6 +216,19 @@ class Enphase(
     }
   }
 
+  suspend fun setBatteryReserve(reserve: Int): String {
+    login()
+    val response = client.put("$BASE_URL/service/batteryConfig/api/v1/profile/${this.mainSiteId}") {
+      contentType(Application.Json)
+      setBody(SetProfileRequest("self-consumption", reserve.toString()))
+    }.body<JsonObject>()
+    return response["message"]?.jsonPrimitive?.content ?: "Unexpected error"
+  }
+
+  override fun close() {
+    client.closeQuietly()
+  }
+
   private suspend fun getLiveStatus(url: String, token: Any): LiveStatus? {
     return try {
       val response = client.get("$url/ivp/livedata/status") {
@@ -226,7 +246,7 @@ class Enphase(
       val load = meters.getKiloWatts("load")
       val soc = meters.getValue("soc").jsonPrimitive.int
       val reserve = meters.getValue("backup_soc").jsonPrimitive.int
-      
+
       if (load < 0) {
         throw IllegalStateException("Invalid status: $body")
       }
@@ -238,24 +258,23 @@ class Enphase(
     }
   }
 
+
   private fun GsonObject.getStats(): GsonObject? {
     val array = getAsJsonArray("stats")
     return if (array.size() < 1) null else array[0].asJsonObject
   }
 
   private suspend fun getEnvoyToken(serialNum: String): String {
+    val sessionId = sessionId ?: throw IllegalStateException("Not logged in")
     val response = client.post(TOKEN_URL) {
       contentType(Application.Json)
-      setBody(GetTokenRequest(sessionId(), serialNum, email))
+      setBody(GetTokenRequest(sessionId, serialNum, email))
     }
     return response.bodyAsText()
   }
 
-
   private suspend fun enableLiveStatus(serialNum: String) {
-    client.get("$LIVE_STREAM_URL?serial_num=$serialNum") {
-      cookie(COOKIE, sessionId())
-    }.bodyAsText()
+    client.get("$LIVE_STREAM_URL?serial_num=$serialNum").bodyAsText()
   }
 
   private suspend fun loadDailyEnergy(siteId: String, date: LocalDate, cacheMode: CacheMode): GsonObject? {
@@ -268,9 +287,7 @@ class Enphase(
           }
         }
 
-        val response = client.get(DAILY_ENERGY_URL.format(siteId, date.year, date.month.value, date.dayOfMonth)) {
-          cookie(COOKIE, sessionId())
-        }
+        val response = client.get(DAILY_ENERGY_URL.format(siteId, date.year, date.month.value, date.dayOfMonth))
         val data = response.bodyAsPrettyJson()
         cache.write(siteId, date, data)
         gson.getObject(data).getStats()
@@ -281,35 +298,22 @@ class Enphase(
     }
   }
 
-  suspend fun setBatteryReserve(reserve: Int): String {
-    val response = client.put("$BASE_URL/service/batteryConfig/api/v1/profile/${this.mainSiteId}") {
-      cookie(COOKIE, sessionId())
-      contentType(Application.Json)
-      setBody(SetProfileRequest("self-consumption", reserve.toString()))
-    }.body<JsonObject>()
-    return response["message"]?.jsonPrimitive?.content ?: "Unexpected error"
-  }
-
-  override fun close() {
-    client.closeQuietly()
-  }
-
   companion object {
-    fun fromResourceProperties(coroutineScope: CoroutineScope, logger: Logger = DefaultLogger()): Enphase {
+    fun fromResourceProperties(logger: Logger = DefaultLogger()): Enphase {
       val stream = ClassLoader.getSystemClassLoader().getResourceAsStream("local.properties")
         ?: throw IllegalStateException("Could not find local.properties in resources")
       return stream.use {
-        fromPropertiesStream(it, coroutineScope, logger)
+        fromPropertiesStream(it, logger)
       }
     }
 
-    fun fromProperties(path: Path, coroutineScope: CoroutineScope, logger: Logger = DefaultLogger()): Enphase {
+    fun fromProperties(path: Path, logger: Logger = DefaultLogger()): Enphase {
       return path.inputStream().use {
-        fromPropertiesStream(it, coroutineScope, logger)
+        fromPropertiesStream(it, logger)
       }
     }
 
-    private fun fromPropertiesStream(stream: InputStream, coroutineScope: CoroutineScope, logger: Logger = DefaultLogger()): Enphase {
+    private fun fromPropertiesStream(stream: InputStream, logger: Logger = DefaultLogger()): Enphase {
       val properties = Properties()
       properties.load(stream)
       val email = properties.getProperty("login.email")
@@ -334,22 +338,9 @@ class Enphase(
         exportHost,
         exportPort,
         Path.of("cache"),
-        coroutineScope,
         logger,
       )
     }
-  }
-}
-
-private suspend fun HttpClient.getSessionId(email: String, password: String): String {
-  return withContext(IO) {
-    val response = submitForm(
-      LOGIN_URL,
-      parameters {
-        append("user[email]", email)
-        append("user[password]", password.trim())
-      })
-    return@withContext gson.getObject(response.bodyAsText())["session_id"].asString
   }
 }
 
@@ -388,6 +379,9 @@ private fun createClient(): HttpClient {
     // Enable redirect for all methods
     install(HttpRedirect) {
       checkHttpMethod = false
+    }
+    install(HttpCookies) {
+      storage = AcceptAllCookiesStorage()
     }
     engine {
       config {

@@ -53,7 +53,7 @@ private fun setReserve(idleLoad: Double, batteryCapacity: Double, minReserve: In
       return@runBlocking
     }
     launch {
-      Enphase.fromProperties(propertiesPath, this, logger) .use { enphase ->
+      Enphase.fromProperties(propertiesPath, logger) .use { enphase ->
         val result = enphase.setBatteryReserve(reserve)
         logger.info("Setting reserve to $reserve: $result")
       }

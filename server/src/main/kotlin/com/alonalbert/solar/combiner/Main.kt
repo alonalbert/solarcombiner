@@ -5,7 +5,7 @@ import com.alonalbert.solar.combiner.enphase.calculateEnergyFlow
 import kotlinx.coroutines.runBlocking
 
 fun main() = runBlocking {
-  val enphase = Enphase.fromResourceProperties(this)
+  val enphase = Enphase.fromResourceProperties()
 
   enphase.streamLiveStatus().collect {
     println(it)
