@@ -33,12 +33,10 @@ fun MainNavigation() {
   val navController = rememberNavController()
 
   val onLoggedIn = {
-    viewModel.setLoggedIn(true)
     navController.navigateToEnergyScreen()
   }
 
   val onSettings = {
-    viewModel.setLoggedIn(false)
     navController.navigateToLogin()
   }
 

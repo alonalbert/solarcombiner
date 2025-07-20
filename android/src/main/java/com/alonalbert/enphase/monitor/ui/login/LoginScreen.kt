@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
+import com.alonalbert.enphase.monitor.db.Settings
 import com.alonalbert.enphase.monitor.ui.components.ButtonComponent
 import com.alonalbert.enphase.monitor.ui.components.HeadingTextComponent
 import com.alonalbert.enphase.monitor.ui.components.PasswordTextFieldComponent
@@ -36,9 +37,8 @@ fun LoginScreen(
 ) {
   val viewModel: LoginViewModel = hiltViewModel()
 
-  val enphaseConfig by viewModel.loginInfo.collectAsStateWithLifecycle(EnphaseConfig())
-  println(enphaseConfig)
-  LoginScreenContent(enphaseConfig) {
+  val settings by viewModel.settings.collectAsStateWithLifecycle(null)
+  LoginScreenContent(settings) {
     if (it.isValid()) {
       viewModel.login(it, onLoggedIn)
     }
@@ -47,8 +47,8 @@ fun LoginScreen(
 
 @Composable
 fun LoginScreenContent(
-  enphaseConfig: EnphaseConfig,
-  onLoginClick: (EnphaseConfig) -> Unit,
+  settings: Settings?,
+  onApplyClick: (Settings) -> Unit,
 ) {
 //  var loginInfo by remember { mutableStateOf(enphaseConfig) }
 
@@ -63,16 +63,18 @@ fun LoginScreenContent(
   var exportHost by remember { mutableStateOf("") }
   var exportPort by remember { mutableStateOf("") }
 
-  email = enphaseConfig.email
-  password = enphaseConfig.password
-  mainSiteId = enphaseConfig.mainSiteId
-  mainSerialNum = enphaseConfig.mainSerialNum
-  mainHost = enphaseConfig.mainHost
-  mainPort = enphaseConfig.mainPort.toString()
-  exportSiteId = enphaseConfig.exportSiteId
-  exportSerialNum = enphaseConfig.exportSerialNum
-  exportHost = enphaseConfig.exportHost
-  exportPort = enphaseConfig.exportPort.toString()
+  if (settings != null) {
+    email = settings.email
+    password = settings.password
+    mainSiteId = settings.mainSiteId
+    mainSerialNum = settings.mainSerialNumber
+    mainHost = settings.mainHost
+    mainPort = settings.mainPort.toString()
+    exportSiteId = settings.exportSiteId
+    exportSerialNum = settings.exportSerialNumber
+    exportHost = settings.exportHost
+    exportPort = settings.exportPort.toString()
+  }
 
   Surface(
     modifier = Modifier
@@ -129,7 +131,7 @@ fun LoginScreenContent(
           text = mainPort,
           labelValue = stringResource(id = R.string.main_port),
           onTextChanged = { mainPort = it },
-          isError = mainPort.toPort() <=0,
+          isError = mainPort.toPort() <= 0,
           keyboardType = KeyboardType.Number,
         )
         TextFieldComponent(
@@ -154,28 +156,40 @@ fun LoginScreenContent(
           text = exportPort,
           labelValue = stringResource(id = R.string.export_port),
           onTextChanged = { exportPort = it },
-          isError = exportPort.toPort() <=0,
+          isError = exportPort.toPort() <= 0,
           keyboardType = KeyboardType.Number,
         )
 
         Spacer(modifier = Modifier.height(40.dp))
-        val config =
-          EnphaseConfig(email, password, mainSiteId, mainSerialNum, mainHost, mainPort.toPort(), exportSiteId, exportSerialNum, exportHost, exportPort.toPort())
+        val settings =
+          Settings(
+            email,
+            password,
+            mainSiteId,
+            mainSerialNum,
+            mainHost,
+            mainPort.toPort(),
+            exportSiteId,
+            exportSerialNum,
+            exportHost,
+            exportPort.toPort()
+          )
         ButtonComponent(
           value = stringResource(id = R.string.login),
           onButtonClicked = {
-            onLoginClick(config)
+            onApplyClick(settings)
           },
-          isEnabled = config.isValid(),
+          isEnabled = settings.isValid(),
         )
       }
     }
   }
 }
+
 private fun String.toPort() = toIntOrNull() ?: 0
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun PreviewLoginScreen() {
-  LoginScreenContent(enphaseConfig = EnphaseConfig(), onLoginClick = {})
+  LoginScreenContent(settings = null, onApplyClick = {})
 }

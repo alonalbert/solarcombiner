@@ -2,10 +2,16 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
   alias(libs.plugins.android.application)
+  alias(libs.plugins.androidx.room)
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.hilt)
   alias(libs.plugins.kotlin.kapt)
+  alias(libs.plugins.ksp)
+}
+
+room {
+  schemaDirectory("$projectDir/schemas")
 }
 
 android {
@@ -62,6 +68,8 @@ dependencies {
   implementation(libs.androidx.datastore.preferences)
   implementation(libs.androidx.hilt.navigation.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
+  implementation(libs.androidx.room.runtime)
+  implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.ui.graphics)
   implementation(libs.appcompat.v7)
   implementation(libs.hilt.android)
@@ -71,6 +79,7 @@ dependencies {
   implementation(libs.vico.compose.m3)
   implementation(platform(libs.androidx.compose.bom))
 
+  ksp(libs.androidx.room.compiler)
   kapt(libs.hilt.compiler)
 
   testImplementation(libs.junit4)

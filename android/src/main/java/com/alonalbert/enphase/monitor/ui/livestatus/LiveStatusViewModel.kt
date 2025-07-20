@@ -3,8 +3,9 @@ package com.alonalbert.enphase.monitor.ui.livestatus
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alonalbert.enphase.monitor.TheApplication
-import com.alonalbert.enphase.monitor.settings.getSettings
+import com.alonalbert.enphase.monitor.db.AppDatabase
+import com.alonalbert.enphase.monitor.db.exportGateway
+import com.alonalbert.enphase.monitor.db.mainGateway
 import com.alonalbert.enphase.monitor.util.stateIn
 import com.alonalbert.solar.combiner.enphase.Enphase
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
@@ -17,15 +18,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LiveStatusViewModel @Inject constructor(
-  private val application: TheApplication,
+  private val db: AppDatabase,
   private val enphaseAsync: Deferred<Enphase>,
 ) : ViewModel() {
   private suspend fun enphase() = enphaseAsync.await()
-  private suspend fun settings() = application.getSettings()
+  private suspend fun settings() = db.settingsDao().getSettings()
 
   val liveStatusFlow: StateFlow<LiveStatus> = flow {
     val settings = settings()
-    enphase().streamLiveStatus(settings.email, settings.mainGatewayConfig, settings.exportGatewayConfig).collect {
+    enphase().streamLiveStatus(settings.email, settings.mainGateway, settings.exportGateway).collect {
       Timber.log(Log.DEBUG, "$it")
       emit(it)
     }

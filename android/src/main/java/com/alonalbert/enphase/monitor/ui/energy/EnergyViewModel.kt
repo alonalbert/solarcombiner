@@ -2,8 +2,9 @@ package com.alonalbert.enphase.monitor.ui.energy
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alonalbert.enphase.monitor.TheApplication
-import com.alonalbert.enphase.monitor.settings.getSettings
+import com.alonalbert.enphase.monitor.db.AppDatabase
+import com.alonalbert.enphase.monitor.db.exportGateway
+import com.alonalbert.enphase.monitor.db.mainGateway
 import com.alonalbert.enphase.monitor.util.stateIn
 import com.alonalbert.solar.combiner.enphase.Enphase
 import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.CACHE_ONLY
@@ -22,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EnergyViewModel @Inject constructor(
-  private val application: TheApplication,
+  private val db: AppDatabase,
   private val enphaseAsync: Deferred<Enphase>,
 ) : ViewModel() {
   private var job: Job? = null
@@ -44,9 +45,9 @@ class EnergyViewModel @Inject constructor(
     return enphase
   }
 
-  private suspend fun settings() = application.getSettings()
-  private suspend fun mainSiteId() = settings().mainGatewayConfig.siteId
-  private suspend fun exportSiteId() = settings().exportGatewayConfig?.siteId
+  private suspend fun settings() = db.settingsDao().getSettings()
+  private suspend fun mainSiteId() = settings().mainGateway.siteId
+  private suspend fun exportSiteId() = settings().exportGateway?.siteId
 
   fun refreshData() {
     viewModelScope.launch {
