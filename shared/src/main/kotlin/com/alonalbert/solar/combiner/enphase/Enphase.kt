@@ -132,12 +132,12 @@ class Enphase(
   suspend fun getDailyEnergy(date: LocalDate, cacheMode: CacheMode = CACHE): DailyEnergy? {
     login()
     return withContext(Dispatchers.Unconfined) {
-      val innerStats = loadDailyEnergy(mainSiteId, date, cacheMode)
-      val outerStats = when (exportSiteId) {
+      val mainStats = loadDailyEnergy(mainSiteId, date, cacheMode)
+      val exportStats = when (exportSiteId) {
         null -> null
         else -> loadDailyEnergy(exportSiteId, date, cacheMode)
       }
-      if (innerStats == null && outerStats == null) {
+      if (mainStats == null && exportStats == null) {
         if (cacheMode == CACHE_ONLY) {
           return@withContext null
         } else {
@@ -145,27 +145,27 @@ class Enphase(
         }
       }
 
-      val outerProduction = outerStats.getDoubles("production")
-      val innerProduction = innerStats.getDoubles("production")
-      val consumption = innerStats.getDoubles("consumption").map { it.coerceAtLeast(0.0) }
-      val charge = innerStats.getDoubles("charge")
-      val discharge = innerStats.getDoubles("discharge")
-      val innerExport = innerStats.getDoubles("solar_grid")
-      val gridBattery = innerStats.getDoubles("grid_battery")
-      val gridHome = innerStats.getDoubles("grid_home")
+      val exportProduction = exportStats.getDoubles("production")
+      val mainProduction = mainStats.getDoubles("production")
+      val consumption = mainStats.getDoubles("consumption").map { it.coerceAtLeast(0.0) }
+      val charge = mainStats.getDoubles("charge")
+      val discharge = mainStats.getDoubles("discharge")
+      val mainExport = mainStats.getDoubles("solar_grid")
+      val gridBattery = mainStats.getDoubles("grid_battery")
+      val gridHome = mainStats.getDoubles("grid_home")
       val import = gridHome.zip(gridBattery) { h, b -> h + b }
-      val batteryLevel = innerStats?.getAsJsonArray("soc")?.map { if (it is JsonNull) null else it.asInt } ?: List(96) { 0 }
+      val batteryLevel = mainStats?.getAsJsonArray("soc")?.map { if (it is JsonNull) null else it.asInt } ?: List(96) { 0 }
 
       val energies = buildList {
         repeat(96) {
           add(
             Energy(
-              outerProduction[it].kwh(),
-              innerProduction[it].kwh(),
+              exportProduction[it].kwh(),
+              mainProduction[it].kwh(),
               consumption[it].kwh(),
               charge[it].kwh(),
               discharge[it].kwh(),
-              innerExport[it].kwh(),
+              mainExport[it].kwh(),
               import[it].kwh(),
               batteryLevel[it],
             )

@@ -35,12 +35,12 @@ fun DailyEnergy.plotEnergy(filename: String, batteryCapacity: Double? = null) {
 }
 
 fun DailyEnergy.plotEnergy(batteryCapacity: Double? = null): Plot {
-  val max = energies.maxOf { it.imported + it.outerProduced + it.innerProduced } * 1.1
+  val max = energies.maxOf { it.imported + it.exportProduced + it.mainProduced } * 1.1
   val dataFrame = dataFrameOf(
     "time" to List(energies.size) { it.toFloat() / 4 },
-    "produced" to energies.map { it.innerProduced + it.outerProduced },
+    "produced" to energies.map { it.mainProduced + it.exportProduced },
     "consumed" to energies.map { -it.consumed },
-    "imported" to energies.map { it.imported - it.innerExported - it.outerProduced },
+    "imported" to energies.map { it.imported - it.mainExported - it.exportProduced },
     "charged" to energies.map { it.discharged - it.charged },
     "battery" to energies.map { it.battery?.toDouble()?.div(100)?.times(max - 0.5) },
   ).gather(
@@ -71,13 +71,13 @@ fun DailyEnergy.plotEnergy(batteryCapacity: Double? = null): Plot {
         legend.breaksLabeled(
           "produced" to """
             Produced: %.2f
-          """.trimIndent().format(innerProduced + outerProduced),
+          """.trimIndent().format(mainProduced + exportProduced),
           "consumed" to "Consumed: %.2f".format(consumed),
           "imported" to """
             Imported: %.2f
             Exported: %.2f
             Net import: %.2f
-          """.trimIndent().format(imported, innerExported + outerProduced, imported - innerExported - outerProduced),
+          """.trimIndent().format(imported, mainExported + exportProduced, imported - mainExported - exportProduced),
           "charged" to """
             Charged: %.2f
             Discharged: %.2f

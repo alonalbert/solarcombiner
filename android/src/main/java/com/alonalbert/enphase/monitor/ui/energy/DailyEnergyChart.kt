@@ -109,12 +109,12 @@ private fun DailyEnergyChart(
 private suspend fun CartesianChartModelProducer.runTransaction(dailyEnergy: DailyEnergy) {
   runTransaction {
     columnSeries {
-      series(dailyEnergy.energies.map { it.innerProduced + it.outerProduced })
+      series(dailyEnergy.energies.map { it.mainProduced + it.exportProduced })
       series(dailyEnergy.energies.map { -it.consumed })
-      series(dailyEnergy.energies.map { it.imported - it.innerExported - it.outerProduced })
+      series(dailyEnergy.energies.map { it.imported - it.mainExported - it.exportProduced })
       series(dailyEnergy.energies.map { it.discharged - it.charged })
     }
-    lineSeries { series(dailyEnergy.energies.map { it.innerProduced }) }
+    lineSeries { series(dailyEnergy.energies.map { it.mainProduced }) }
   }
 }
 
