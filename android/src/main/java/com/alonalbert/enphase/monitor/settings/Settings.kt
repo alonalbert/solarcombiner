@@ -9,7 +9,9 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.alonalbert.solar.combiner.enphase.model.GatewayConfig
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
@@ -36,7 +38,6 @@ val Preferences.exportSiteId get() = get(EXPORT_SITE_ID) ?: ""
 val Preferences.exportSerialNum get() = get(EXPORT_SERIAL_NUM) ?: ""
 val Preferences.exportHost get() = get(EXPORT_HOST) ?: ""
 val Preferences.exportPort get() = get(EXPORT_PORT) ?: 80
-val Preferences.loggedIn get() = get(LOGGED_IN) ?: ""
 
 fun Application.updateSettings(scope: CoroutineScope, block: suspend MutablePreferences.() -> Unit) {
   scope.launch {
@@ -47,3 +48,31 @@ fun Application.updateSettings(scope: CoroutineScope, block: suspend MutablePref
     }
   }
 }
+
+suspend fun Application.getSettings(): Settings {
+  val preferences = dataStore.data.first()
+  return Settings(
+    preferences.email,
+    preferences.password,
+    GatewayConfig(
+      preferences.mainSiteId,
+      preferences.mainSerialNum,
+      preferences.mainHost,
+      preferences.mainPort,
+    ),
+    GatewayConfig(
+      preferences.exportSiteId,
+      preferences.exportSerialNum,
+      preferences.exportHost,
+      preferences.exportPort,
+    ),
+  )
+}
+
+
+data class Settings(
+  val email: String,
+  val password: String,
+  val mainGatewayConfig: GatewayConfig,
+  val exportGatewayConfig: GatewayConfig?,
+)

@@ -2,6 +2,8 @@ package com.alonalbert.enphase.monitor.ui.energy
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alonalbert.enphase.monitor.TheApplication
+import com.alonalbert.enphase.monitor.settings.getSettings
 import com.alonalbert.enphase.monitor.util.stateIn
 import com.alonalbert.solar.combiner.enphase.Enphase
 import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.CACHE_ONLY
@@ -20,6 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EnergyViewModel @Inject constructor(
+  private val application: TheApplication,
   private val enphaseAsync: Deferred<Enphase>,
 ) : ViewModel() {
   private var job: Job? = null
@@ -34,18 +37,27 @@ class EnergyViewModel @Inject constructor(
   private val isRefreshingStateFlow = MutableStateFlow(false)
   val isRefreshing = isRefreshingStateFlow.asStateFlow()
 
-  private suspend fun enphase() = enphaseAsync.await()
+  private suspend fun enphase(): Enphase {
+    val enphase = enphaseAsync.await()
+    val settings = settings()
+    enphase.login(settings.email, settings.password)
+    return enphase
+  }
+
+  private suspend fun settings() = application.getSettings()
+  private suspend fun mainSiteId() = settings().mainGatewayConfig.siteId
+  private suspend fun exportSiteId() = settings().exportGatewayConfig?.siteId
 
   fun refreshData() {
     viewModelScope.launch {
       refreshData {
-        batteryStateFlow.value = enphase().getBatteryState()
+        batteryStateFlow.value = enphase().getBatteryState(mainSiteId())
       }
     }
     job?.cancel()
     job = viewModelScope.launch {
       refreshData {
-        val dailyEnergy = enphase().getDailyEnergy(day, NO_CACHE) ?: return@refreshData
+        val dailyEnergy = enphase().getDailyEnergy(mainSiteId(), exportSiteId(), day, NO_CACHE) ?: return@refreshData
         if (dailyEnergy.date == day) {
           dailyEnergyFlow.value = dailyEnergy
         }
@@ -56,7 +68,7 @@ class EnergyViewModel @Inject constructor(
   fun setDay(day: LocalDate) {
     this.day = day.atStartOfDay().toLocalDate()
     viewModelScope.launch {
-      dailyEnergyFlow.value = enphase().getDailyEnergy(day, CACHE_ONLY)
+      dailyEnergyFlow.value = enphase().getDailyEnergy(mainSiteId(), exportSiteId(), day, CACHE_ONLY)
     }
     refreshData()
   }

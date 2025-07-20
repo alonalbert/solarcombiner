@@ -6,6 +6,7 @@ import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.NO_CACHE
 import com.alonalbert.solar.combiner.enphase.model.BatteryState
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.alonalbert.solar.combiner.enphase.model.Energy
+import com.alonalbert.solar.combiner.enphase.model.GatewayConfig
 import com.alonalbert.solar.combiner.enphase.model.GetTokenRequest
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
 import com.alonalbert.solar.combiner.enphase.model.SetProfileRequest
@@ -52,14 +53,11 @@ import okhttp3.internal.closeQuietly
 import okio.IOException
 import org.slf4j.Logger
 import java.io.Closeable
-import java.io.InputStream
 import java.nio.file.Path
 import java.security.SecureRandom
 import java.time.LocalDate
-import java.util.Properties
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
-import kotlin.io.path.inputStream
 import kotlin.math.abs
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -79,23 +77,11 @@ private val gson = GsonBuilder()
   .create()
 
 class Enphase(
-  private val email: String,
-  private val password: String,
-  private val mainSiteId: String,
-  private val mainSiteSerialNum: String?,
-  mainSiteHost: String?,
-  mainSitePort: Int?,
-  private val exportSiteId: String?,
-  private val exportSiteSerialNum: String?,
-  exportSiteHost: String?,
-  exportSitePort: Int?,
   cacheDir: Path,
   private val logger: Logger = DefaultLogger()
 ) : Closeable {
   private val cache = Cache(cacheDir)
   private val client = createClient()
-  private val mainEnvoyUrl = "https://$mainSiteHost:$mainSitePort"
-  private val exportEnvoyUrl = "https://$exportSiteHost:$exportSitePort"
   private var sessionId: String? = null
 
   enum class CacheMode {
@@ -104,7 +90,7 @@ class Enphase(
     CACHE,
   }
 
-  suspend fun login() {
+  suspend fun login(email: String, password: String) {
     if (sessionId != null) {
       return
     }
@@ -119,9 +105,8 @@ class Enphase(
     }
   }
 
-  suspend fun getBatteryState(): BatteryState {
-    login()
-    val response = client.get(TODAY_URL.format(mainSiteId))
+  suspend fun getBatteryState(siteId: String): BatteryState {
+    val response = client.get(TODAY_URL.format(siteId))
     val body = response.body<JsonObject>()
     val soc = body.jsonObject["battery_details"]?.jsonObject["aggregate_soc"]?.jsonPrimitive?.int
     val reserve = body.jsonObject["batteryConfig"]?.jsonObject["battery_backup_percentage"]?.jsonPrimitive?.int
@@ -129,8 +114,7 @@ class Enphase(
     return BatteryState(soc, reserve)
   }
 
-  suspend fun getDailyEnergy(date: LocalDate, cacheMode: CacheMode = CACHE): DailyEnergy? {
-    login()
+  suspend fun getDailyEnergy(mainSiteId: String, exportSiteId: String?, date: LocalDate, cacheMode: CacheMode = CACHE): DailyEnergy? {
     return withContext(Dispatchers.Unconfined) {
       val mainStats = loadDailyEnergy(mainSiteId, date, cacheMode)
       val exportStats = when (exportSiteId) {
@@ -176,31 +160,21 @@ class Enphase(
     }
   }
 
-  suspend fun streamLiveStatus(delay: Duration = 1.seconds): Flow<LiveStatus> {
-    login()
-    if (mainSiteSerialNum == null) {
-      throw IllegalStateException("Main site serial number is not provided")
-    }
-    enableLiveStatus(mainSiteSerialNum)
-    val mainToken = getEnvoyToken(mainSiteSerialNum)
+  suspend fun streamLiveStatus(
+    email: String,
+    mainGateway: GatewayConfig,
+    exportGateway: GatewayConfig?,
+    delay: Duration = 1.seconds,
+    ): Flow<LiveStatus> {
 
-    val exportToken = when {
-      exportSiteSerialNum != null -> {
-        enableLiveStatus(exportSiteSerialNum)
-        getEnvoyToken(exportSiteSerialNum)
-      }
-
-      else -> null
-    }
+    val mainToken = mainGateway.getToken(email)
+    val exportToken = exportGateway?.getToken(email)
 
 
     return flow {
       while (true) {
-        val mainStatus = withContext(IO) { getLiveStatus(mainEnvoyUrl, mainToken) } ?: continue
-        val exportStatus = when (exportToken) {
-          null -> null
-          else -> withContext(IO) { getLiveStatus(exportEnvoyUrl, exportToken) }
-        }
+        val mainStatus = withContext(IO) { mainGateway.getLiveStatus(mainToken) } ?: continue
+        val exportStatus = withContext(IO) { exportGateway?.getLiveStatus(exportToken) }
         val exportPv = exportStatus?.pv ?: 0.0
         val combined = LiveStatus(
           pv = mainStatus.pv + exportPv,
@@ -216,9 +190,8 @@ class Enphase(
     }
   }
 
-  suspend fun setBatteryReserve(reserve: Int): String {
-    login()
-    val response = client.put("$BASE_URL/service/batteryConfig/api/v1/profile/${this.mainSiteId}") {
+  suspend fun setBatteryReserve(siteId: String, reserve: Int): String {
+    val response = client.put("$BASE_URL/service/batteryConfig/api/v1/profile/$siteId}") {
       contentType(Application.Json)
       setBody(SetProfileRequest("self-consumption", reserve.toString()))
     }.body<JsonObject>()
@@ -229,7 +202,17 @@ class Enphase(
     client.closeQuietly()
   }
 
-  private suspend fun getLiveStatus(url: String, token: Any): LiveStatus? {
+  private suspend fun GatewayConfig.getToken(email: String): String {
+    enableLiveStatus(serialNumber)
+    val sessionId = sessionId ?: throw IllegalStateException("Not logged in")
+    val response = client.post(TOKEN_URL) {
+      contentType(Application.Json)
+      setBody(GetTokenRequest(sessionId, serialNumber, email))
+    }
+    return response.bodyAsText()
+  }
+
+  private suspend fun GatewayConfig.getLiveStatus(token: String?): LiveStatus? {
     return try {
       val response = client.get("$url/ivp/livedata/status") {
         accept(Application.Json)
@@ -264,15 +247,6 @@ class Enphase(
     return if (array.size() < 1) null else array[0].asJsonObject
   }
 
-  private suspend fun getEnvoyToken(serialNum: String): String {
-    val sessionId = sessionId ?: throw IllegalStateException("Not logged in")
-    val response = client.post(TOKEN_URL) {
-      contentType(Application.Json)
-      setBody(GetTokenRequest(sessionId, serialNum, email))
-    }
-    return response.bodyAsText()
-  }
-
   private suspend fun enableLiveStatus(serialNum: String) {
     client.get("$LIVE_STREAM_URL?serial_num=$serialNum").bodyAsText()
   }
@@ -295,51 +269,6 @@ class Enphase(
         logger.error("Failed to load data for ${date.toText()}", e)
         null
       }
-    }
-  }
-
-  companion object {
-    fun fromResourceProperties(logger: Logger = DefaultLogger()): Enphase {
-      val stream = ClassLoader.getSystemClassLoader().getResourceAsStream("local.properties")
-        ?: throw IllegalStateException("Could not find local.properties in resources")
-      return stream.use {
-        fromPropertiesStream(it, logger)
-      }
-    }
-
-    fun fromProperties(path: Path, logger: Logger = DefaultLogger()): Enphase {
-      return path.inputStream().use {
-        fromPropertiesStream(it, logger)
-      }
-    }
-
-    private fun fromPropertiesStream(stream: InputStream, logger: Logger = DefaultLogger()): Enphase {
-      val properties = Properties()
-      properties.load(stream)
-      val email = properties.getProperty("login.email")
-      val password = properties.getProperty("login.password")
-      val mainSiteId = properties.getProperty("site.main")
-      val exportSiteId = properties.getProperty("site.export")
-      val mainSerialNum = properties.getProperty("envoy.main.serial")
-      val mainHost = properties.getProperty("envoy.main.host")
-      val mainPort = properties.getProperty("envoy.main.port")?.toIntOrNull()
-      val exportSerialNum = properties.getProperty("envoy.export.serial")
-      val exportHost = properties.getProperty("envoy.export.host")
-      val exportPort = properties.getProperty("envoy.export.port")?.toIntOrNull()
-      return Enphase(
-        email,
-        password,
-        mainSiteId,
-        mainSerialNum,
-        mainHost,
-        mainPort,
-        exportSiteId,
-        exportSerialNum,
-        exportHost,
-        exportPort,
-        Path.of("cache"),
-        logger,
-      )
     }
   }
 }
