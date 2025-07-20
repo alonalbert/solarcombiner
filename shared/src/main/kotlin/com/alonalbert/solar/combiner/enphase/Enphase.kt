@@ -218,6 +218,11 @@ class Enphase(
         accept(Application.Json)
         header("Authorization", "Bearer $token")
       }
+      if (!response.status.isSuccess()) {
+        logger.error("Failed to get Live Status: ${response.bodyAsText()}")
+        // TODO: Handle error
+        throw IllegalStateException("Failed to get Live Status")
+      }
 
       val body = response.bodyAsText()
       val json = Json.decodeFromString<JsonObject>(body)
