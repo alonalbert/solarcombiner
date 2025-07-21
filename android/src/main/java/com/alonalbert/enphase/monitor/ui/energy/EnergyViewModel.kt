@@ -9,8 +9,10 @@ import com.alonalbert.enphase.monitor.util.stateIn
 import com.alonalbert.solar.combiner.enphase.Enphase
 import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.CACHE_ONLY
 import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.NO_CACHE
+import com.alonalbert.solar.combiner.enphase.EnphaseException
 import com.alonalbert.solar.combiner.enphase.model.BatteryState
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
+import com.alonalbert.solar.combiner.enphase.model.Energy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
@@ -38,10 +40,17 @@ class EnergyViewModel @Inject constructor(
   private val isRefreshingStateFlow = MutableStateFlow(false)
   val isRefreshing = isRefreshingStateFlow.asStateFlow()
 
+  private val snackbarMessageFlow: MutableStateFlow<String?> = MutableStateFlow(null)
+  val snackbarMessageState: StateFlow<String?> = snackbarMessageFlow.stateIn(viewModelScope, null)
+
   private suspend fun enphase(): Enphase {
     val enphase = enphaseAsync.await()
     val settings = settings()
-    enphase.login(settings.email, settings.password)
+    try {
+      enphase.login(settings.email, settings.password)
+    } catch (_: EnphaseException) {
+      // Ignore
+    }
     return enphase
   }
 
@@ -50,17 +59,18 @@ class EnergyViewModel @Inject constructor(
   private suspend fun exportSiteId() = settings().exportGateway?.siteId
 
   fun refreshData() {
-    viewModelScope.launch {
-      refreshData {
-        batteryStateFlow.value = enphase().getBatteryState(mainSiteId())
-      }
-    }
     job?.cancel()
     job = viewModelScope.launch {
       refreshData {
-        val dailyEnergy = enphase().getDailyEnergy(mainSiteId(), exportSiteId(), day, NO_CACHE) ?: return@refreshData
-        if (dailyEnergy.date == day) {
-          dailyEnergyFlow.value = dailyEnergy
+        try {
+          val enphase = enphase()
+          batteryStateFlow.value = enphase.getBatteryState(mainSiteId())
+          val dailyEnergy = enphase.getDailyEnergy(mainSiteId(), exportSiteId(), day, NO_CACHE) ?: return@refreshData
+          if (dailyEnergy.date == day) {
+            dailyEnergyFlow.value = dailyEnergy
+          }
+        } catch (e: EnphaseException) {
+          setSnackbarMessage("Failed to refresh data: ${e.reason}")
         }
       }
     }
@@ -69,7 +79,12 @@ class EnergyViewModel @Inject constructor(
   fun setDay(day: LocalDate) {
     this.day = day.atStartOfDay().toLocalDate()
     viewModelScope.launch {
-      dailyEnergyFlow.value = enphase().getDailyEnergy(mainSiteId(), exportSiteId(), day, CACHE_ONLY)
+      try {
+        dailyEnergyFlow.value = enphase().getDailyEnergy(mainSiteId(), exportSiteId(), day, CACHE_ONLY)
+      } catch (e: EnphaseException) {
+        setSnackbarMessage("Error loading energy: ${e.reason}")
+        dailyEnergyFlow.value = DailyEnergy(day, List(96) { Energy(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0)})
+      }
     }
     refreshData()
   }
@@ -81,5 +96,17 @@ class EnergyViewModel @Inject constructor(
     } finally {
       isRefreshingStateFlow.value = false
     }
+  }
+
+  fun setSnackbarMessage(message: String) {
+    synchronized(snackbarMessageFlow) {
+      if (snackbarMessageFlow.value != message) {
+        snackbarMessageFlow.value = message
+      }
+    }
+  }
+
+  fun dismissSnackbarMessage() {
+    snackbarMessageFlow.value = null
   }
 }

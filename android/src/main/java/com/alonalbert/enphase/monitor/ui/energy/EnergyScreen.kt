@@ -14,6 +14,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -22,6 +24,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -57,14 +60,17 @@ fun EnergyScreen(
   val dailyEnergy by viewModel.dailyEnergyState.collectAsStateWithLifecycle()
   val batteryState by viewModel.batteryStateState.collectAsStateWithLifecycle()
   val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+  val snackBarMessage by viewModel.snackbarMessageState.collectAsStateWithLifecycle()
 
   dailyEnergy?.let {
     EnergyScreen(
-      it,
-      batteryState,
-      { date -> viewModel.setDay(date) },
-      onSettings,
-      onLiveStatus,
+      dailyEnergy = it,
+      batteryState = batteryState,
+      snackbarMessage = snackBarMessage,
+      onDismissSnackbar = { viewModel.dismissSnackbarMessage() },
+      onDayChanged = { date -> viewModel.setDay(date) },
+      onSettings = onSettings,
+      onLiveStatus = onLiveStatus,
       isRefreshing = isRefreshing,
       onRefresh = { viewModel.refreshData() },
     )
@@ -77,16 +83,19 @@ fun EnergyScreen(
 fun EnergyScreen(
   dailyEnergy: DailyEnergy,
   batteryState: BatteryState,
+  snackbarMessage: String?,
+  onDismissSnackbar: () -> Unit,
   onDayChanged: (LocalDate) -> Unit,
   onSettings: () -> Unit,
   onLiveStatus: () -> Unit,
   isRefreshing: Boolean,
   onRefresh: () -> Unit,
 ) {
+  val snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
   val pullRefreshState = rememberPullToRefreshState()
   Scaffold(
     topBar = { TopBar(onSettings, onLiveStatus) },
-
+    snackbarHost = { SnackbarHost(snackbarHostState) },
     modifier = Modifier.fillMaxSize(),
   ) { innerPadding ->
     PullToRefreshBox(
@@ -121,8 +130,16 @@ fun EnergyScreen(
       }
     }
 
+    val message = snackbarMessage
+    if (message != null) {
+      LaunchedEffect(snackbarHostState, message) {
+        snackbarHostState.showSnackbar(message)
+        onDismissSnackbar()
+      }
+    }
   }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,12 +187,13 @@ fun GreetingPreviewLight() {
     EnergyScreen(
       dailyEnergy = SampleData.sampleData,
       batteryState = BatteryState(null, null),
+      snackbarMessage = null,
+      onDismissSnackbar = {},
       onDayChanged = {},
       onSettings = {},
       onLiveStatus = {},
       isRefreshing = false,
-      onRefresh = {},
-    )
+    ) {}
   }
 }
 
@@ -185,18 +203,19 @@ fun GreetingPreviewLight() {
   device = Devices.PIXEL_7_PRO,
   uiMode = Configuration.UI_MODE_NIGHT_YES,
 
-)
+  )
 @Composable
 fun GreetingPreviewDark() {
   SolarCombinerTheme {
     EnergyScreen(
       dailyEnergy = SampleData.sampleData,
       batteryState = BatteryState(null, null),
+      snackbarMessage = null,
+      onDismissSnackbar = {},
       onDayChanged = {},
       onSettings = {},
       onLiveStatus = {},
       isRefreshing = false,
-      onRefresh = {},
-    )
+    ) {}
   }
 }

@@ -20,6 +20,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpRedirect
+import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
@@ -32,6 +33,7 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
 import io.ktor.http.ContentType.Application
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -165,7 +167,7 @@ class Enphase(
     mainGateway: GatewayConfig,
     exportGateway: GatewayConfig?,
     delay: Duration = 1.seconds,
-    ): Flow<LiveStatus> {
+  ): Flow<LiveStatus> {
 
     val mainToken = mainGateway.getToken(email)
     val exportToken = exportGateway?.getToken(email)
@@ -262,6 +264,7 @@ class Enphase(
 
   private suspend fun loadDailyEnergy(siteId: String, date: LocalDate, cacheMode: CacheMode): GsonObject? {
     return withContext(IO) {
+      val url = DAILY_ENERGY_URL.format(siteId, date.year, date.month.value, date.dayOfMonth)
       try {
         if (cacheMode != NO_CACHE) {
           val cached = cache.read(siteId, date)
@@ -276,10 +279,48 @@ class Enphase(
         gson.getObject(data).getStats()
       } catch (e: IOException) {
         logger.error("Failed to load data for ${date.toText()}", e)
-        null
+        throw EnphaseException("Failed to load from $url", e)
       }
     }
   }
+
+  private fun createClient(): HttpClient {
+    return HttpClient(OkHttp) {
+      HttpResponseValidator {
+        validateResponse {
+          val status = it.status
+          if (!status.isSuccess()) {
+            val url = it.request.url
+            logger.error("Failed to load from $url: $status")
+            throw EnphaseException("Failed to load from $url: $status", status.value)
+          }
+        }
+      }
+      install(ContentNegotiation) {
+        json(Json {
+          prettyPrint = true
+          isLenient = true
+        })
+      }
+      // Enable redirect for all methods
+      install(HttpRedirect) {
+        checkHttpMethod = false
+      }
+      install(HttpCookies) {
+        storage = AcceptAllCookiesStorage()
+      }
+      engine {
+        config {
+          val trustAllCertificates = arrayOf(TrustingManager())
+          val sslContext = SSLContext.getInstance("SSL") // Or "TLS"
+          sslContext.init(null, trustAllCertificates, SecureRandom())
+          sslSocketFactory(sslContext.socketFactory, trustAllCertificates[0] as X509TrustManager)
+          hostnameVerifier { _, _ -> true }
+        }
+      }
+    }
+  }
+
 }
 
 private suspend fun HttpResponse.bodyAsPrettyJson() = gson.toJson(JsonParser.parseString(bodyAsText()))
@@ -305,33 +346,6 @@ private fun GsonObject?.getDoubles(key: String): List<Double> {
 }
 
 private fun Double.kwh() = this / 1000 * 4
-
-private fun createClient(): HttpClient {
-  return HttpClient(OkHttp) {
-    install(ContentNegotiation) {
-      json(Json {
-        prettyPrint = true
-        isLenient = true
-      })
-    }
-    // Enable redirect for all methods
-    install(HttpRedirect) {
-      checkHttpMethod = false
-    }
-    install(HttpCookies) {
-      storage = AcceptAllCookiesStorage()
-    }
-    engine {
-      config {
-        val trustAllCertificates = arrayOf(TrustingManager())
-        val sslContext = SSLContext.getInstance("SSL") // Or "TLS"
-        sslContext.init(null, trustAllCertificates, SecureRandom())
-        sslSocketFactory(sslContext.socketFactory, trustAllCertificates[0] as X509TrustManager)
-        hostnameVerifier { _, _ -> true }
-      }
-    }
-  }
-}
 
 private fun JsonObject.getKiloWatts(key: String) =
   getValue(key).jsonObject.getValue("agg_p_mw").jsonPrimitive.double / 1_000_000
