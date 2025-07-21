@@ -191,11 +191,15 @@ class Enphase(
   }
 
   suspend fun setBatteryReserve(siteId: String, reserve: Int): String {
-    val response = client.put("$BASE_URL/service/batteryConfig/api/v1/profile/$siteId}") {
+    val response = client.put("$BASE_URL/service/batteryConfig/api/v1/profile/$siteId") {
       contentType(Application.Json)
-      setBody(SetProfileRequest("self-consumption", reserve.toString()))
-    }.body<JsonObject>()
-    return response["message"]?.jsonPrimitive?.content ?: "Unexpected error"
+      setBody(SetProfileRequest("self-consumption", reserve))
+    }
+    val body = response.body<JsonObject>()
+    return when (response.status.isSuccess()) {
+      true -> body["message"]?.jsonPrimitive?.content ?: "Unexpected response: $body"
+      false -> body["error"]?.jsonObject["message"]?.jsonPrimitive?.content ?: "Unexpected response $body"
+    }
   }
 
   override fun close() {

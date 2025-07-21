@@ -30,21 +30,19 @@ fun main(args: Array<String>) {
   val minReserve by parser.option(ArgType.Int, shortName = "r", fullName = "min-reserve", description = "Min reserve %").default(20)
   val chargeStart by parser.option(ArgType.Int, shortName = "s", fullName = "charge-start", description = "Hour at which solar charging starts")
     .default(9)
-  val chargeEnd by parser.option(ArgType.Int, shortName = "e", fullName = "charge-end", description = "Hour at which solar charging ends").default(16)
   val testMode by parser.option(ArgType.Boolean, shortName = "t", fullName = "test-mode", description = "Print out list of actions").default(false)
 
   parser.parse(args)
 
-  val chargeRange = chargeStart..chargeEnd
 
   when (testMode) {
-    true -> runTest(idleLoad, batteryCapacity, minReserve, chargeRange)
-    false -> setReserve(idleLoad, batteryCapacity, minReserve, chargeRange)
+    true -> runTest(idleLoad, batteryCapacity, minReserve, chargeStart)
+    false -> setReserve(idleLoad, batteryCapacity, minReserve, chargeStart)
   }
 }
 
-private fun setReserve(idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargingRange: IntRange) {
-  val reserve = calculateReserve(LocalTime.now(ZoneId.systemDefault()), idleLoad, batteryCapacity, minReserve, chargingRange)
+private fun setReserve(idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargeStart: Int) {
+  val reserve = calculateReserve(LocalTime.now(ZoneId.systemDefault()), idleLoad, batteryCapacity, minReserve, chargeStart)
   if (reserve == null) {
     logger.info("Charging time active. Skipping.")
     return
@@ -58,38 +56,39 @@ private fun setReserve(idleLoad: Double, batteryCapacity: Double, minReserve: In
       return@runBlocking
     }
     launch {
-      val enphase = Enphase(homeDir.resolve(".enphase-cache"), logger)
-      val properties = Properties()
-      propertiesPath.inputStream().use {
-        properties.load(it)
+      Enphase(homeDir.resolve(".enphase-cache"), logger).use { enphase ->
+        val properties = Properties()
+        propertiesPath.inputStream().use {
+          properties.load(it)
+        }
+        val email = properties.getProperty("login.email") ?: throw IllegalStateException("Missing email")
+        val password = properties.getProperty("login.password") ?: throw IllegalStateException("Missing password")
+        val siteId = properties.getProperty("site.main") ?: throw IllegalStateException("Missing site id")
+        enphase.login(email, password)
+        val result = enphase.setBatteryReserve(siteId, reserve)
+        logger.info("Setting reserve to $reserve: $result")
       }
-      val email = properties.getProperty("login.email") ?: throw IllegalStateException("Missing email")
-      val password = properties.getProperty("login.password") ?: throw IllegalStateException("Missing password")
-      val siteId = properties.getProperty("site.main") ?: throw IllegalStateException("Missing site id")
-      enphase.login(email, password)
-      val result = enphase.setBatteryReserve(siteId, reserve)
-      logger.info("Setting reserve to $reserve: $result")
     }
   }
 }
 
-private fun runTest(idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargingRange: IntRange) {
+private fun runTest(idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargeStart: Int) {
   val formatter = DateTimeFormatter.ofPattern("HH:mm")
   (0..23).forEach {
     val time = LocalTime.of(it, 0, 0)
-    val reserve = calculateReserve(time, idleLoad, batteryCapacity, minReserve, chargingRange)
+    val reserve = calculateReserve(time, idleLoad, batteryCapacity, minReserve, chargeStart)
     val text = if (reserve != null) "$reserve%" else "Skipped"
     println("${time.format(formatter)}: $text")
   }
 }
 
-private fun calculateReserve(now: LocalTime, idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargingRange: IntRange): Int? {
-  if (now.hour > chargingRange.start && now.hour < chargingRange.endInclusive) {
-    return null
-  }
-  val hours = when (now.hour > chargingRange.start) {
-    true -> chargingRange.start + 24 - now.hour
-    false -> chargingRange.start - now.hour
+private fun calculateReserve(now: LocalTime, idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargeStart: Int): Int? {
+//  if (now.hour > chargingRange.start && now.hour < chargingRange.endInclusive) {
+//    return null
+//  }
+  val hours = when (now.hour > chargeStart) {
+    true -> chargeStart + 24 - now.hour
+    false -> chargeStart - now.hour
   }
   val min = batteryCapacity * minReserve / 100
   val needed = min + idleLoad * hours

@@ -8,5 +8,5 @@ data class SetProfileRequest(
   @SerialName("profile")
   val profile: String,
   @SerialName("batteryBackupPercentage")
-  val batteryBackupPercentage: String,
+  val batteryBackupPercentage: Int,
 )
