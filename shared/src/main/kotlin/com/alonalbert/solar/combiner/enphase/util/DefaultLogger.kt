@@ -58,7 +58,7 @@ open class DefaultLogger : LegacyAbstractLogger() {
         }
       }
     }
-    stream.println(message)
+    stream.print(message)
     throwable?.printStackTrace(stream)
   }
 }

@@ -3,6 +3,7 @@
 package com.alonalbert.solar.reservemanager
 
 import com.alonalbert.solar.combiner.enphase.Enphase
+import com.alonalbert.solar.combiner.enphase.ReserveCalculator
 import com.alonalbert.solar.combiner.enphase.util.DefaultLogger
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
@@ -11,15 +12,12 @@ import kotlinx.cli.required
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.nio.file.Path
-import java.time.Duration
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Properties
 import kotlin.io.path.inputStream
 import kotlin.io.path.notExists
-import kotlin.math.roundToInt
 
 private val logger = DefaultLogger()
 
@@ -45,7 +43,7 @@ fun main(args: Array<String>) {
 
 private fun setReserve(idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargeStart: Int) {
   val now = LocalTime.now(ZoneId.systemDefault())
-  val reserve = calculateReserve(now, idleLoad, batteryCapacity, minReserve, chargeStart)
+  val reserve = ReserveCalculator.calculateReserve(now, idleLoad, batteryCapacity, minReserve, chargeStart)
 
   runBlocking {
     val homeDir = Path.of(System.getProperty("user.home"))
@@ -74,27 +72,13 @@ private fun setReserve(idleLoad: Double, batteryCapacity: Double, minReserve: In
 private fun runTest(idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargeStart: Int) {
   val formatter = DateTimeFormatter.ofPattern("HH:mm")
   (0..23).forEach { h ->
-    sequenceOf(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55).forEach { m ->
+    (0..59).forEach { m ->
       val time = LocalTime.of(h, m, 0)
-      val reserve = calculateReserve(time, idleLoad, batteryCapacity, minReserve, chargeStart)
-      val previousReserve = calculateReserve(time.minusMinutes(5), idleLoad, batteryCapacity, minReserve, chargeStart)
+      val reserve = ReserveCalculator.calculateReserve(time, idleLoad, batteryCapacity, minReserve, chargeStart)
+      val previousReserve = ReserveCalculator.calculateReserve(time.minusMinutes(1), idleLoad, batteryCapacity, minReserve, chargeStart)
       if (reserve != previousReserve) {
         println("${time.format(formatter)}: $reserve%")
       }
     }
   }
-}
-
-const val YEAR = 2000
-const val MONTH = 1
-const val DAY = 2
-private fun calculateReserve(now: LocalTime, idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargeStart: Int): Int {
-  val day = if (now.hour < chargeStart) DAY else DAY - 1
-  val nowDateTime = LocalDateTime.of(YEAR, MONTH, day, now.hour, now.minute)
-  val chargeStartDateTime = LocalDateTime.of(YEAR, MONTH, DAY, chargeStart, 0)
-  val duration = Duration.between(nowDateTime, chargeStartDateTime)
-  val minutes = duration.toMinutes()
-  val min = batteryCapacity * minReserve / 100
-  val needed = min + idleLoad * (minutes.toDouble() / 60)
-  return (needed / batteryCapacity * 100).roundToInt().coerceAtMost(100)
 }
