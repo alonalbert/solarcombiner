@@ -33,7 +33,10 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle.State.STARTED
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
 import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
@@ -52,12 +55,15 @@ fun EnergyScreen(
   onReserve: () -> Unit,
 ) {
   val viewModel: EnergyViewModel = hiltViewModel()
+  val lifecycleOwner = LocalLifecycleOwner.current
 
-  LaunchedEffect(Unit) {
+  LaunchedEffect(lifecycleOwner, viewModel) {
     viewModel.setDay(LocalDate.now())
-    while (true) {
-      delay(5.minutes)
-      viewModel.refreshData()
+    lifecycleOwner.lifecycle.repeatOnLifecycle(STARTED) {
+      while (true) {
+        viewModel.refreshData()
+        delay(5.minutes)
+      }
     }
   }
   val dailyEnergy by viewModel.dailyEnergyState.collectAsStateWithLifecycle()
