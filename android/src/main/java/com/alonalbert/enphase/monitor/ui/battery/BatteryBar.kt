@@ -1,4 +1,4 @@
-package com.alonalbert.enphase.monitor.ui.batterybar
+package com.alonalbert.enphase.monitor.ui.battery
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

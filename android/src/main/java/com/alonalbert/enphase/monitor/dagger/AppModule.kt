@@ -2,7 +2,6 @@ package com.alonalbert.enphase.monitor.dagger
 
 import android.app.Application
 import android.content.Context
-import androidx.room.Room
 import com.alonalbert.enphase.monitor.TheApplication
 import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.util.TimberLogger
@@ -35,11 +34,7 @@ object AppModule {
   @Provides
   @Singleton
   fun providesAppDatabase(@ApplicationContext context: Context): AppDatabase {
-    return Room.databaseBuilder(
-      context,
-      AppDatabase::class.java,
-      "enphase-monitor-database.db"
-    ).build()
+    return AppDatabase.getDatabase(context, "enphase-monitor-database.db")
   }
 
   @Provides

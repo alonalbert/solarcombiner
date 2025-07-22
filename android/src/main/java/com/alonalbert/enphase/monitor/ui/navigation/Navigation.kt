@@ -25,6 +25,7 @@ import com.alonalbert.enphase.monitor.ui.login.LoginScreen
 import com.alonalbert.enphase.monitor.ui.navigation.NavigationViewModel.LoginState.Loading
 import com.alonalbert.enphase.monitor.ui.navigation.NavigationViewModel.LoginState.LoggedIn
 import com.alonalbert.enphase.monitor.ui.navigation.NavigationViewModel.LoginState.LoggedOut
+import com.alonalbert.enphase.monitor.ui.reserve.ReserveScreen
 
 @Composable
 fun MainNavigation() {
@@ -42,6 +43,10 @@ fun MainNavigation() {
 
   val onLiveStatus = {
     navController.navigateToLiveStatus()
+  }
+
+  val onReserve = {
+    navController.navigateToReserve()
   }
 
   val loginState by viewModel.loginState.collectAsStateWithLifecycle()
@@ -63,10 +68,14 @@ fun MainNavigation() {
       EnergyScreen(
         onSettings = onSettings,
         onLiveStatus = onLiveStatus,
+        onReserve = onReserve,
       )
     }
     composable("live-status") {
       LiveStatusScreen()
+    }
+    composable("reserve") {
+      ReserveScreen( {navController.navigateUp()} )
     }
   }
 }
@@ -100,4 +109,8 @@ private fun NavHostController.navigateToEnergyScreen() {
 
 private fun NavHostController.navigateToLiveStatus() {
   navigate("live-status")
+}
+
+private fun NavHostController.navigateToReserve() {
+  navigate("reserve")
 }

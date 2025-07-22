@@ -85,11 +85,11 @@ fun TextFieldComponent(
   onTextChanged: (String) -> Unit,
   isError: Boolean = false,
   keyboardType: KeyboardType = KeyboardType.Unspecified,
+  modifier: Modifier = Modifier,
 ) {
 
   OutlinedTextField(
-    modifier = Modifier
-      .fillMaxWidth(),
+    modifier = modifier,
     label = { Text(text = labelValue) },
     colors = OutlinedTextFieldDefaults.colors(
       focusedBorderColor = colorScheme.primary,

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusWeak
+import androidx.compose.material.icons.filled.Power
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,7 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
-import com.alonalbert.enphase.monitor.ui.batterybar.BatteryBar
+import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
+import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 import com.alonalbert.solar.combiner.enphase.model.BatteryState
@@ -47,6 +49,7 @@ import kotlin.time.Duration.Companion.minutes
 fun EnergyScreen(
   onSettings: () -> Unit,
   onLiveStatus: () -> Unit,
+  onReserve: () -> Unit,
 ) {
   val viewModel: EnergyViewModel = hiltViewModel()
 
@@ -71,6 +74,7 @@ fun EnergyScreen(
       onDayChanged = { date -> viewModel.setDay(date) },
       onSettings = onSettings,
       onLiveStatus = onLiveStatus,
+      onReserve = onReserve,
       isRefreshing = isRefreshing,
       onRefresh = { viewModel.refreshData() },
     )
@@ -88,13 +92,14 @@ fun EnergyScreen(
   onDayChanged: (LocalDate) -> Unit,
   onSettings: () -> Unit,
   onLiveStatus: () -> Unit,
+  onReserve: () -> Unit,
   isRefreshing: Boolean,
   onRefresh: () -> Unit,
 ) {
   val snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
   val pullRefreshState = rememberPullToRefreshState()
   Scaffold(
-    topBar = { TopBar(onSettings, onLiveStatus) },
+    topBar = { TopBar(onSettings, onReserve, onLiveStatus) },
     snackbarHost = { SnackbarHost(snackbarHostState) },
     modifier = Modifier.fillMaxSize(),
   ) { innerPadding ->
@@ -145,6 +150,7 @@ fun EnergyScreen(
 @Composable
 private fun TopBar(
   onSettingsClick: () -> Unit,
+  onReserveClick: () -> Unit,
   onLiveStatusClick: () -> Unit,
 ) {
   TopAppBar(
@@ -161,6 +167,13 @@ private fun TopBar(
       IconButton(onClick = onSettingsClick) {
         Icon(
           imageVector = Icons.Filled.Settings,
+          tint = MaterialTheme.colorScheme.onPrimary,
+          contentDescription = stringResource(id = R.string.settings),
+        )
+      }
+      IconButton(onClick = onReserveClick) {
+        Icon(
+          imageVector = Icons.Filled.Power,
           tint = MaterialTheme.colorScheme.onPrimary,
           contentDescription = stringResource(id = R.string.settings),
         )
@@ -191,6 +204,7 @@ fun GreetingPreviewLight() {
       onDismissSnackbar = {},
       onDayChanged = {},
       onSettings = {},
+      onReserve = {},
       onLiveStatus = {},
       isRefreshing = false,
     ) {}
@@ -214,6 +228,7 @@ fun GreetingPreviewDark() {
       onDismissSnackbar = {},
       onDayChanged = {},
       onSettings = {},
+      onReserve = {},
       onLiveStatus = {},
       isRefreshing = false,
     ) {}
