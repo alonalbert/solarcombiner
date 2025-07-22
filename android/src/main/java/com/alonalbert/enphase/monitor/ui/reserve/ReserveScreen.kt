@@ -16,6 +16,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,7 +38,7 @@ import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
 import com.alonalbert.enphase.monitor.ui.components.HeadingTextComponent
-import com.alonalbert.enphase.monitor.ui.components.TextFieldComponent
+import com.alonalbert.enphase.monitor.ui.components.PresetEditField
 import com.alonalbert.solar.combiner.enphase.ReserveCalculator
 import java.time.LocalTime
 
@@ -74,9 +76,9 @@ fun ReserveScreen(
         .padding(innerPadding)
         .fillMaxSize(),
     ) {
-      var idleLoad by remember { mutableStateOf(reserveConfig.idleLoad.toString()) }
-      var minReserve by remember { mutableStateOf(reserveConfig.minReserve.toString()) }
-      var chargeTime by remember { mutableStateOf(reserveConfig.chargeStart.toString()) }
+      var idleLoad by remember { mutableDoubleStateOf(reserveConfig.idleLoad) }
+      var minReserve by remember { mutableIntStateOf(reserveConfig.minReserve) }
+      var chargeTime by remember { mutableIntStateOf(reserveConfig.chargeStart) }
       var chartConfig by remember { mutableStateOf(reserveConfig) }
 
       Column(
@@ -87,52 +89,27 @@ fun ReserveScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          TextFieldComponent(
-            text = idleLoad,
-            labelValue = stringResource(id = R.string.idle_load),
-            onTextChanged = { idleLoad = it },
-            keyboardType = KeyboardType.Number,
-            isError = false, // TODO
-            modifier = Modifier.weight(1f),
-          )
-          TextFieldComponent(
-            text = minReserve,
-            labelValue = stringResource(id = R.string.min_reserve),
-            onTextChanged = { minReserve = it },
-            keyboardType = KeyboardType.Number,
-            isError = false, // TODO
-            modifier = Modifier.weight(1f),
-          )
-          TextFieldComponent(
-            text = chargeTime,
-            labelValue = stringResource(id = R.string.charge_time),
-            onTextChanged = { chargeTime = it },
-            keyboardType = KeyboardType.Number,
-            isError = false, // TODO
-            modifier = Modifier.weight(1f),
-          )
+          val weight = Modifier.weight(1f)
+          IdleLoad(value = idleLoad, onValueChange = { idleLoad = it }, modifier = weight)
+          MinReserve(value = minReserve, onValueChange = { minReserve = it }, modifier = weight)
+          SelfConsumptionTime(value = chargeTime, onValueChange = { chargeTime = it }, modifier = weight)
         }
         Spacer(modifier.height(16.dp))
         ChartTitle()
-        val configOk = checkConfig(idleLoad, minReserve, chargeTime)
-        if (configOk) {
-          chartConfig = ReserveConfig(
-            idleLoad = idleLoad.toDouble(),
-            minReserve = minReserve.toInt(),
-            chargeStart = chargeTime.toInt()
-          )
-
-        }
+        chartConfig = ReserveConfig(
+          idleLoad = idleLoad,
+          minReserve = minReserve,
+          chargeStart = chargeTime
+        )
 
         BatteryChart(chartConfig, batteryCapacity)
         Spacer(modifier.height(16.dp))
         Button(
-          enabled = configOk,
           onClick = {
             val config = ReserveConfig(
-              idleLoad = idleLoad.toDouble(),
-              minReserve = minReserve.toInt(),
-              chargeStart = chargeTime.toInt(),
+              idleLoad = idleLoad,
+              minReserve = minReserve,
+              chargeStart = chargeTime,
             )
             onUpdate(config)
           }) {
@@ -141,6 +118,60 @@ fun ReserveScreen(
       }
     }
   }
+}
+
+@Composable
+fun IdleLoad(
+  value: Double,
+  onValueChange: (Double) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  PresetEditField(
+    label = stringResource(id = R.string.idle_load),
+    value = value.toString(),
+    onValueChange = { onValueChange(it.toDouble()) },
+    presets = (1..30 step 1).map { (it.toDouble() / 10).toString() },
+    valueValidator = { it.toDoubleOrNull() != null },
+    keyboardType = KeyboardType.Number,
+    modifier = modifier,
+    maxDropdownHeight = 400.dp,
+  )
+}
+
+@Composable
+fun MinReserve(
+  value: Int,
+  onValueChange: (Int) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  PresetEditField(
+    label = stringResource(id = R.string.min_reserve),
+    value = value.toString(),
+    onValueChange = { onValueChange(it.toInt()) },
+    presets = (5..100 step 5).map { it.toString() },
+    valueValidator = { it.toIntOrNull() != null },
+    keyboardType = KeyboardType.Number,
+    modifier = modifier,
+    maxDropdownHeight = 400.dp,
+  )
+}
+
+@Composable
+fun SelfConsumptionTime(
+  value: Int,
+  onValueChange: (Int) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  PresetEditField(
+    label = stringResource(id = R.string.self_consumption_time),
+    value = "$value:00",
+    onValueChange = { onValueChange(it.split(':')[0].toInt()) },
+    presets = (6..12).map { "$it:00" },
+    valueValidator = { it.split(':')[0].toIntOrNull() != null },
+    keyboardType = KeyboardType.Number,
+    modifier = modifier,
+    maxDropdownHeight = 400.dp,
+  )
 }
 
 @Composable
@@ -170,10 +201,6 @@ private fun ChartTitle() {
     color = colorScheme.onBackground,
     textAlign = TextAlign.Center
   )
-}
-
-private fun checkConfig(idleLoad: String, minReserve: String, chargeTime: String): Boolean {
-  return idleLoad.toDoubleOrNull() != null && minReserve.toIntOrNull() != null && chargeTime.toIntOrNull() != null
 }
 
 @Preview(widthDp = 400, heightDp = 800, showBackground = true)
