@@ -92,7 +92,7 @@ class Enphase(
     CACHE,
   }
 
-  suspend fun login(email: String, password: String) {
+  suspend fun ensureLogin(email: String, password: String) {
     if (sessionId != null) {
       return
     }

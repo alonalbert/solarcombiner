@@ -41,7 +41,7 @@ android {
   kotlin {
     compilerOptions {
       jvmTarget.set(JvmTarget.JVM_11)
-      freeCompilerArgs.add("-Xcontext-parameters")
+      freeCompilerArgs.add("-Xcontext-receivers")
     }
   }
   buildFeatures {
@@ -67,20 +67,24 @@ dependencies {
   implementation(libs.androidx.core.splashscreen)
   implementation(libs.androidx.datastore.preferences)
   implementation(libs.androidx.hilt.navigation.compose)
+  implementation(libs.androidx.hilt.work)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.room.runtime)
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.ui.graphics)
+  implementation(libs.androidx.work.runtime.ktx)
   implementation(libs.appcompat.v7)
   implementation(libs.hilt.android)
   implementation(libs.slf4j)
   implementation(libs.timber)
   implementation(libs.vico.compose)
   implementation(libs.vico.compose.m3)
+
   implementation(platform(libs.androidx.compose.bom))
 
   ksp(libs.androidx.room.compiler)
   kapt(libs.hilt.compiler)
+  kapt(libs.androidx.hilt.compiler)
 
   testImplementation(libs.junit4)
 

@@ -115,21 +115,21 @@ fun EnergyArrow(
   }
 }
 
-context(drawScope: DrawScope)
+context(DrawScope)
 private fun Path.addArc(
   start: Alignment,
   end: Alignment,
   padPx: Float,
   radius: Float,
 ) {
-  with(drawScope) {
+//  with(drawScope) {
     val dx = start.hBias() + end.hBias()
     val dy = start.vBias() + end.vBias()
     val middle = Offset(center.x + padPx * dx, center.y + padPx * dy)
     val rectCenter = Offset(middle.x + radius * dx, middle.y + radius * dy)
     val rect = Rect(rectCenter, radius)
     arcTo(rect, end.getStartAngle(), (start to end).getSweepAngle(), false)
-  }
+//  }
 }
 
 private fun Alignment.isValid() =
@@ -138,14 +138,14 @@ private fun Alignment.isValid() =
 private fun Alignment.hBias() = (this as BiasAlignment).horizontalBias
 private fun Alignment.vBias() = (this as BiasAlignment).verticalBias
 
-context(drawScope: DrawScope)
+context(DrawScope)
 private fun Alignment.toOffset(pad: Float, other: Alignment) =
-  with(drawScope) {
+//  with(drawScope) {
     Offset(
       center.x + hBias() * center.x + pad * other.hBias(),
       center.y + vBias() * center.y + pad * other.vBias(),
     )
-  }
+//  }
 
 private fun Pair<Alignment, Alignment>.getSweepAngle() =
   (first.hBias() + first.vBias()) * (second.hBias() - second.vBias()) * 90f

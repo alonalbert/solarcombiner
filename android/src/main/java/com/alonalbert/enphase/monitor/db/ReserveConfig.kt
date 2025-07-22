@@ -9,5 +9,5 @@ data class ReserveConfig(
   val id: Int = 1,
   val idleLoad: Double = 1.0,
   val minReserve: Int = 20,
-  val chargeTime: Int = 9,
+  val chargeStart: Int = 9,
 )

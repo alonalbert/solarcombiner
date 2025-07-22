@@ -12,5 +12,8 @@ interface ReserveConfigDao {
   suspend fun set(reserveConfig: ReserveConfig)
 
   @Query("SELECT * FROM reserve_config WHERE ROWID = 1")
+  fun getReserveConfig(): ReserveConfig?
+
+  @Query("SELECT * FROM reserve_config WHERE ROWID = 1")
   fun getReserveConfigFlow(): Flow<ReserveConfig?>
 }

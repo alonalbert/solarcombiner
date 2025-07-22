@@ -12,7 +12,7 @@ interface SettingsDao {
   suspend fun set(settings: Settings)
 
   @Query("SELECT * FROM settings WHERE id = 1")
-  suspend fun getSettings(): Settings
+  suspend fun getSettings(): Settings?
 
   @Query("SELECT * FROM settings WHERE id = 1")
   fun getSettingsFlow(): Flow<Settings?>

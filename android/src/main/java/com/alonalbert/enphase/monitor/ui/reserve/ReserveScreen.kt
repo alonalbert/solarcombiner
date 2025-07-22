@@ -76,7 +76,7 @@ fun ReserveScreen(
     ) {
       var idleLoad by remember { mutableStateOf(reserveConfig.idleLoad.toString()) }
       var minReserve by remember { mutableStateOf(reserveConfig.minReserve.toString()) }
-      var chargeTime by remember { mutableStateOf(reserveConfig.chargeTime.toString()) }
+      var chargeTime by remember { mutableStateOf(reserveConfig.chargeStart.toString()) }
       var chartConfig by remember { mutableStateOf(reserveConfig) }
 
       Column(
@@ -119,7 +119,7 @@ fun ReserveScreen(
           chartConfig = ReserveConfig(
             idleLoad = idleLoad.toDouble(),
             minReserve = minReserve.toInt(),
-            chargeTime = chargeTime.toInt()
+            chargeStart = chargeTime.toInt()
           )
 
         }
@@ -132,7 +132,7 @@ fun ReserveScreen(
             val config = ReserveConfig(
               idleLoad = idleLoad.toDouble(),
               minReserve = minReserve.toInt(),
-              chargeTime = chargeTime.toInt(),
+              chargeStart = chargeTime.toInt(),
             )
             onUpdate(config)
           }) {
@@ -150,7 +150,7 @@ private fun BatteryChart(reserveConfig: ReserveConfig, batteryCapacity: Double) 
       /* hour = */ it / 4,
       /* minute = */ 5 * (it % 4),
     )
-    ReserveCalculator.calculateReserve(time, reserveConfig.idleLoad, batteryCapacity, reserveConfig.minReserve, reserveConfig.chargeTime)
+    ReserveCalculator.calculateReserve(time, reserveConfig.idleLoad, batteryCapacity, reserveConfig.minReserve, reserveConfig.chargeStart)
   }
   BatteryLevelChart(reserves, modifier = Modifier.height(200.dp))
 }

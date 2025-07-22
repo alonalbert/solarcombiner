@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "8feb2e69c0e1e61368e42c5dcb6fea08",
+    "identityHash": "fc32d1ce22eb3308d29480baeda513dc",
     "entities": [
       {
         "tableName": "settings",
@@ -84,7 +84,7 @@
       },
       {
         "tableName": "reserve_config",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `idleLoad` REAL NOT NULL, `minReserve` INTEGER NOT NULL, `chargeTime` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `idleLoad` REAL NOT NULL, `minReserve` INTEGER NOT NULL, `chargeStart` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -105,8 +105,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "chargeTime",
-            "columnName": "chargeTime",
+            "fieldPath": "chargeStart",
+            "columnName": "chargeStart",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -121,7 +121,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8feb2e69c0e1e61368e42c5dcb6fea08')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fc32d1ce22eb3308d29480baeda513dc')"
     ]
   }
 }

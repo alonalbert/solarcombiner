@@ -25,7 +25,7 @@ class LiveStatusViewModel @Inject constructor(
   private suspend fun settings() = db.settingsDao().getSettings()
 
   val liveStatusFlow: StateFlow<LiveStatus> = flow {
-    val settings = settings()
+    val settings = settings() ?: return@flow
     enphase().streamLiveStatus(settings.email, settings.mainGateway, settings.exportGateway).collect {
       Timber.log(Log.DEBUG, "$it")
       emit(it)

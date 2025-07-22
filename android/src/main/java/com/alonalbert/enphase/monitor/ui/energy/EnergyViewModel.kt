@@ -3,8 +3,6 @@ package com.alonalbert.enphase.monitor.ui.energy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alonalbert.enphase.monitor.db.AppDatabase
-import com.alonalbert.enphase.monitor.db.exportGateway
-import com.alonalbert.enphase.monitor.db.mainGateway
 import com.alonalbert.enphase.monitor.util.stateIn
 import com.alonalbert.solar.combiner.enphase.Enphase
 import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.CACHE_ONLY
@@ -20,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -46,26 +45,31 @@ class EnergyViewModel @Inject constructor(
   private suspend fun enphase(): Enphase {
     val enphase = enphaseAsync.await()
     val settings = settings()
-    try {
-      enphase.login(settings.email, settings.password)
-    } catch (_: EnphaseException) {
-      // Ignore
+    if (settings != null) {
+      try {
+        enphase.ensureLogin(settings.email, settings.password)
+      } catch (_: EnphaseException) {
+        // Ignore
+      }
     }
     return enphase
   }
 
   private suspend fun settings() = db.settingsDao().getSettings()
-  private suspend fun mainSiteId() = settings().mainGateway.siteId
-  private suspend fun exportSiteId() = settings().exportGateway?.siteId
 
   fun refreshData() {
     job?.cancel()
     job = viewModelScope.launch {
       refreshData {
+        val settings = settings()
+        if (settings == null) {
+          Timber.w("Settings not found")
+          return@refreshData
+        }
         try {
           val enphase = enphase()
-          batteryStateFlow.value = enphase.getBatteryState(mainSiteId())
-          val dailyEnergy = enphase.getDailyEnergy(mainSiteId(), exportSiteId(), day, NO_CACHE) ?: return@refreshData
+          batteryStateFlow.value = enphase.getBatteryState(settings.mainSiteId)
+          val dailyEnergy = enphase.getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, NO_CACHE) ?: return@refreshData
           if (dailyEnergy.date == day) {
             dailyEnergyFlow.value = dailyEnergy
           }
@@ -79,8 +83,13 @@ class EnergyViewModel @Inject constructor(
   fun setDay(day: LocalDate) {
     this.day = day.atStartOfDay().toLocalDate()
     viewModelScope.launch {
+      val settings = settings()
+      if (settings == null) {
+        Timber.w("Settings not found")
+        return@launch
+      }
       try {
-        dailyEnergyFlow.value = enphase().getDailyEnergy(mainSiteId(), exportSiteId(), day, CACHE_ONLY)
+        dailyEnergyFlow.value = enphase().getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, CACHE_ONLY)
       } catch (e: EnphaseException) {
         setSnackbarMessage("Error loading energy: ${e.reason}")
         dailyEnergyFlow.value = DailyEnergy(day, List(96) { Energy(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0)})

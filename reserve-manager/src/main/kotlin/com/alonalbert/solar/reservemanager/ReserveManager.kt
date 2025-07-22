@@ -61,7 +61,7 @@ private fun setReserve(idleLoad: Double, batteryCapacity: Double, minReserve: In
         val email = properties.getProperty("login.email") ?: throw IllegalStateException("Missing email")
         val password = properties.getProperty("login.password") ?: throw IllegalStateException("Missing password")
         val siteId = properties.getProperty("site.main") ?: throw IllegalStateException("Missing site id")
-        enphase.login(email, password)
+        enphase.ensureLogin(email, password)
         val result = enphase.setBatteryReserve(siteId, reserve)
         logger.info("Setting reserve to $reserve: $result")
       }
