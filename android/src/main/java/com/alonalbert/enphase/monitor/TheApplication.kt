@@ -3,7 +3,7 @@ package com.alonalbert.enphase.monitor
 import android.app.Application
 import android.util.Log.DEBUG
 import androidx.hilt.work.HiltWorkerFactory
-import androidx.work.BackoffPolicy.EXPONENTIAL
+import androidx.work.BackoffPolicy.LINEAR
 import androidx.work.Configuration
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -47,17 +47,17 @@ class TheApplication : Application(), Configuration.Provider {
       .build()
 
     val interval = MIN_PERIODIC_INTERVAL_MILLIS
-    val periodicWorkRequest =
+    val request =
       PeriodicWorkRequestBuilder<ReserveManagerWorker>(interval, MILLISECONDS)
         .setConstraints(constraints)
         .addTag(ReserveManagerWorker.TAG)
-        .setBackoffCriteria(EXPONENTIAL, MIN_BACKOFF_MILLIS, MILLISECONDS)
+        .setBackoffCriteria(LINEAR, MIN_BACKOFF_MILLIS, MILLISECONDS)
         .build()
 
     WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
       ReserveManagerWorker.TAG,
       ExistingPeriodicWorkPolicy.REPLACE,
-      periodicWorkRequest
+      request
     )
   }
 }

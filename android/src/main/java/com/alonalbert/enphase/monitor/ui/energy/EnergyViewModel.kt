@@ -1,8 +1,10 @@
 package com.alonalbert.enphase.monitor.ui.energy
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alonalbert.enphase.monitor.db.AppDatabase
+import com.alonalbert.enphase.monitor.util.NetworkChecker
 import com.alonalbert.enphase.monitor.util.stateIn
 import com.alonalbert.solar.combiner.enphase.Enphase
 import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.CACHE_ONLY
@@ -12,6 +14,8 @@ import com.alonalbert.solar.combiner.enphase.model.BatteryState
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.alonalbert.solar.combiner.enphase.model.Energy
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +28,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EnergyViewModel @Inject constructor(
+  @param:ApplicationContext private val context: Context,
   private val db: AppDatabase,
   private val enphaseAsync: Deferred<Enphase>,
 ) : ViewModel() {
@@ -58,25 +63,42 @@ class EnergyViewModel @Inject constructor(
   private suspend fun settings() = db.settingsDao().getSettings()
 
   fun refreshData() {
-    job?.cancel()
-    job = viewModelScope.launch {
-      refreshData {
-        val settings = settings()
-        if (settings == null) {
-          Timber.w("Settings not found")
-          return@refreshData
-        }
-        try {
-          val enphase = enphase()
-          batteryStateFlow.value = enphase.getBatteryState(settings.mainSiteId)
-          val dailyEnergy = enphase.getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, NO_CACHE) ?: return@refreshData
-          if (dailyEnergy.date == day) {
-            dailyEnergyFlow.value = dailyEnergy
+    Timber.i("refreshData")
+    if (!NetworkChecker.checkNetwork(context)){
+      Timber.w("Network connected but not validated. Might be an issue in Doze. Retrying.")
+      return
+    }
+
+    try {
+      job?.cancel()
+      job = viewModelScope.launch {
+        refreshData {
+          try {
+          val settings = settings()
+          if (settings == null) {
+            Timber.w("Settings not found")
+            return@refreshData
           }
-        } catch (e: EnphaseException) {
-          setSnackbarMessage("Failed to refresh data: ${e.reason}")
+            val enphase = enphase()
+            batteryStateFlow.value = enphase.getBatteryState(settings.mainSiteId)
+            val dailyEnergy = enphase.getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, NO_CACHE) ?: return@refreshData
+            if (dailyEnergy.date == day) {
+              dailyEnergyFlow.value = dailyEnergy
+            }
+          } catch (e: EnphaseException) {
+            Timber.e(e, "Failed to refresh data")
+            setSnackbarMessage("Failed to refresh data: ${e.reason}")
+          } catch (e: CancellationException) {
+            Timber.e(e, "Canceled")
+            throw e
+          } catch (e: Exception) {
+            Timber.e(e, "Failed to refresh data")
+            setSnackbarMessage("Failed to refresh data: ${e.message}")
+          }
         }
       }
+    } catch (e: Exception) {
+      Timber.e(e, "Failed to refresh data")
     }
   }
 

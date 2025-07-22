@@ -5,6 +5,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.alonalbert.enphase.monitor.db.AppDatabase
+import com.alonalbert.enphase.monitor.util.NetworkChecker
 import com.alonalbert.solar.combiner.enphase.Enphase
 import com.alonalbert.solar.combiner.enphase.ReserveCalculator
 import dagger.assisted.Assisted
@@ -23,7 +24,13 @@ class ReserveManagerWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
   override suspend fun doWork(): Result {
+    Timber.i("ReserveManagerWorker: doWork()")
     return try {
+      if (!NetworkChecker.checkNetwork(applicationContext)) {
+        Timber.w("Network connected but not validated. Might be an issue in Doze. Retrying.")
+        return Result.retry()
+      }
+
       val config = db.reserveConfigDao().getReserveConfig()
       if (config == null) {
         Timber.w("Reserve configuration not found")
