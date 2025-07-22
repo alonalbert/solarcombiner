@@ -26,5 +26,5 @@ fun Double.toDisplay(
     }
   }
 
-context(DrawScope)
-val Dp.px get() =  toPx()
+context(drawScope: DrawScope)
+val Dp.px get() =  with(drawScope) { toPx() }

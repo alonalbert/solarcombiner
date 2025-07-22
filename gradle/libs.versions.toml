@@ -17,12 +17,12 @@ jakarta-persistence = "3.2.0"
 javax-inject = "1"
 junit4 = "4.13.2"
 kandy = "0.7.1"
-kotlin = "2.1.10" # TODO: Hilt Work Manager doesm't seem to work with Kotlin 2.2.0
+kotlin = "2.2.0" # TODO: Hilt Work Manager doesm't seem to work with Kotlin 2.2.0
 kotlinx-cli = "0.3.6"
 kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.7.1"
 kotlinx-serialization = "1.9.0"
-ksp = "2.1.10-1.0.30" # TODO: Hilt Work Manager doesm't seem to work with Kotlin 2.2.0
+ksp = "2.2.0-2.0.2" # TODO: Hilt Work Manager doesm't seem to work with Kotlin 2.2.0
 ktor = "3.2.2"
 robolectric = "4.15.1"
 runner = "1.0.2"
@@ -107,7 +107,6 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }

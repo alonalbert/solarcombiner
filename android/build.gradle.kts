@@ -6,7 +6,6 @@ plugins {
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.hilt)
-  alias(libs.plugins.kotlin.kapt)
   alias(libs.plugins.ksp)
 }
 
@@ -41,7 +40,7 @@ android {
   kotlin {
     compilerOptions {
       jvmTarget.set(JvmTarget.JVM_11)
-      freeCompilerArgs.add("-Xcontext-receivers")
+      freeCompilerArgs.add("-Xcontext-parameters")
     }
   }
   buildFeatures {
@@ -83,8 +82,8 @@ dependencies {
   implementation(platform(libs.androidx.compose.bom))
 
   ksp(libs.androidx.room.compiler)
-  kapt(libs.hilt.compiler)
-  kapt(libs.androidx.hilt.compiler)
+  ksp(libs.hilt.compiler)
+  ksp(libs.androidx.hilt.compiler)
 
   testImplementation(libs.junit4)
 
