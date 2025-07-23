@@ -241,9 +241,6 @@ class Enphase(
       val soc = meters.getValue("soc").jsonPrimitive.int
       val reserve = meters.getValue("backup_soc").jsonPrimitive.int
 
-      if (load < 0) {
-        throw IllegalStateException("Invalid status: $body")
-      }
       LiveStatus(pv, storage, grid, load, soc, reserve)
     } catch (e: IOException) {
       logger.atTrace().setCause(e).log("Failed to get Live Status from $url")

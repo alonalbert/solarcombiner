@@ -3,6 +3,7 @@ package com.alonalbert.solar.combiner.enphase
 import com.alonalbert.solar.combiner.enphase.model.LiveEnergyFlow
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
 import com.alonalbert.solar.combiner.enphase.util.zerofy
+import kotlin.math.abs
 import kotlin.math.min
 
 fun LiveStatus.calculateEnergyFlow(): LiveEnergyFlow {
@@ -75,6 +76,12 @@ fun LiveStatus.calculateEnergyFlow(): LiveEnergyFlow {
       storage += e
       gridToStorage += e
     }
+  }
+  // Handle special case where load is negative (should never happen)
+  if (storage.zerofy() < 0 && load.zerofy() < 0 && (storage - load).zerofy() == 0.0) {
+    storageToLoad += abs(load)
+    storage = 0.0
+    load = 0.0
   }
   if (pv.zerofy() != 0.0 || storage.zerofy() != 0.0 || grid.zerofy() != 0.0 || load.zerofy() != 0.0 ) {
     throw IllegalArgumentException("Unexpected LiveStatus: $this")
