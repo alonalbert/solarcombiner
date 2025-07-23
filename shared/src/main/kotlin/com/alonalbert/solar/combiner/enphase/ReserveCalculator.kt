@@ -10,7 +10,17 @@ private const val MONTH = 1
 private const val DAY = 2
 
 object ReserveCalculator {
-  fun calculateReserve(time: LocalTime, idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargeStart: Int): Int {
+  fun calculateReserve(
+    time: LocalTime,
+    idleLoad: Double,
+    batteryCapacity: Double,
+    minReserve: Int,
+    chargeStart: Int,
+    chargeEnd: Int = 12,
+    ): Int {
+    if (time.hour in (chargeStart..chargeEnd)) {
+      return minReserve
+    }
     val day = if (time.hour < chargeStart) DAY else DAY - 1
     val dateTime = LocalDateTime.of(YEAR, MONTH, day, time.hour, time.minute)
     val chargeStartDateTime = LocalDateTime.of(YEAR, MONTH, DAY, chargeStart, 0)
