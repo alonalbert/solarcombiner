@@ -48,16 +48,18 @@ fun ReserveScreen(
   modifier: Modifier = Modifier,
 ) {
   val viewModel: ReserveConfigViewModel = hiltViewModel()
-  val reserveConfig by viewModel.reserveConfig.collectAsStateWithLifecycle(ReserveConfig())
-  ReserveScreen(
-    reserveConfig = reserveConfig,
-    batteryCapacity = 20.16,
-    onUpdate = {
-      viewModel.update(it)
-      onUpdateClicked()
-    },
-    modifier = modifier
-  )
+  val reserveConfig by viewModel.reserveConfig.collectAsStateWithLifecycle(null)
+  reserveConfig?.let {
+    ReserveScreen(
+      reserveConfig = it,
+      batteryCapacity = 20.16,
+      onUpdate = {
+        viewModel.update(it)
+        onUpdateClicked()
+      },
+      modifier = modifier
+    )
+  }
 }
 
 @Composable
