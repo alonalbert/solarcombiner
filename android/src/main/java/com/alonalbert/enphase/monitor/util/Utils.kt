@@ -8,7 +8,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-import com.alonalbert.solar.combiner.enphase.util.round
+import com.alonalbert.solar.combiner.enphase.util.round2
 
 fun Double.toDisplay(
   unit: String,
@@ -19,7 +19,7 @@ fun Double.toDisplay(
 ) =
   buildAnnotatedString {
     withStyle(SpanStyle(fontSize = valueSize, fontWeight = valueWeight)) {
-      append(this@toDisplay.round)
+      append(this@toDisplay.round2)
     }
     withStyle(SpanStyle(fontSize = unitSize, fontWeight = unitWeight)) {
       append(" $unit")

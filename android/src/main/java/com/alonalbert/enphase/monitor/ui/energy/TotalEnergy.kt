@@ -30,13 +30,15 @@ import com.alonalbert.enphase.monitor.ui.theme.colorOf
 import com.alonalbert.enphase.monitor.util.px
 import com.alonalbert.enphase.monitor.util.toDisplay
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
+import com.alonalbert.solar.combiner.enphase.util.round1
 
 @Composable
 fun TotalEnergy(dailyEnergy: DailyEnergy) {
   Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = CenterVertically) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
       EnergyBox("Imported", R.drawable.grid, R.color.grid, dailyEnergy.imported)
-      EnergyBox("Produced", R.drawable.solar, R.color.solar, dailyEnergy.produced)
+      val breakdown = "${dailyEnergy.mainProduced.round1} + ${dailyEnergy.exportProduced.round1}"
+      EnergyBox("Produced", R.drawable.solar, R.color.solar, dailyEnergy.produced, breakdown)
       EnergyBox("Discharged", R.drawable.battery, R.color.battery, dailyEnergy.discharged)
     }
     ConsumedBox(dailyEnergy)
@@ -82,6 +84,7 @@ private fun EnergyBox(
   @DrawableRes iconRes: Int,
   @ColorRes colorRes: Int,
   value: Double,
+  subName: String? = null,
 ) {
   Row(
     verticalAlignment = CenterVertically,
@@ -98,6 +101,9 @@ private fun EnergyBox(
         color = colorResource(colorRes),
       )
       Text(name, color = colorResource(colorRes))
+      if (subName != null) {
+        Text(subName, color = colorResource(colorRes), fontSize = 12.sp)
+      }
     }
   }
 }
