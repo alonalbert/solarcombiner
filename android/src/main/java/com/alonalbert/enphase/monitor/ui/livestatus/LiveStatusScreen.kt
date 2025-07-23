@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Scaffold
@@ -17,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,6 +38,7 @@ import com.alonalbert.enphase.monitor.ui.components.EnergyArrow
 import com.alonalbert.enphase.monitor.util.toDisplay
 import com.alonalbert.solar.combiner.enphase.calculateEnergyFlow
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
+import com.alonalbert.solar.combiner.enphase.util.round1
 import com.alonalbert.solar.combiner.enphase.util.zerofy
 import kotlin.math.abs
 
@@ -68,10 +71,12 @@ fun LiveStatusScreen(
         .padding(innerPadding)
         .fillMaxSize(),
       verticalArrangement = Arrangement.Center
+    ) {
+      Box(
+        contentAlignment = Alignment.Center, modifier = Modifier
+          .fillMaxWidth()
+          .padding(8.dp)
       ) {
-      Box(contentAlignment = Alignment.Center, modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)) {
         BatteryBar(liveStatus.soc, 20.0, liveStatus.reserve)
       }
       Box(
@@ -80,6 +85,7 @@ fun LiveStatusScreen(
           .aspectRatio(1f)
       ) {
         var pv by remember { mutableDoubleStateOf(0.0) }
+        var exportPv by remember { mutableStateOf<Double?>(null) }
         var storage by remember { mutableDoubleStateOf(0.0) }
         var grid by remember { mutableDoubleStateOf(0.0) }
         var load by remember { mutableDoubleStateOf(0.0) }
@@ -93,6 +99,7 @@ fun LiveStatusScreen(
         var gridToStorage by remember { mutableDoubleStateOf(0.0) }
 
         pv = liveStatus.pv
+        exportPv = liveStatus.exportPv
         storage = liveStatus.storage
         grid = liveStatus.grid
         load = liveStatus.load
@@ -104,10 +111,50 @@ fun LiveStatusScreen(
         gridToLoad = energyFlow.gridToLoad.zerofy()
         gridToStorage = energyFlow.gridToStorage.zerofy()
 
-        Node("Producing", R.drawable.solar, pv, colorResource(R.color.solar), Alignment.TopCenter)
-        Node("Consuming", R.drawable.house, load, colorResource(R.color.consumption), Alignment.CenterEnd, Modifier.padding(top = loadPad))
-        Node("Discharging", R.drawable.battery, storage, colorResource(R.color.battery), Alignment.BottomCenter, alternateName = "Charging")
-        Node("Importing", R.drawable.grid, grid, colorResource(R.color.grid), Alignment.CenterStart, Modifier.padding(top = gridPad), alternateName = "Exporting")
+        val producing = buildString {
+          append("Producing")
+          val exportPv = exportPv
+          if (exportPv != null) {
+            append(" (${pv.round1} + ${exportPv.round1})")
+          }
+        }
+
+        Node(
+          name = producing,
+          iconRes = R.drawable.solar,
+          value = pv + (exportPv ?: 0.0),
+          color = colorResource(R.color.solar),
+          alignment = Alignment.TopCenter,
+          modifier = Modifier.height(nodeSize),
+        )
+        Node(
+          name = "Consuming",
+          iconRes = R.drawable.house,
+          value = load,
+          color = colorResource(R.color.consumption),
+          alignment = Alignment.CenterEnd,
+          modifier = Modifier
+            .padding(top = loadPad)
+            .size(nodeSize)
+        )
+        Node(
+          name = "Discharging",
+          iconRes = R.drawable.battery,
+          value = storage,
+          color = colorResource(R.color.battery),
+          alignment = Alignment.BottomCenter,
+          alternateName = "Charging",
+          modifier = Modifier.size(nodeSize),
+        )
+        Node(
+          name = "Importing",
+          iconRes = R.drawable.grid,
+          value = grid,
+          color = colorResource(R.color.grid),
+          alignment = Alignment.CenterStart,
+          modifier = Modifier.padding(top = gridPad).size(nodeSize),
+          alternateName = "Exporting",
+        )
 
         val modifier = Modifier
           .fillMaxSize()
@@ -222,7 +269,6 @@ private fun BoxScope.Node(
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     modifier = modifier
-      .size(nodeSize)
       .align(alignment)
   ) {
     Box(
@@ -246,12 +292,12 @@ private fun BoxScope.Node(
       else -> name
     }
     Text(abs(value).toDisplay("kW"), color = color)
-    Text(label, color = Color.Gray, fontSize = 14.sp)
+    Text(label, color = color, fontSize = 14.sp)
   }
 }
 
 @Preview(showBackground = true, widthDp = 400, heightDp = 800, backgroundColor = 0xFFE0E0E0)
 @Composable
 fun LiveStatusScreenPreview() {
-  LiveStatusScreen(LiveStatus(pv = 10.2, storage = 0.6, grid = -3.84, load = 6.96, soc = 20, reserve = 24))
+  LiveStatusScreen(LiveStatus(pv = 6.2, exportPv = 4.0, storage = 0.6, grid = -3.84, load = 6.96, soc = 20, reserve = 24))
 }

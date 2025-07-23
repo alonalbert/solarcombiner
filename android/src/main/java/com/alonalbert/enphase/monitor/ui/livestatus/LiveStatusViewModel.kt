@@ -30,5 +30,5 @@ class LiveStatusViewModel @Inject constructor(
       Timber.log(Log.DEBUG, "$it")
       emit(it)
     }
-  }.stateIn(viewModelScope, LiveStatus(0.0, 0.0, 0.0, 0.0, 0, 0))
+  }.stateIn(viewModelScope, LiveStatus(0.0, 0.0, 0.0, 0.0, 0.0, 0, 0))
 }

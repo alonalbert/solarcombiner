@@ -1,8 +1,7 @@
 package com.alonalbert.solar.combiner.enphase.model
 
-class LiveStatus(
+internal class GatewayLiveStatus(
   val pv: Double,
-  val exportPv: Double?,
   val storage: Double,
   val grid: Double,
   val load: Double,
@@ -10,6 +9,6 @@ class LiveStatus(
   val reserve: Int,
 ) {
   override fun toString(): String {
-    return "LiveStatus(pv = $pv, exportPv=$exportPv, storage = $storage, grid = $grid, load = $load, soc=$soc, reserve=$reserve)"
+    return "GatewayLiveStatus(pv = $pv, storage = $storage, grid = $grid, load = $load, soc=$soc, reserve=$reserve)"
   }
 }

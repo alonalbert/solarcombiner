@@ -7,6 +7,7 @@ import com.alonalbert.solar.combiner.enphase.model.BatteryState
 import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import com.alonalbert.solar.combiner.enphase.model.Energy
 import com.alonalbert.solar.combiner.enphase.model.GatewayConfig
+import com.alonalbert.solar.combiner.enphase.model.GatewayLiveStatus
 import com.alonalbert.solar.combiner.enphase.model.GetTokenRequest
 import com.alonalbert.solar.combiner.enphase.model.LiveStatus
 import com.alonalbert.solar.combiner.enphase.model.SetProfileRequest
@@ -177,11 +178,12 @@ class Enphase(
       while (true) {
         val mainStatus = withContext(IO) { mainGateway.getLiveStatus(mainToken) } ?: continue
         val exportStatus = withContext(IO) { exportGateway?.getLiveStatus(exportToken) }
-        val exportPv = exportStatus?.pv ?: 0.0
+        val exportPv = exportStatus?.pv
         val combined = LiveStatus(
-          pv = mainStatus.pv + exportPv,
+          pv = mainStatus.pv,
+          exportPv = exportPv,
           storage = mainStatus.storage,
-          grid = mainStatus.grid - exportPv,
+          grid = mainStatus.grid - (exportPv ?: 0.0),
           load = mainStatus.load,
           soc = mainStatus.soc,
           reserve = mainStatus.reserve,
@@ -218,7 +220,7 @@ class Enphase(
     return response.bodyAsText()
   }
 
-  private suspend fun GatewayConfig.getLiveStatus(token: String?): LiveStatus? {
+  private suspend fun GatewayConfig.getLiveStatus(token: String?): GatewayLiveStatus? {
     return try {
       val response = client.get("$url/ivp/livedata/status") {
         accept(Application.Json)
@@ -241,7 +243,7 @@ class Enphase(
       val soc = meters.getValue("soc").jsonPrimitive.int
       val reserve = meters.getValue("backup_soc").jsonPrimitive.int
 
-      LiveStatus(pv, storage, grid, load, soc, reserve)
+      GatewayLiveStatus(pv, storage, grid, load, soc, reserve)
     } catch (e: IOException) {
       logger.atTrace().setCause(e).log("Failed to get Live Status from $url")
       logger.atError().log("Failed to get Live Status from $url")
