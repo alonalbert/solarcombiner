@@ -32,18 +32,20 @@ class DailyEnergyValueFormatter(
       return buildSpannedString {
         targets.filterIsInstance<ColumnCartesianLayerMarkerTarget>().forEach { target ->
           val columns = target.columns
-          appendEnergyColumn("Produced", columns[0].entry.y, solarColor)
-          val imported = columns[1].entry.y
-          when (imported >= 0) {
-            true -> appendEnergyColumn("Imported", imported, gridColor)
-            false -> appendEnergyColumn("Exported", -imported, gridColor)
+          val produced = columns[0].entry.y
+          val consumed = -columns[1].entry.y
+          val grid = columns[2].entry.y
+          val battery = columns[3].entry.y
+          appendEnergyColumn("Produced", produced, solarColor)
+          when (grid >= 0) {
+            true -> appendEnergyColumn("Imported", grid, gridColor)
+            false -> appendEnergyColumn("Exported", -grid, gridColor)
           }
-          val battery = columns[2].entry.y
           when (battery >= 0) {
             true -> appendEnergyColumn("Discharged", battery, batteryColor)
             false -> appendEnergyColumn("Charged", -battery, batteryColor)
           }
-          appendEnergyColumn("Consumed", columns[3].entry.y, consumptionColor)
+          appendEnergyColumn("Consumed", consumed, consumptionColor)
 
           setSpan(TabStopSpan.Standard(100), 0, length, SPAN_EXCLUSIVE_EXCLUSIVE)
         }
