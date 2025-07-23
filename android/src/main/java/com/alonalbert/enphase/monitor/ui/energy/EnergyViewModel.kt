@@ -64,7 +64,7 @@ class EnergyViewModel @Inject constructor(
 
   fun refreshData() {
     Timber.i("refreshData")
-    if (!NetworkChecker.checkNetwork(context)){
+    if (!NetworkChecker.checkNetwork(context)) {
       Timber.w("Network connected but not validated. Might be an issue in Doze. Retrying.")
       return
     }
@@ -74,11 +74,11 @@ class EnergyViewModel @Inject constructor(
       job = viewModelScope.launch {
         refreshData {
           try {
-          val settings = settings()
-          if (settings == null) {
-            Timber.w("Settings not found")
-            return@refreshData
-          }
+            val settings = settings()
+            if (settings == null) {
+              Timber.w("Settings not found")
+              return@refreshData
+            }
             val enphase = enphase()
             batteryStateFlow.value = enphase.getBatteryState(settings.mainSiteId)
             val dailyEnergy = enphase.getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, NO_CACHE) ?: return@refreshData
@@ -105,16 +105,18 @@ class EnergyViewModel @Inject constructor(
   fun setDay(day: LocalDate) {
     this.day = day.atStartOfDay().toLocalDate()
     viewModelScope.launch {
-      val settings = settings()
-      if (settings == null) {
-        Timber.w("Settings not found")
-        return@launch
-      }
-      try {
-        dailyEnergyFlow.value = enphase().getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, CACHE_ONLY)
-      } catch (e: EnphaseException) {
-        setSnackbarMessage("Error loading energy: ${e.reason}")
-        dailyEnergyFlow.value = DailyEnergy(day, List(96) { Energy(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0)})
+      refreshData {
+        val settings = settings()
+        if (settings == null) {
+          Timber.w("Settings not found")
+          return@refreshData
+        }
+        try {
+          dailyEnergyFlow.value = enphase().getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, CACHE_ONLY)
+        } catch (e: EnphaseException) {
+          setSnackbarMessage("Error loading energy: ${e.reason}")
+          dailyEnergyFlow.value = DailyEnergy(day, List(96) { Energy(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0) })
+        }
       }
     }
     refreshData()
