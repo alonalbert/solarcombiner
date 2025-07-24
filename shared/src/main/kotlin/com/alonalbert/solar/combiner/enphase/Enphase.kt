@@ -42,6 +42,7 @@ import io.ktor.http.parameters
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -176,8 +177,14 @@ class Enphase(
 
     return flow {
       while (true) {
-        val mainStatus = withContext(IO) { mainGateway.getLiveStatus(mainToken) } ?: continue
-        val exportStatus = withContext(IO) { exportGateway?.getLiveStatus(exportToken) }
+        val deferredMainStatus = withContext(IO) {
+          async { mainGateway.getLiveStatus(mainToken) }
+        }
+        val deferredExportStatus = withContext(IO) {
+          async { mainGateway.getLiveStatus(exportToken) }
+        }
+        val mainStatus = deferredMainStatus.await() ?: continue
+        val exportStatus = deferredExportStatus.await()
         val exportPv = exportStatus?.pv
         val combined = LiveStatus(
           pv = mainStatus.pv,
