@@ -77,17 +77,17 @@ class EnergyViewModel @Inject constructor(
     try {
       job?.cancel()
       job = viewModelScope.launch {
-        refreshData {
+        withRefreshingState {
           try {
             val settings = settings()
             if (settings == null) {
               Timber.w("Settings not found")
-              return@refreshData
+              return@withRefreshingState
             }
             val enphase = enphase()
             val deferredBatteryState = async(exceptionHandler) { enphase.getBatteryState(settings.mainSiteId) }
             val deferredDailyEnergy = async(exceptionHandler) { enphase.getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, NO_CACHE) }
-            val dailyEnergy = deferredDailyEnergy.await() ?: return@refreshData
+            val dailyEnergy = deferredDailyEnergy.await() ?: return@withRefreshingState
             batteryStateFlow.value = deferredBatteryState.await()
             if (dailyEnergy.date == day) {
               dailyEnergyFlow.value = dailyEnergy
@@ -109,14 +109,14 @@ class EnergyViewModel @Inject constructor(
     }
   }
 
-  fun setDay(day: LocalDate) {
+  fun setDay(day: LocalDate, refresh: Boolean = false) {
     this.day = day.atStartOfDay().toLocalDate()
     viewModelScope.launch {
-      refreshData {
+      withRefreshingState {
         val settings = settings()
         if (settings == null) {
           Timber.w("Settings not found")
-          return@refreshData
+          return@withRefreshingState
         }
         try {
           dailyEnergyFlow.value = enphase().getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, CACHE_ONLY)
@@ -125,11 +125,13 @@ class EnergyViewModel @Inject constructor(
           dailyEnergyFlow.value = DailyEnergy(day, List(96) { Energy(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0) })
         }
       }
+      if (refresh) {
+        refreshData()
+      }
     }
-    refreshData()
   }
 
-  private suspend fun refreshData(block: suspend () -> Unit) {
+  private suspend fun withRefreshingState(block: suspend () -> Unit) {
     isRefreshingStateFlow.value = true
     try {
       block()
