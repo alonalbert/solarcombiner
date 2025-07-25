@@ -181,7 +181,7 @@ class Enphase(
           async { mainGateway.getLiveStatus(mainToken) }
         }
         val deferredExportStatus = withContext(IO) {
-          async { mainGateway.getLiveStatus(exportToken) }
+          async { exportGateway?.getLiveStatus(exportToken) }
         }
         val mainStatus = deferredMainStatus.await() ?: continue
         val exportStatus = deferredExportStatus.await()
