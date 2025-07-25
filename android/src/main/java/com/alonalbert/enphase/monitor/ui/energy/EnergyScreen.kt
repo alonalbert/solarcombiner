@@ -85,7 +85,6 @@ fun EnergyScreen(
       onRefresh = { viewModel.refreshData() },
     )
   }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

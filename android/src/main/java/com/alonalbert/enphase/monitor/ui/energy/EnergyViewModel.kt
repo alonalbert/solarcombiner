@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alonalbert.enphase.monitor.db.AppDatabase
-import com.alonalbert.enphase.monitor.util.NetworkChecker
+import com.alonalbert.enphase.monitor.util.checkNetwork
 import com.alonalbert.enphase.monitor.util.stateIn
 import com.alonalbert.solar.combiner.enphase.Enphase
 import com.alonalbert.solar.combiner.enphase.Enphase.CacheMode.CACHE_ONLY
@@ -49,9 +49,10 @@ class EnergyViewModel @Inject constructor(
   private val snackbarMessageFlow: MutableStateFlow<String?> = MutableStateFlow(null)
   val snackbarMessageState: StateFlow<String?> = snackbarMessageFlow.stateIn(viewModelScope, null)
 
-  private val exceptionHandler = CoroutineExceptionHandler {_, e ->
+  private val exceptionHandler = CoroutineExceptionHandler { _, e ->
     Timber.w(e, "Error")
   }
+
   private suspend fun enphase(): Enphase {
     val enphase = enphaseAsync.await()
     val settings = settings()
@@ -69,7 +70,7 @@ class EnergyViewModel @Inject constructor(
 
   fun refreshData() {
     Timber.i("refreshData")
-    if (!NetworkChecker.checkNetwork(context)) {
+    if (!context.checkNetwork()) {
       Timber.w("Network connected but not validated. Might be an issue in Doze. Retrying.")
       return
     }

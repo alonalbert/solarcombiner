@@ -2,9 +2,7 @@ package com.alonalbert.enphase.monitor.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -75,7 +73,7 @@ fun MainNavigation() {
       LiveStatusScreen()
     }
     composable("reserve") {
-      ReserveScreen( {navController.navigateUp()} )
+      ReserveScreen({ navController.navigateUp() })
     }
   }
 }
@@ -83,25 +81,21 @@ fun MainNavigation() {
 @Preview
 @Composable
 private fun LoadingScreen() {
-  Scaffold {
-    Box(
-      contentAlignment = Alignment.Center,
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(it)
-    ) {
-      Text(
-        text = stringResource(R.string.loading),
-        style = MaterialTheme.typography.headlineLarge
-      )
-    }
+  Box(
+    contentAlignment = Alignment.Center,
+    modifier = Modifier
+      .fillMaxSize()
+  ) {
+    Text(
+      text = stringResource(R.string.loading),
+      style = MaterialTheme.typography.headlineLarge
+    )
   }
 }
 
 private fun NavHostController.navigateToLogin() {
   navigate("login")
 }
-
 
 private fun NavHostController.navigateToEnergyScreen() {
   navigate("energy")
