@@ -3,6 +3,8 @@ package com.alonalbert.enphase.monitor.services // Or your appropriate package
 import android.app.AlarmManager
 import android.app.AlarmManager.RTC_WAKEUP
 import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_IMMUTABLE
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -23,7 +25,13 @@ import java.nio.file.StandardOpenOption.APPEND
 import java.nio.file.StandardOpenOption.CREATE
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
+import java.time.format.DateTimeFormatterBuilder
+import java.time.temporal.ChronoField.DAY_OF_MONTH
+import java.time.temporal.ChronoField.HOUR_OF_DAY
+import java.time.temporal.ChronoField.MINUTE_OF_HOUR
+import java.time.temporal.ChronoField.MONTH_OF_YEAR
+import java.time.temporal.ChronoField.SECOND_OF_MINUTE
+import java.time.temporal.ChronoField.YEAR
 import javax.inject.Inject
 import kotlin.io.path.writer
 import kotlin.text.Charsets.UTF_8
@@ -31,6 +39,20 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 private val DELAY = 5.minutes
+private val TIMESTAMP_FORMATTER = DateTimeFormatterBuilder()
+  .parseCaseInsensitive()
+  .appendValue(YEAR)
+  .appendLiteral('-')
+  .appendValue(MONTH_OF_YEAR, 2)
+  .appendLiteral('-')
+  .appendValue(DAY_OF_MONTH, 2)
+  .appendLiteral(' ')
+  .appendValue(HOUR_OF_DAY, 2)
+  .appendLiteral(':')
+  .appendValue(MINUTE_OF_HOUR, 2)
+  .appendLiteral(':')
+  .appendValue(SECOND_OF_MINUTE, 2)
+  .toFormatter()
 
 @AndroidEntryPoint
 class AlarmReceiver : BroadcastReceiver() {
@@ -91,7 +113,7 @@ class AlarmReceiver : BroadcastReceiver() {
     Timber.d(e, message)
     val logFile = context.cacheDir.toPath().resolve("reserve.log")
     logFile.writer(UTF_8, APPEND, CREATE).use {
-      it.write("${LocalDateTime.now().format(ISO_LOCAL_DATE_TIME)}: $message\n")
+      it.write("${LocalDateTime.now().format(TIMESTAMP_FORMATTER  )}: $message\n")
       e?.printStackTrace(PrintWriter(it))
     }
   }
@@ -108,7 +130,7 @@ class AlarmReceiver : BroadcastReceiver() {
       }
       val intent = Intent(context, AlarmReceiver::class.java)
 
-      val pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+      val pendingIntentFlags = FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
       val pendingIntent = PendingIntent.getBroadcast(
         context,
         ALARM_REQUEST_CODE,
