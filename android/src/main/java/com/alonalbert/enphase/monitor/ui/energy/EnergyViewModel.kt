@@ -59,7 +59,7 @@ class EnergyViewModel @Inject constructor(
     if (settings != null) {
       try {
         enphase.ensureLogin(settings.email, settings.password)
-      } catch (_: EnphaseException) {
+      } catch (_: Throwable) {
         // Ignore
       }
     }
