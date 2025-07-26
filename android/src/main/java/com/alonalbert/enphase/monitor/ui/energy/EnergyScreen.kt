@@ -26,7 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
@@ -71,20 +71,18 @@ fun EnergyScreen(
   val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
   val snackBarMessage by viewModel.snackbarMessageState.collectAsStateWithLifecycle()
 
-  dailyEnergy?.let {
-    EnergyScreen(
-      dailyEnergy = it,
-      batteryState = batteryState,
-      snackbarMessage = snackBarMessage,
-      onDismissSnackbar = { viewModel.dismissSnackbarMessage() },
-      onDayChanged = { date -> viewModel.setDay(date,) },
-      onSettings = onSettings,
-      onLiveStatus = onLiveStatus,
-      onReserve = onReserve,
-      isRefreshing = isRefreshing,
-      onRefresh = { viewModel.refreshData() },
-    )
-  }
+  EnergyScreen(
+    dailyEnergy = dailyEnergy,
+    batteryState = batteryState,
+    snackbarMessage = snackBarMessage,
+    onDismissSnackbar = { viewModel.dismissSnackbarMessage() },
+    onDayChanged = { date -> viewModel.setDay(date) },
+    onSettings = onSettings,
+    onLiveStatus = onLiveStatus,
+    onReserve = onReserve,
+    isRefreshing = isRefreshing,
+    onRefresh = { viewModel.refreshData() },
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,14 +118,14 @@ fun EnergyScreen(
         }
         item {
           Box(
-            contentAlignment = Alignment.Center, modifier = Modifier
+            contentAlignment = Center, modifier = Modifier
               .fillMaxWidth()
           ) {
             BatteryBar(batteryState.soc ?: 0, 20.0, batteryState.reserve ?: 0)
           }
         }
         item {
-          Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+          Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
             TotalEnergy(dailyEnergy)
           }
         }

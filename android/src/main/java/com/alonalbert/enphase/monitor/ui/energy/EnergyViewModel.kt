@@ -37,10 +37,10 @@ class EnergyViewModel @Inject constructor(
   private var job: Job? = null
   private var day: LocalDate = LocalDate.now().atStartOfDay().toLocalDate()
 
-  private val dailyEnergyFlow: MutableStateFlow<DailyEnergy?> = MutableStateFlow(null)
+  private val dailyEnergyFlow: MutableStateFlow<DailyEnergy> = MutableStateFlow(DailyEnergy.empty(day))
   private val batteryStateFlow: MutableStateFlow<BatteryState> = MutableStateFlow(BatteryState(null, null))
 
-  val dailyEnergyState: StateFlow<DailyEnergy?> = dailyEnergyFlow.stateIn(viewModelScope, null)
+  val dailyEnergyState: StateFlow<DailyEnergy> = dailyEnergyFlow.stateIn(viewModelScope, DailyEnergy.empty(day))
   val batteryStateState: StateFlow<BatteryState> = batteryStateFlow.stateIn(viewModelScope, BatteryState(null, null))
 
   private val isRefreshingStateFlow = MutableStateFlow(false)
@@ -120,7 +120,8 @@ class EnergyViewModel @Inject constructor(
           return@withRefreshingState
         }
         try {
-          dailyEnergyFlow.value = enphase().getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, CACHE_ONLY)
+          val enphase = enphaseAsync.await()
+          dailyEnergyFlow.value = enphase.getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, CACHE_ONLY) ?: DailyEnergy.empty(day)
         } catch (e: EnphaseException) {
           setSnackbarMessage("Error loading energy: ${e.reason}")
           dailyEnergyFlow.value = DailyEnergy(day, List(96) { Energy(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0) })

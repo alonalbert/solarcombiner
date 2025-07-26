@@ -7,7 +7,7 @@ class DailyEnergy(val date: LocalDate, val energies: List<Energy>) {
   val exportProduced = energies.sumOf { it.exportProduced } / 4
   val mainProduced = energies.sumOf { it.mainProduced } / 4
   val consumed = energies.sumOf { it.consumed } / 4
-  val imported = energies.sumOf { it.imported } /4
+  val imported = energies.sumOf { it.imported } / 4
   val mainExported = energies.sumOf { it.mainExported } / 4
   val charged = energies.sumOf { it.charged } / 4
   val discharged = energies.sumOf { it.discharged } / 4
@@ -26,5 +26,9 @@ class DailyEnergy(val date: LocalDate, val energies: List<Energy>) {
       val balance = imported + mainProduced + discharged - consumed - mainExported - charged
       appendLine("Balance: $balance")
     }
+  }
+
+  companion object {
+    fun empty(day: LocalDate) = DailyEnergy(day, List(96) { Energy(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0) })
   }
 }
