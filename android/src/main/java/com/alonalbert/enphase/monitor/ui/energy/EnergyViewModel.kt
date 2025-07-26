@@ -16,7 +16,6 @@ import com.alonalbert.solar.combiner.enphase.model.Energy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -48,10 +47,6 @@ class EnergyViewModel @Inject constructor(
 
   private val snackbarMessageFlow: MutableStateFlow<String?> = MutableStateFlow(null)
   val snackbarMessageState: StateFlow<String?> = snackbarMessageFlow.stateIn(viewModelScope, null)
-
-  private val exceptionHandler = CoroutineExceptionHandler { _, e ->
-    Timber.w(e, "Error")
-  }
 
   private suspend fun enphase(): Enphase {
     val enphase = enphaseAsync.await()
@@ -86,8 +81,8 @@ class EnergyViewModel @Inject constructor(
               return@withRefreshingState
             }
             val enphase = enphase()
-            val deferredBatteryState = async(exceptionHandler) { enphase.getBatteryState(settings.mainSiteId) }
-            val deferredDailyEnergy = async(exceptionHandler) { enphase.getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, NO_CACHE) }
+            val deferredBatteryState = async { enphase.getBatteryState(settings.mainSiteId) }
+            val deferredDailyEnergy = async { enphase.getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, NO_CACHE) }
             val dailyEnergy = deferredDailyEnergy.await() ?: return@withRefreshingState
             batteryStateFlow.value = deferredBatteryState.await()
             if (dailyEnergy.date == day) {
