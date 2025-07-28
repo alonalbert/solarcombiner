@@ -279,13 +279,13 @@ class Enphase(
           }
         }
 
-        val response = client.get(DAILY_ENERGY_URL.format(siteId, date.year, date.month.value, date.dayOfMonth))
+        val response = client.get(url)
         val data = response.bodyAsPrettyJson()
         cache.write(siteId, date, data)
         gson.getObject(data).getStats()
       } catch (e: IOException) {
         logger.error("Failed to load data for ${date.toText()}", e)
-        throw EnphaseException("Failed to load from $url", e)
+        null
       }
     }
   }
