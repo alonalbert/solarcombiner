@@ -49,17 +49,17 @@ fun ReserveScreen(
 ) {
   val viewModel: ReserveConfigViewModel = hiltViewModel()
   val reserveConfig by viewModel.reserveConfig.collectAsStateWithLifecycle(null)
-  reserveConfig?.let {
-    ReserveScreen(
-      reserveConfig = it,
-      batteryCapacity = 20.16,
-      onUpdate = {
-        viewModel.update(it)
-        onUpdateClicked()
-      },
-      modifier = modifier
-    )
-  }
+
+  val config = reserveConfig
+  if (config != null) ReserveScreen(
+    reserveConfig = config,
+    batteryCapacity = 20.16,
+    onUpdate = {
+      viewModel.update(it)
+      onUpdateClicked()
+    },
+    modifier = modifier
+  )
 }
 
 @Composable
@@ -181,7 +181,7 @@ private fun BatteryChart(reserveConfig: ReserveConfig, batteryCapacity: Double) 
   val reserves = (0..95).map {
     val time = LocalTime.of(
       /* hour = */ it / 4,
-      /* minute = */ 5 * (it % 4),
+      /* minute = */ 15 * (it % 4),
     )
     ReserveCalculator.calculateReserve(time, reserveConfig.idleLoad, batteryCapacity, reserveConfig.minReserve, reserveConfig.chargeStart)
   }
