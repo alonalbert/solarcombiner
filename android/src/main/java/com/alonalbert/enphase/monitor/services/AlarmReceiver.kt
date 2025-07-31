@@ -10,9 +10,9 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.getSystemService
 import com.alonalbert.enphase.monitor.db.AppDatabase
+import com.alonalbert.enphase.monitor.enphase.Enphase
+import com.alonalbert.enphase.monitor.enphase.ReserveCalculator
 import com.alonalbert.enphase.monitor.util.checkNetwork
-import com.alonalbert.solar.combiner.enphase.Enphase
-import com.alonalbert.solar.combiner.enphase.ReserveCalculator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred

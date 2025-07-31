@@ -1,4 +1,4 @@
-package com.alonalbert.solar.combiner.enphase
+package com.alonalbert.enphase.monitor.enphase
 
 import java.security.cert.X509Certificate
 import javax.net.ssl.X509TrustManager

@@ -26,11 +26,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
+import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
+import com.alonalbert.enphase.monitor.enphase.util.round1
 import com.alonalbert.enphase.monitor.ui.theme.colorOf
 import com.alonalbert.enphase.monitor.util.px
 import com.alonalbert.enphase.monitor.util.toDisplay
-import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
-import com.alonalbert.solar.combiner.enphase.util.round1
 
 @Composable
 fun TotalEnergy(dailyEnergy: DailyEnergy) {

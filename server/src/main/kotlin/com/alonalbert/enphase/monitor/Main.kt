@@ -1,4 +1,4 @@
-package com.alonalbert.solar.combiner
+package com.alonalbert.enphase.monitor
 
 import kotlinx.coroutines.runBlocking
 

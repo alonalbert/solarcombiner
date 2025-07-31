@@ -1,4 +1,4 @@
-package com.alonalbert.solar.combiner.enphase.model
+package com.alonalbert.enphase.monitor.enphase.model
 
 private const val format = "%-12s: %.2f"
 

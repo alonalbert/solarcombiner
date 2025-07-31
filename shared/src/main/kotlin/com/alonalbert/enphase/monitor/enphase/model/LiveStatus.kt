@@ -1,4 +1,4 @@
-package com.alonalbert.solar.combiner.enphase.model
+package com.alonalbert.enphase.monitor.enphase.model
 
 class LiveStatus(
   val pv: Double,

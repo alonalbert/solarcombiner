@@ -1,7 +1,7 @@
-package com.alonalbert.solar.combiner
+package com.alonalbert.enphase.monitor
 
-import com.alonalbert.solar.combiner.enphase.EnergyColors
-import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
+import com.alonalbert.enphase.monitor.enphase.EnergyColors
+import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import org.jetbrains.kotlinx.dataframe.api.dataFrameOf
 import org.jetbrains.kotlinx.dataframe.api.gather
 import org.jetbrains.kotlinx.dataframe.api.into

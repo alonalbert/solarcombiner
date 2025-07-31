@@ -8,10 +8,10 @@ import android.text.style.TabStopSpan
 import androidx.compose.ui.graphics.Color
 import androidx.core.text.buildSpannedString
 import com.alonalbert.enphase.monitor.R
+import com.alonalbert.enphase.monitor.enphase.util.kw
+import com.alonalbert.enphase.monitor.enphase.util.zerofy
 import com.alonalbert.enphase.monitor.ui.theme.colorOf
 import com.alonalbert.enphase.monitor.ui.theme.toInt
-import com.alonalbert.solar.combiner.enphase.util.kw
-import com.alonalbert.solar.combiner.enphase.util.zerofy
 import com.patrykandpatrick.vico.core.cartesian.CartesianDrawingContext
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
 import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarkerTarget

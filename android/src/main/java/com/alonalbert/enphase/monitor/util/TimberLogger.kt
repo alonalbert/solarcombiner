@@ -1,7 +1,7 @@
 package com.alonalbert.enphase.monitor.util
 
 import android.util.Log
-import com.alonalbert.solar.combiner.enphase.util.DefaultLogger
+import com.alonalbert.enphase.monitor.enphase.util.DefaultLogger
 import org.slf4j.Marker
 import org.slf4j.event.Level
 import timber.log.Timber

@@ -1,4 +1,4 @@
-package com.alonalbert.solar.combiner.enphase.util
+package com.alonalbert.enphase.monitor.enphase.util
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

@@ -1,4 +1,4 @@
-package com.alonalbert.solar.combiner.enphase
+package com.alonalbert.enphase.monitor.enphase
 
 class EnphaseException private constructor(
   message: String,
@@ -6,5 +6,4 @@ class EnphaseException private constructor(
   cause: Exception? = null,
 ) : Exception(message, cause) {
   constructor(message: String, httpStatus: Int) : this(message, "$httpStatus")
-  constructor(message: String, cause: Exception) : this(message, "${cause.message}")
 }

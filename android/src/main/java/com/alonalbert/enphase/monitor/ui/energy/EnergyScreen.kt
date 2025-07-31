@@ -38,12 +38,12 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.alonalbert.enphase.monitor.R
+import com.alonalbert.enphase.monitor.enphase.model.BatteryState
+import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
 import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
-import com.alonalbert.solar.combiner.enphase.model.BatteryState
-import com.alonalbert.solar.combiner.enphase.model.DailyEnergy
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 import kotlin.time.Duration.Companion.minutes

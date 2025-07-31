@@ -33,13 +33,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
+import com.alonalbert.enphase.monitor.enphase.calculateEnergyFlow
+import com.alonalbert.enphase.monitor.enphase.model.LiveStatus
+import com.alonalbert.enphase.monitor.enphase.util.round1
+import com.alonalbert.enphase.monitor.enphase.util.zerofy
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
 import com.alonalbert.enphase.monitor.ui.components.EnergyArrow
 import com.alonalbert.enphase.monitor.util.toDisplay
-import com.alonalbert.solar.combiner.enphase.calculateEnergyFlow
-import com.alonalbert.solar.combiner.enphase.model.LiveStatus
-import com.alonalbert.solar.combiner.enphase.util.round1
-import com.alonalbert.solar.combiner.enphase.util.zerofy
 import kotlin.math.abs
 
 private val nodeRadius = 20.dp

@@ -1,10 +1,10 @@
 @file:JvmName("ReserveManager")
 
-package com.alonalbert.solar.reservemanager
+package com.alonalbert.enphase.reservemanager
 
-import com.alonalbert.solar.combiner.enphase.Enphase
-import com.alonalbert.solar.combiner.enphase.ReserveCalculator
-import com.alonalbert.solar.combiner.enphase.util.DefaultLogger
+import com.alonalbert.enphase.monitor.enphase.Enphase
+import com.alonalbert.enphase.monitor.enphase.ReserveCalculator
+import com.alonalbert.enphase.monitor.enphase.util.DefaultLogger
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default

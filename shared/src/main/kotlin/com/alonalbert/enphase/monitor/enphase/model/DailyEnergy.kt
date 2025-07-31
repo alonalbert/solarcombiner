@@ -1,6 +1,6 @@
-package com.alonalbert.solar.combiner.enphase.model
+package com.alonalbert.enphase.monitor.enphase.model
 
-import com.alonalbert.solar.combiner.enphase.util.kwh
+import com.alonalbert.enphase.monitor.enphase.util.kwh
 import java.time.LocalDate
 
 class DailyEnergy(val date: LocalDate, val energies: List<Energy>) {

@@ -1,4 +1,4 @@
-package com.alonalbert.solar.combiner.enphase
+package com.alonalbert.enphase.monitor.enphase
 
 import java.nio.file.Path
 import java.time.LocalDate

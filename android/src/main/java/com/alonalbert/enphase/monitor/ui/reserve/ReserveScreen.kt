@@ -36,10 +36,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.db.ReserveConfig
+import com.alonalbert.enphase.monitor.enphase.ReserveCalculator
 import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
 import com.alonalbert.enphase.monitor.ui.components.HeadingTextComponent
 import com.alonalbert.enphase.monitor.ui.components.PresetEditField
-import com.alonalbert.solar.combiner.enphase.ReserveCalculator
 import java.time.LocalTime
 
 @Composable

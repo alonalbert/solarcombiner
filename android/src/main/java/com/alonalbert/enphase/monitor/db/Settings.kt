@@ -2,7 +2,7 @@ package com.alonalbert.enphase.monitor.db
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.alonalbert.solar.combiner.enphase.model.GatewayConfig
+import com.alonalbert.enphase.monitor.enphase.model.GatewayConfig
 
 @Entity(tableName = "settings")
 data class Settings(

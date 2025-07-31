@@ -1,4 +1,4 @@
-package com.alonalbert.solar.combiner.enphase.util
+package com.alonalbert.enphase.monitor.enphase.util
 
 import org.slf4j.Marker
 import org.slf4j.event.Level

@@ -1,4 +1,4 @@
-package com.alonalbert.solar.combiner.enphase
+package com.alonalbert.enphase.monitor.enphase
 
 object EnergyColors {
   val produced = 0x01b4de

@@ -1,8 +1,8 @@
-package com.alonalbert.solar.combiner.enphase
+package com.alonalbert.enphase.monitor.enphase
 
-import com.alonalbert.solar.combiner.enphase.model.LiveEnergyFlow
-import com.alonalbert.solar.combiner.enphase.model.LiveStatus
-import com.alonalbert.solar.combiner.enphase.util.zerofy
+import com.alonalbert.enphase.monitor.enphase.model.LiveEnergyFlow
+import com.alonalbert.enphase.monitor.enphase.model.LiveStatus
+import com.alonalbert.enphase.monitor.enphase.util.zerofy
 import kotlin.math.abs
 import kotlin.math.min
 

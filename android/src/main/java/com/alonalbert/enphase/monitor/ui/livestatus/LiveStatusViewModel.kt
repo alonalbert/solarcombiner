@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.db.exportGateway
 import com.alonalbert.enphase.monitor.db.mainGateway
+import com.alonalbert.enphase.monitor.enphase.Enphase
+import com.alonalbert.enphase.monitor.enphase.model.LiveStatus
 import com.alonalbert.enphase.monitor.util.stateIn
-import com.alonalbert.solar.combiner.enphase.Enphase
-import com.alonalbert.solar.combiner.enphase.model.LiveStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.StateFlow

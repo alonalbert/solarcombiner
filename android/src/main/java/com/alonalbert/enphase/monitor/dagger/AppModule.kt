@@ -4,8 +4,8 @@ import android.app.Application
 import android.content.Context
 import com.alonalbert.enphase.monitor.TheApplication
 import com.alonalbert.enphase.monitor.db.AppDatabase
+import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.util.TimberLogger
-import com.alonalbert.solar.combiner.enphase.Enphase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
