@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -86,9 +88,11 @@ fun LoginScreenContent(
       modifier = Modifier.fillMaxSize(),
       contentAlignment = Alignment.Center
     ) {
+      val scrollState = rememberScrollState()
       Column(
         modifier = Modifier
           .background(MaterialTheme.colorScheme.background)
+          .verticalScroll(scrollState)
       ) {
 
         HeadingTextComponent(value = stringResource(id = R.string.welcome))
