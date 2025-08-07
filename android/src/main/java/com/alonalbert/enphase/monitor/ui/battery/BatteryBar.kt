@@ -52,7 +52,7 @@ fun BatteryBar(soc: Int, capacity: Double, reserve: Int, modifier: Modifier = Mo
     ) {
       Column {
         Row(modifier = Modifier.padding(8.dp)) {
-          val icon = (soc / (100 / SOC_ICONS.size)).coerceIn(0, SOC_ICONS.size)
+          val icon = (soc / (100 / SOC_ICONS.size)).coerceIn(0, SOC_ICONS.size).coerceIn(0, 4)
           Image(
             painterResource(SOC_ICONS[icon]),
             contentDescription = null,
