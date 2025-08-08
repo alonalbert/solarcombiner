@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class ReserveConfig(
   @PrimaryKey
   val id: Int = 1,
-  val idleLoad: Double = 1.0,
+  val idleLoad: Double = 0.8,
   val minReserve: Int = 20,
   val chargeStart: Int = 9,
 )

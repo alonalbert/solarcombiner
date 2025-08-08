@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.getSystemService
 import com.alonalbert.enphase.monitor.db.AppDatabase
+import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.ReserveCalculator
 import com.alonalbert.enphase.monitor.util.checkNetwork
@@ -79,17 +80,12 @@ class AlarmReceiver : BroadcastReceiver() {
           log("Network connected but not validated. Might be an issue in Doze.")
           return 1.minutes
         }
-        val config = db.reserveConfigDao().getReserveConfig()
-        if (config == null) {
-          log("Reserve configuration not found")
-          return DELAY
-        }
         val settings = db.settingsDao().getSettings()
         if (settings == null) {
           log("Settings not found")
           return DELAY
         }
-
+        val config = db.reserveConfigDao().getReserveConfig() ?: ReserveConfig()
         val reserve = ReserveCalculator.calculateReserve(
           LocalTime.now(),
           config.idleLoad,
