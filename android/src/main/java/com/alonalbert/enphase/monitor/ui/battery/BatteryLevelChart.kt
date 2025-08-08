@@ -78,10 +78,16 @@ private fun BatteryLevelChart(
             ),
             LineCartesianLayer.Line(
               LineCartesianLayer.LineFill.single(fill(
-                colorResource(R.color.battery_reserve),
+                colorResource(R.color.battery_reserve_start),
                 )),
-              LineStroke.Continuous(0.5f)
-            )
+              LineStroke.Continuous(1.0f)
+            ),
+            LineCartesianLayer.Line(
+              LineCartesianLayer.LineFill.single(fill(
+                colorResource(R.color.battery_reserve_end),
+                )),
+              LineStroke.Continuous(1.0f)
+            ),
           ),
           rangeProvider = remember {
             CartesianLayerRangeProvider.fixed(
@@ -127,8 +133,16 @@ private suspend fun CartesianChartModelProducer.runTransaction(
 ) {
   runTransaction {
     lineSeries {
-      series(batteryLevels)
-      series(reserves)
+      if (batteryLevels.isNotEmpty()) {
+        series(batteryLevels)
+      }
+      val size = batteryLevels.size
+      val start = reserves.take(size)
+      series(start)
+      val end = reserves.drop(size)
+      if (end.isNotEmpty()) {
+        series(List(end.size) { size - 1 + it }, end)
+      }
     }
   }
 }
