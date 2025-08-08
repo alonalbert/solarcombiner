@@ -5,12 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.enphase.Enphase
-import com.alonalbert.enphase.monitor.enphase.Enphase.CacheMode.CACHE_ONLY
-import com.alonalbert.enphase.monitor.enphase.Enphase.CacheMode.NO_CACHE
 import com.alonalbert.enphase.monitor.enphase.EnphaseException
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
-import com.alonalbert.enphase.monitor.enphase.model.Energy
 import com.alonalbert.enphase.monitor.repository.Repository
 import com.alonalbert.enphase.monitor.util.checkNetwork
 import com.alonalbert.enphase.monitor.util.stateIn
@@ -18,16 +15,19 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDate
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class EnergyViewModel @Inject constructor(
   @param:ApplicationContext private val context: Context,
@@ -36,12 +36,20 @@ class EnergyViewModel @Inject constructor(
   private val repository: Repository,
 ) : ViewModel() {
   private var job: Job? = null
-  private var day: LocalDate = LocalDate.now().atStartOfDay().toLocalDate()
 
-  private val dailyEnergyFlow: MutableStateFlow<DailyEnergy> = MutableStateFlow(DailyEnergy.empty(day))
+  private val dayFlow = MutableStateFlow(LocalDate.now().atStartOfDay().toLocalDate())
+  private var day
+    get() = dayFlow.value
+    set(value) {
+      dayFlow.value = value
+    }
+
+  //  private val dailyEnergyFlow: MutableStateFlow<DailyEnergy> = MutableStateFlow(DailyEnergy.empty(day))
   private val batteryStateFlow: MutableStateFlow<BatteryState> = MutableStateFlow(BatteryState(null, null))
 
-  val dailyEnergyState: StateFlow<DailyEnergy> = dailyEnergyFlow.stateIn(viewModelScope, DailyEnergy.empty(day))
+  //  val dailyEnergyState: StateFlow<DailyEnergy> = dailyEnergyFlow.stateIn(viewModelScope, DailyEnergy.empty(day))
+  val dailyEnergyState: StateFlow<DailyEnergy> =
+    dayFlow.flatMapLatest { repository.getDailyEnergyFlow(it) }.stateIn(viewModelScope, DailyEnergy.empty(dayFlow.value))
   val batteryStateState: StateFlow<BatteryState> = batteryStateFlow.stateIn(viewModelScope, BatteryState(null, null))
 
   private val isRefreshingStateFlow = MutableStateFlow(false)
@@ -75,12 +83,12 @@ class EnergyViewModel @Inject constructor(
     try {
       job?.cancel()
       job = viewModelScope.launch {
-        try {
-          repository.updateDailyEnergy(day)
-        } catch (e: Throwable) {
-          Timber.e(e, "repository.updateDailyEnergy error")
-        }
         withRefreshingState {
+          try {
+            repository.updateDailyEnergy(dayFlow.value)
+          } catch (e: Throwable) {
+            Timber.e(e, "repository.updateDailyEnergy error")
+          }
           try {
             val settings = settings()
             if (settings == null) {
@@ -89,12 +97,7 @@ class EnergyViewModel @Inject constructor(
             }
             val enphase = enphase()
             val deferredBatteryState = async { enphase.getBatteryState(settings.mainSiteId) }
-            val deferredDailyEnergy = async { enphase.getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, NO_CACHE) }
-            val dailyEnergy = deferredDailyEnergy.await() ?: return@withRefreshingState
             batteryStateFlow.value = deferredBatteryState.await()
-            if (dailyEnergy.date == day) {
-              dailyEnergyFlow.value = dailyEnergy
-            }
           } catch (e: EnphaseException) {
             Timber.e(e, "Failed to refresh data")
             setSnackbarMessage("Failed to refresh data: ${e.reason}")
@@ -116,18 +119,7 @@ class EnergyViewModel @Inject constructor(
     this.day = day.atStartOfDay().toLocalDate()
     viewModelScope.launch {
       withRefreshingState {
-        val settings = settings()
-        if (settings == null) {
-          Timber.w("Settings not found")
-          return@withRefreshingState
-        }
-        try {
-          val enphase = enphaseAsync.await()
-          dailyEnergyFlow.value = enphase.getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, CACHE_ONLY) ?: DailyEnergy.empty(day)
-        } catch (e: EnphaseException) {
-          setSnackbarMessage("Error loading energy: ${e.reason}")
-          dailyEnergyFlow.value = DailyEnergy(day, List(96) { Energy(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0) })
-        }
+        repository.updateDailyEnergy(day)
       }
       if (refresh) {
         refreshData()

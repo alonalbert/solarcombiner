@@ -1,11 +1,7 @@
 package com.alonalbert.enphase.monitor.enphase
 
-import com.alonalbert.enphase.monitor.enphase.Enphase.CacheMode.CACHE
-import com.alonalbert.enphase.monitor.enphase.Enphase.CacheMode.CACHE_ONLY
-import com.alonalbert.enphase.monitor.enphase.Enphase.CacheMode.NO_CACHE
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
-import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
-import com.alonalbert.enphase.monitor.enphase.model.Energy
+import com.alonalbert.enphase.monitor.enphase.model.ExportStats
 import com.alonalbert.enphase.monitor.enphase.model.GatewayConfig
 import com.alonalbert.enphase.monitor.enphase.model.GatewayLiveStatus
 import com.alonalbert.enphase.monitor.enphase.model.GetTokenRequest
@@ -41,7 +37,6 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.http.parameters
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -58,7 +53,6 @@ import okhttp3.internal.closeQuietly
 import okio.IOException
 import org.slf4j.Logger
 import java.io.Closeable
-import java.nio.file.Path
 import java.security.SecureRandom
 import java.time.LocalDate
 import javax.net.ssl.SSLContext
@@ -82,18 +76,10 @@ private val gson = GsonBuilder()
   .create()
 
 class Enphase(
-  cacheDir: Path,
   private val logger: Logger = DefaultLogger()
 ) : Closeable {
-  private val cache = Cache(cacheDir)
   private val client = createClient()
   private var sessionId: String? = null
-
-  enum class CacheMode {
-    NO_CACHE,
-    CACHE_ONLY,
-    CACHE,
-  }
 
   suspend fun ensureLogin(email: String, password: String) {
     if (sessionId != null) {
@@ -120,66 +106,27 @@ class Enphase(
   }
 
   suspend fun getMainStats(mainSiteId: String, date: LocalDate): MainStats {
-    val mainStats = loadStats(mainSiteId, date, NO_CACHE)
-    val gridBattery = mainStats.getDoubles("grid_battery")
-    val gridHome = mainStats.getDoubles("grid_home")
-    val battery = mainStats?.getAsJsonArray("soc")?.map { if (it is JsonNull) null else it.asInt } ?: List(96) { 0 }
+    val stats = loadStats(mainSiteId, date)
+    val gridBattery = stats.getDoubles("grid_battery")
+    val gridHome = stats.getDoubles("grid_home")
+    val battery = stats?.getAsJsonArray("soc")?.map { if (it is JsonNull) null else it.asInt } ?: List(96) { 0 }
 
     return MainStats(
-      mainStats.getDoubles("production"),
-      mainStats.getDoubles("consumption").map { it.coerceAtLeast(0.0) },
-      mainStats.getDoubles("charge"),
-      mainStats.getDoubles("discharge"),
+      stats.getDoubles("production"),
+      stats.getDoubles("consumption").map { it.coerceAtLeast(0.0) },
+      stats.getDoubles("charge"),
+      stats.getDoubles("discharge"),
       gridHome.zip(gridBattery) { gridHome, gridBattery -> gridHome + gridBattery },
-      mainStats.getDoubles("solar_grid"),
+      stats.getDoubles("solar_grid"),
       battery
     )
   }
 
-  suspend fun getDailyEnergy(mainSiteId: String, exportSiteId: String?, date: LocalDate, cacheMode: CacheMode = CACHE): DailyEnergy? {
-    return withContext(Dispatchers.Unconfined) {
-      val mainStats = loadStats(mainSiteId, date, cacheMode)
-      val exportStats = when (exportSiteId) {
-        null -> null
-        else -> loadStats(exportSiteId, date, cacheMode)
-      }
-      if (mainStats == null && exportStats == null) {
-        if (cacheMode == CACHE_ONLY) {
-          return@withContext null
-        } else {
-          throw IllegalStateException("Failed to load data")
-        }
-      }
-
-      val exportProduction = exportStats.getDoubles("production")
-      val mainProduction = mainStats.getDoubles("production")
-      val consumption = mainStats.getDoubles("consumption").map { it.coerceAtLeast(0.0) }
-      val charge = mainStats.getDoubles("charge")
-      val discharge = mainStats.getDoubles("discharge")
-      val mainExport = mainStats.getDoubles("solar_grid")
-      val gridBattery = mainStats.getDoubles("grid_battery")
-      val gridHome = mainStats.getDoubles("grid_home")
-      val import = gridHome.zip(gridBattery) { h, b -> h + b }
-      val batteryLevel = mainStats?.getAsJsonArray("soc")?.map { if (it is JsonNull) null else it.asInt } ?: List(96) { 0 }
-
-      val energies = buildList {
-        repeat(96) {
-          add(
-            Energy(
-              exportProduction[it].kwh(),
-              mainProduction[it].kwh(),
-              consumption[it].kwh(),
-              charge[it].kwh(),
-              discharge[it].kwh(),
-              mainExport[it].kwh(),
-              import[it].kwh(),
-              batteryLevel[it],
-            )
-          )
-        }
-      }
-      DailyEnergy(date, energies)
-    }
+  suspend fun getExportStats(exportSiteId: String, date: LocalDate): ExportStats {
+    val stats = loadStats(exportSiteId, date)
+    return ExportStats(
+      stats.getDoubles("production"),
+    )
   }
 
   suspend fun streamLiveStatus(
@@ -286,20 +233,12 @@ class Enphase(
     client.get("$LIVE_STREAM_URL?serial_num=$serialNum").bodyAsText()
   }
 
-  private suspend fun loadStats(siteId: String, date: LocalDate, cacheMode: CacheMode): GsonObject? {
+  private suspend fun loadStats(siteId: String, date: LocalDate): GsonObject? {
     return withContext(IO) {
       val url = DAILY_ENERGY_URL.format(siteId, date.year, date.month.value, date.dayOfMonth)
       try {
-        if (cacheMode != NO_CACHE) {
-          val cached = cache.read(siteId, date)
-          if (cached != null) {
-            return@withContext gson.getObject(cached).getStats()
-          }
-        }
-
         val response = client.get(url)
         val data = response.bodyAsPrettyJson()
-        cache.write(siteId, date, data)
         gson.getObject(data).getStats()
       } catch (e: IOException) {
         logger.error("Failed to load data for ${date.toText()}", e)
@@ -368,8 +307,6 @@ private fun GsonObject?.getDoubles(key: String): List<Double> {
     false -> result
   }
 }
-
-private fun Double.kwh() = this / 1000 * 4
 
 private fun JsonObject.getKiloWatts(key: String) =
   getValue(key).jsonObject.getValue("agg_p_mw").jsonPrimitive.double / 1_000_000

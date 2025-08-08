@@ -53,7 +53,7 @@ private fun setReserve(idleLoad: Double, batteryCapacity: Double, minReserve: In
       return@runBlocking
     }
     launch {
-      Enphase(homeDir.resolve(".enphase-cache"), logger).use { enphase ->
+      Enphase(logger).use { enphase ->
         val properties = Properties()
         propertiesPath.inputStream().use {
           properties.load(it)

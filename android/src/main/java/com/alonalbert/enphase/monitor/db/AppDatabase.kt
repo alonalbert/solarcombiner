@@ -11,6 +11,7 @@ import androidx.room.RoomDatabase
     ReserveConfig::class,
     Day::class,
     DayValues::class,
+    DayExportValues::class,
   ],
   version = 1,
   exportSchema = true,

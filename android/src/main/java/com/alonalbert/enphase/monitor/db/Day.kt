@@ -6,7 +6,6 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-  tableName = "Day",
   indices = [Index(value = ["date"], unique = true)]
 )
 data class Day(

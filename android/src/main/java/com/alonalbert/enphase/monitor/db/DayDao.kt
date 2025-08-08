@@ -8,8 +8,7 @@ import androidx.room.Transaction
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.enphase.model.Energy
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import java.time.LocalDate
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField.DAY_OF_MONTH
@@ -31,14 +30,14 @@ interface DayDao {
   @Insert(onConflict = OnConflictStrategy.IGNORE)
   suspend fun insertDay(day: Day): Long
 
-  @Insert
-  suspend fun insertDayValue(dayValues: DayValues)
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertDayValues(values: List<DayValues>)
 
   @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertDayValues(dayValues: List<DayValues>)
+  suspend fun insertDayExportValues(values: List<DayExportValues>)
 
   @Transaction
-  suspend fun updateDay(
+  suspend fun updateValues(
     date: LocalDate,
     production: List<Double>,
     consumption: List<Double>,
@@ -72,6 +71,23 @@ interface DayDao {
     insertDayValues(values)
   }
 
+  @Transaction
+  suspend fun updateExportValues(
+    date: LocalDate,
+    production: List<Double>,
+  ) {
+    val dayId = getOrInsertDay(date.format(FORMATTER))
+    assert(production.size == 96)
+    val values = (0..95).map {
+      DayExportValues(
+        dayId = dayId,
+        index = it,
+        production = production[it],
+      )
+    }
+    insertDayExportValues(values)
+  }
+
   private suspend fun getOrInsertDay(date: String): Long {
     val id = insertDay(Day(date = date))
     if (id > 0) {
@@ -88,35 +104,25 @@ interface DayDao {
   @Query("SELECT * FROM Day WHERE date = :date")
   fun getDayWithValuesFlow(date: String): Flow<DayWithValues?>
 
-  suspend fun getDailyEnergy(date: String): DailyEnergy? {
-    val values = getDayWithValues(date) ?: return null
-    val energies = values.values.map {
-      Energy(
-        exportProduced = 0.0,
-        it.production,
-        it.consumption,
-        it.charge,
-        it.discharge,
-        it.export,
-        it.import,
-        it.battery,
-      )
-    }
-    return DailyEnergy(LocalDate.parse(date), energies)
-  }
+  @Transaction
+  @Query("SELECT * FROM Day WHERE date = :date")
+  fun getDayWithExportValuesFlow(date: String): Flow<DayWithExportValues?>
+
 
   fun getDailyEnergyFlow(date: LocalDate): Flow<DailyEnergy> {
-    return getDayWithValuesFlow(date.format(FORMATTER)).filterNotNull().map { values ->
-      val energies = values.values.map {
+    val valuesFlow = getDayWithValuesFlow(date.format(FORMATTER))
+    val exportValuesFlow = getDayWithExportValuesFlow(date.format(FORMATTER))
+    return valuesFlow.combine(exportValuesFlow) { values, exportValues ->
+      val energies = values.valuesOrEmpty().zip(exportValues.valuesOrEmpty()) { values, exportValues ->
         Energy(
-          exportProduced = 0.0,
-          it.production,
-          it.consumption,
-          it.charge,
-          it.discharge,
-          it.export,
-          it.import,
-          it.battery,
+          exportValues.production,
+          values.production,
+          values.consumption,
+          values.charge,
+          values.discharge,
+          values.export,
+          values.import,
+          values.battery,
         )
       }
       DailyEnergy(date, energies)
@@ -125,4 +131,18 @@ interface DayDao {
 
   @Query("SELECT id FROM Day WHERE date = :date")
   suspend fun getDayId(date: String): Long?
+}
+
+private fun DayWithValues?.valuesOrEmpty(): List<DayValues> {
+  return when {
+    this == null || values.isEmpty() -> List(96) { DayValues(0, 0, it, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0) }
+    else -> values
+  }
+}
+
+private fun DayWithExportValues?.valuesOrEmpty(): List<DayExportValues> {
+  return when {
+    this == null || values.isEmpty() -> List(96) { DayExportValues(0, 0, it, 0.0) }
+    else -> values
+  }
 }

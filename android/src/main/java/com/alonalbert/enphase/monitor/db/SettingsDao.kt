@@ -11,9 +11,9 @@ interface SettingsDao {
   @Insert(onConflict = REPLACE)
   suspend fun set(settings: Settings)
 
-  @Query("SELECT * FROM settings WHERE id = 1")
+  @Query("SELECT * FROM Settings WHERE id = 1")
   suspend fun getSettings(): Settings?
 
-  @Query("SELECT * FROM settings WHERE id = 1")
+  @Query("SELECT * FROM Settings WHERE id = 1")
   fun getSettingsFlow(): Flow<Settings?>
 }

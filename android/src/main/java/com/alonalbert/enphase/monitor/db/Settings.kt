@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.alonalbert.enphase.monitor.enphase.model.GatewayConfig
 
-@Entity(tableName = "settings")
+@Entity
 data class Settings(
   @PrimaryKey
   val id: Int = 1,

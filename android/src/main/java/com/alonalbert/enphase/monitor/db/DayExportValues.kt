@@ -17,7 +17,7 @@ import androidx.room.PrimaryKey
   ],
   indices = [Index(value = ["day_id", "index"], unique = true)]
 )
-data class DayValues(
+data class DayExportValues(
   @PrimaryKey(autoGenerate = true)
   @ColumnInfo(name = "id")
   val id: Long = 0,
@@ -28,10 +28,4 @@ data class DayValues(
   val index: Int,
 
   val production: Double,
-  val consumption: Double,
-  val charge: Double,
-  val discharge: Double,
-  val import: Double,
-  val export: Double,
-  val battery: Int?,
 )

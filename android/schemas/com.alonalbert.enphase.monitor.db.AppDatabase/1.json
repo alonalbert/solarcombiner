@@ -2,10 +2,10 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "665f53bedc5a371c3b1db751c2aaa40e",
+    "identityHash": "6181773baedb1ed5c129c95b1818a606",
     "entities": [
       {
-        "tableName": "settings",
+        "tableName": "Settings",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `email` TEXT NOT NULL, `password` TEXT NOT NULL, `mainSiteId` TEXT NOT NULL, `mainSerialNumber` TEXT NOT NULL, `mainHost` TEXT NOT NULL, `mainPort` INTEGER NOT NULL, `exportSiteId` TEXT NOT NULL, `exportSerialNumber` TEXT NOT NULL, `exportHost` TEXT NOT NULL, `exportPort` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
@@ -83,7 +83,7 @@
         }
       },
       {
-        "tableName": "reserve_config",
+        "tableName": "ReserveConfig",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `idleLoad` REAL NOT NULL, `minReserve` INTEGER NOT NULL, `chargeStart` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
@@ -248,11 +248,72 @@
             ]
           }
         ]
+      },
+      {
+        "tableName": "DayExportValues",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `day_id` INTEGER NOT NULL, `index` INTEGER NOT NULL, `production` REAL NOT NULL, FOREIGN KEY(`day_id`) REFERENCES `Day`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dayId",
+            "columnName": "day_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "index",
+            "columnName": "index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "production",
+            "columnName": "production",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_DayExportValues_day_id_index",
+            "unique": true,
+            "columnNames": [
+              "day_id",
+              "index"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_DayExportValues_day_id_index` ON `${TABLE_NAME}` (`day_id`, `index`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Day",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "day_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '665f53bedc5a371c3b1db751c2aaa40e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6181773baedb1ed5c129c95b1818a606')"
     ]
   }
 }

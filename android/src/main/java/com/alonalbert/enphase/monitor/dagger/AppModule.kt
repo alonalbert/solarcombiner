@@ -22,10 +22,9 @@ object AppModule {
 
   @Provides
   @Singleton
-  fun providesEnphase(application: TheApplication): Deferred<Enphase> {
+  fun providesEnphase(): Deferred<Enphase> {
     return MainScope().async {
       Enphase(
-        application.cacheDir.toPath(),
         logger = TimberLogger(),
       )
     }

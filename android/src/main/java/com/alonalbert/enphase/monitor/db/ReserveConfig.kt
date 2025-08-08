@@ -3,7 +3,7 @@ package com.alonalbert.enphase.monitor.db
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "reserve_config")
+@Entity
 data class ReserveConfig(
   @PrimaryKey
   val id: Int = 1,
