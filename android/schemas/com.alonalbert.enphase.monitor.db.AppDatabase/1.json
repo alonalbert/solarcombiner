@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "d9bc4e0c745d0143bfab37dc5be18526",
+    "identityHash": "a7ae2bfa12391916deae5e9a766b9989",
     "entities": [
       {
         "tableName": "settings",
@@ -81,11 +81,178 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "reserve_config",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `idleLoad` REAL NOT NULL, `minReserve` INTEGER NOT NULL, `chargeStart` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idleLoad",
+            "columnName": "idleLoad",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minReserve",
+            "columnName": "minReserve",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chargeStart",
+            "columnName": "chargeStart",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "Day",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Day_date",
+            "unique": true,
+            "columnNames": [
+              "date"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Day_date` ON `${TABLE_NAME}` (`date`)"
+          }
+        ]
+      },
+      {
+        "tableName": "DayValues",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `day_id` INTEGER NOT NULL, `index` INTEGER NOT NULL, `produced` REAL NOT NULL, `consumed` REAL NOT NULL, `charged` REAL NOT NULL, `discharged` REAL NOT NULL, `imported` REAL NOT NULL, `exported` REAL NOT NULL, `battery` INTEGER, FOREIGN KEY(`day_id`) REFERENCES `Day`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dayId",
+            "columnName": "day_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "index",
+            "columnName": "index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "produced",
+            "columnName": "produced",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "consumed",
+            "columnName": "consumed",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "charged",
+            "columnName": "charged",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "discharged",
+            "columnName": "discharged",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "imported",
+            "columnName": "imported",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "exported",
+            "columnName": "exported",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "battery",
+            "columnName": "battery",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_DayValues_day_id_index",
+            "unique": true,
+            "columnNames": [
+              "day_id",
+              "index"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_DayValues_day_id_index` ON `${TABLE_NAME}` (`day_id`, `index`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Day",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "day_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd9bc4e0c745d0143bfab37dc5be18526')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a7ae2bfa12391916deae5e9a766b9989')"
     ]
   }
 }
