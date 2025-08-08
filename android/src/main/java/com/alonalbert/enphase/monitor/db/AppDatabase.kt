@@ -12,6 +12,7 @@ import androidx.room.RoomDatabase
     Day::class,
     DayValues::class,
     DayExportValues::class,
+    BatteryStatus::class,
   ],
   version = 1,
   exportSchema = true,
@@ -20,6 +21,7 @@ abstract class AppDatabase : RoomDatabase() {
   abstract fun settingsDao(): SettingsDao
   abstract fun reserveConfigDao(): ReserveConfigDao
   abstract fun dayDao(): DayDao
+  abstract fun batteryStatusDao(): BatteryStatusDao
 
   companion object {
     fun getDatabase(context: Context, filename: String): AppDatabase {

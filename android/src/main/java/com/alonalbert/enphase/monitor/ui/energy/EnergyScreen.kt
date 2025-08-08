@@ -58,7 +58,7 @@ fun EnergyScreen(
   val lifecycleOwner = LocalLifecycleOwner.current
 
   LaunchedEffect(lifecycleOwner, viewModel) {
-    viewModel.setDay(LocalDate.now(), refresh = false)
+    viewModel.setCurrentDay(LocalDate.now())
     lifecycleOwner.lifecycle.repeatOnLifecycle(STARTED) {
       while (true) {
         viewModel.refreshData()
@@ -76,7 +76,7 @@ fun EnergyScreen(
     batteryState = batteryState,
     snackbarMessage = snackBarMessage,
     onDismissSnackbar = { viewModel.dismissSnackbarMessage() },
-    onDayChanged = { date -> viewModel.setDay(date) },
+    onDayChanged = { date -> viewModel.setCurrentDay(date) },
     onSettings = onSettings,
     onLiveStatus = onLiveStatus,
     onReserve = onReserve,

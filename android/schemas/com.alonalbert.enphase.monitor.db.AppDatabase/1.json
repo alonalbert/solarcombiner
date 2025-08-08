@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "6181773baedb1ed5c129c95b1818a606",
+    "identityHash": "c422f5a6753c94ac5c28a818f675e3d2",
     "entities": [
       {
         "tableName": "Settings",
@@ -309,11 +309,41 @@
             ]
           }
         ]
+      },
+      {
+        "tableName": "BatteryStatus",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `battery` INTEGER NOT NULL, `reserve` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "battery",
+            "columnName": "battery",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reserve",
+            "columnName": "reserve",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6181773baedb1ed5c129c95b1818a606')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c422f5a6753c94ac5c28a818f675e3d2')"
     ]
   }
 }

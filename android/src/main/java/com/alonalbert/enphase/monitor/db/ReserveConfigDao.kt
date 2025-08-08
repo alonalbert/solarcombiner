@@ -11,9 +11,9 @@ interface ReserveConfigDao {
   @Insert(onConflict = REPLACE)
   suspend fun set(reserveConfig: ReserveConfig)
 
-  @Query("SELECT * FROM reserveconfig WHERE ROWID = 1")
+  @Query("SELECT * FROM ReserveConfig WHERE ROWID = 1")
   fun getReserveConfig(): ReserveConfig?
 
-  @Query("SELECT * FROM reserveconfig WHERE ROWID = 1")
+  @Query("SELECT * FROM ReserveConfig WHERE ROWID = 1")
   fun getReserveConfigFlow(): Flow<ReserveConfig?>
 }
