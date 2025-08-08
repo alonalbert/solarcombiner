@@ -3,6 +3,8 @@ package com.alonalbert.enphase.monitor.ui.energy
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alonalbert.enphase.monitor.db.AppDatabase
+import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.repository.Repository
@@ -16,6 +18,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -27,6 +30,7 @@ import javax.inject.Inject
 class EnergyViewModel @Inject constructor(
   @param:ApplicationContext private val context: Context,
   private val repository: Repository,
+  db: AppDatabase,
 ) : ViewModel() {
   private var job: Job? = null
 
@@ -35,6 +39,7 @@ class EnergyViewModel @Inject constructor(
   val dailyEnergyState: StateFlow<DailyEnergy> =
     dayFlow.flatMapLatest { repository.getDailyEnergyFlow(it) }.stateIn(viewModelScope, DailyEnergy.empty(dayFlow.value))
   val batteryStateState: StateFlow<BatteryState> = repository.getBatteryStateFlow().stateIn(viewModelScope, BatteryState(soc = 0, reserve = 0))
+  val reserveConfigState: StateFlow<ReserveConfig> = db.reserveConfigDao().getReserveConfigFlow().filterNotNull().stateIn(viewModelScope, ReserveConfig())
 
   private val isRefreshingStateFlow = MutableStateFlow(false)
   val isRefreshing = isRefreshingStateFlow.asStateFlow()

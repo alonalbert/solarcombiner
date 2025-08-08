@@ -40,7 +40,6 @@ import com.alonalbert.enphase.monitor.enphase.ReserveCalculator
 import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
 import com.alonalbert.enphase.monitor.ui.components.HeadingTextComponent
 import com.alonalbert.enphase.monitor.ui.components.PresetEditField
-import java.time.LocalTime
 
 @Composable
 fun ReserveScreen(
@@ -178,13 +177,13 @@ fun SelfConsumptionTime(
 
 @Composable
 private fun BatteryChart(reserveConfig: ReserveConfig, batteryCapacity: Double) {
-  val reserves = (0..95).map {
-    val time = LocalTime.of(
-      /* hour = */ it / 4,
-      /* minute = */ 15 * (it % 4),
-    )
-    ReserveCalculator.calculateReserve(time, reserveConfig.idleLoad, batteryCapacity, reserveConfig.minReserve, reserveConfig.chargeStart)
-  }
+
+  val reserves = ReserveCalculator.calculateDailyReserves(
+    reserveConfig.idleLoad,
+    batteryCapacity,
+    reserveConfig.minReserve,
+    reserveConfig.chargeStart
+  )
   BatteryLevelChart(reserves, modifier = Modifier.height(200.dp))
 }
 

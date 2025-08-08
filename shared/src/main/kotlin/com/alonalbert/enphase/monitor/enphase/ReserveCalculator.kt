@@ -17,7 +17,7 @@ object ReserveCalculator {
     minReserve: Int,
     chargeStart: Int,
     chargeEnd: Int = 12,
-    ): Int {
+  ): Int {
     if (time.hour in (chargeStart..chargeEnd)) {
       return minReserve
     }
@@ -29,5 +29,21 @@ object ReserveCalculator {
     val min = batteryCapacity * minReserve / 100
     val needed = min + idleLoad * (minutes.toDouble() / 60)
     return (needed / batteryCapacity * 100).roundToInt().coerceAtMost(100)
+  }
+
+  fun calculateDailyReserves(
+    idleLoad: Double,
+    batteryCapacity: Double,
+    minReserve: Int,
+    chargeStart: Int,
+    chargeEnd: Int = 12,
+  ): List<Int> {
+    return (0..95).map {
+      val time = LocalTime.of(
+        /* hour = */ it / 4,
+        /* minute = */ 15 * (it % 4),
+      )
+      calculateReserve(time, idleLoad, batteryCapacity, minReserve, chargeStart, chargeEnd)
+    }
   }
 }

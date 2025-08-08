@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.alonalbert.enphase.monitor.R
+import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
@@ -68,12 +69,14 @@ fun EnergyScreen(
   }
   val dailyEnergy by viewModel.dailyEnergyState.collectAsStateWithLifecycle()
   val batteryState by viewModel.batteryStateState.collectAsStateWithLifecycle()
+  val reserveConfig by viewModel.reserveConfigState.collectAsStateWithLifecycle()
   val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
   val snackBarMessage by viewModel.snackbarMessageState.collectAsStateWithLifecycle()
 
   EnergyScreen(
     dailyEnergy = dailyEnergy,
     batteryState = batteryState,
+    reserveConfig = reserveConfig,
     snackbarMessage = snackBarMessage,
     onDismissSnackbar = { viewModel.dismissSnackbarMessage() },
     onDayChanged = { date -> viewModel.setCurrentDay(date) },
@@ -90,6 +93,7 @@ fun EnergyScreen(
 fun EnergyScreen(
   dailyEnergy: DailyEnergy,
   batteryState: BatteryState,
+  reserveConfig: ReserveConfig,
   snackbarMessage: String?,
   onDismissSnackbar: () -> Unit,
   onDayChanged: (LocalDate) -> Unit,
@@ -133,7 +137,10 @@ fun EnergyScreen(
           DailyEnergyChart(dailyEnergy)
         }
         item {
-          BatteryLevelChart(dailyEnergy.energies.mapNotNull { it.battery })
+          BatteryLevelChart(
+            batteryLevels = dailyEnergy.energies.mapNotNull { it.battery },
+            reserveConfig = reserveConfig
+          )
         }
       }
     }
@@ -203,6 +210,7 @@ fun GreetingPreviewLight() {
     EnergyScreen(
       dailyEnergy = SampleData.sampleData,
       batteryState = BatteryState(null, null),
+      reserveConfig = ReserveConfig(),
       snackbarMessage = null,
       onDismissSnackbar = {},
       onDayChanged = {},
@@ -227,6 +235,7 @@ fun GreetingPreviewDark() {
     EnergyScreen(
       dailyEnergy = SampleData.sampleData,
       batteryState = BatteryState(null, null),
+      reserveConfig = ReserveConfig(),
       snackbarMessage = null,
       onDismissSnackbar = {},
       onDayChanged = {},

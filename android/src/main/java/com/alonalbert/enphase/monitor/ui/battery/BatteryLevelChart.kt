@@ -14,6 +14,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
+import com.alonalbert.enphase.monitor.db.ReserveConfig
+import com.alonalbert.enphase.monitor.enphase.ReserveCalculator
 import com.alonalbert.enphase.monitor.ui.energy.DecimalValueFormatter
 import com.alonalbert.enphase.monitor.ui.energy.SampleData
 import com.alonalbert.enphase.monitor.ui.energy.TimeOfDayAxisValueFormatter
@@ -33,16 +35,27 @@ import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineStroke
 import kotlinx.coroutines.runBlocking
 
 @Composable
 fun BatteryLevelChart(
   batteryLevels: List<Int>,
   modifier: Modifier = Modifier,
+  reserveConfig: ReserveConfig? = null,
 ) {
+  val reserves = when (reserveConfig == null) {
+    true -> List(96) { 0 }
+    false -> ReserveCalculator.calculateDailyReserves(
+      reserveConfig.idleLoad,
+      20.16,
+      reserveConfig.minReserve,
+      reserveConfig.chargeStart
+    )
+  }
   val modelProducer = remember { CartesianChartModelProducer() }
   LaunchedEffect(batteryLevels) {
-    modelProducer.runTransaction(batteryLevels)
+    modelProducer.runTransaction(batteryLevels, reserves)
   }
   BatteryLevelChart(modelProducer, modifier)
 }
@@ -62,6 +75,12 @@ private fun BatteryLevelChart(
               fill = LineCartesianLayer.LineFill.single(fill),
               areaFill =
                 LineCartesianLayer.AreaFill.single(fill)
+            ),
+            LineCartesianLayer.Line(
+              LineCartesianLayer.LineFill.single(fill(
+                colorResource(R.color.battery_reserve),
+                )),
+              LineStroke.Continuous(0.5f)
             )
           ),
           rangeProvider = remember {
@@ -85,12 +104,14 @@ private fun BatteryLevelChart(
             label = rememberAxisLabelComponent(textSize = 10.sp),
             valueFormatter = TimeOfDayAxisValueFormatter,
             guideline = null,
-            itemPlacer = remember { HorizontalAxis.ItemPlacer.aligned(
-              spacing = { 12 },
-              offset = { 0 },
-              shiftExtremeLines = false,
-              addExtremeLabelPadding = true
-            ) },
+            itemPlacer = remember {
+              HorizontalAxis.ItemPlacer.aligned(
+                spacing = { 12 },
+                offset = { 0 },
+                shiftExtremeLines = false,
+                addExtremeLabelPadding = true
+              )
+            },
           ),
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),
@@ -100,9 +121,15 @@ private fun BatteryLevelChart(
   )
 }
 
-private suspend fun CartesianChartModelProducer.runTransaction(batteryLevels: List<Int>) {
+private suspend fun CartesianChartModelProducer.runTransaction(
+  batteryLevels: List<Int>,
+  reserves: List<Int>,
+) {
   runTransaction {
-    lineSeries { series(batteryLevels) }
+    lineSeries {
+      series(batteryLevels)
+      series(reserves)
+    }
   }
 }
 
@@ -116,7 +143,10 @@ private fun Preview() {
   ) {
     val modelProducer = CartesianChartModelProducer()
     runBlocking {
-      modelProducer.runTransaction(SampleData.sampleData.energies.mapNotNull { it.battery }.subList(0, 50))
+      modelProducer.runTransaction(
+        SampleData.sampleData.energies.mapNotNull { it.battery }.subList(0, 50),
+        ReserveCalculator.calculateDailyReserves(0.8, 20.16, 20, 9)
+      )
     }
     BatteryLevelChart(modelProducer)
   }
