@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "a7ae2bfa12391916deae5e9a766b9989",
+    "identityHash": "665f53bedc5a371c3b1db751c2aaa40e",
     "entities": [
       {
         "tableName": "settings",
@@ -155,7 +155,7 @@
       },
       {
         "tableName": "DayValues",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `day_id` INTEGER NOT NULL, `index` INTEGER NOT NULL, `produced` REAL NOT NULL, `consumed` REAL NOT NULL, `charged` REAL NOT NULL, `discharged` REAL NOT NULL, `imported` REAL NOT NULL, `exported` REAL NOT NULL, `battery` INTEGER, FOREIGN KEY(`day_id`) REFERENCES `Day`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `day_id` INTEGER NOT NULL, `index` INTEGER NOT NULL, `production` REAL NOT NULL, `consumption` REAL NOT NULL, `charge` REAL NOT NULL, `discharge` REAL NOT NULL, `import` REAL NOT NULL, `export` REAL NOT NULL, `battery` INTEGER, FOREIGN KEY(`day_id`) REFERENCES `Day`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -176,38 +176,38 @@
             "notNull": true
           },
           {
-            "fieldPath": "produced",
-            "columnName": "produced",
+            "fieldPath": "production",
+            "columnName": "production",
             "affinity": "REAL",
             "notNull": true
           },
           {
-            "fieldPath": "consumed",
-            "columnName": "consumed",
+            "fieldPath": "consumption",
+            "columnName": "consumption",
             "affinity": "REAL",
             "notNull": true
           },
           {
-            "fieldPath": "charged",
-            "columnName": "charged",
+            "fieldPath": "charge",
+            "columnName": "charge",
             "affinity": "REAL",
             "notNull": true
           },
           {
-            "fieldPath": "discharged",
-            "columnName": "discharged",
+            "fieldPath": "discharge",
+            "columnName": "discharge",
             "affinity": "REAL",
             "notNull": true
           },
           {
-            "fieldPath": "imported",
-            "columnName": "imported",
+            "fieldPath": "import",
+            "columnName": "import",
             "affinity": "REAL",
             "notNull": true
           },
           {
-            "fieldPath": "exported",
-            "columnName": "exported",
+            "fieldPath": "export",
+            "columnName": "export",
             "affinity": "REAL",
             "notNull": true
           },
@@ -252,7 +252,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a7ae2bfa12391916deae5e9a766b9989')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '665f53bedc5a371c3b1db751c2aaa40e')"
     ]
   }
 }

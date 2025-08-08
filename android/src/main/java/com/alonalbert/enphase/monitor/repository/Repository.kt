@@ -3,7 +3,6 @@ package com.alonalbert.enphase.monitor.repository
 import android.content.Context
 import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.enphase.Enphase
-import com.alonalbert.enphase.monitor.enphase.Enphase.CacheMode.NO_CACHE
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.coroutineScope
@@ -27,24 +26,17 @@ class Repository @Inject constructor(
     enphase.ensureLogin(settings.email, settings.password)
     coroutineScope {
       launch {
-        val energies = enphase.getDailyEnergy(settings.mainSiteId, settings.exportSiteId, day, NO_CACHE)?.energies ?: return@launch
-        val produced = energies.map { it.mainProduced }
-        val consumed = energies.map { it.consumed }
-        val charged = energies.map { it.charged }
-        val discharged = energies.map { it.discharged }
-        val imported = energies.map { it.imported }
-        val exported = energies.map { it.mainExported }
-        val battery = energies.map { it.battery }
+        val mainStats = enphase.getMainStats(settings.mainSiteId, day)
         db.dayDao().updateDay(
           day,
-          produced,
-          consumed,
-          charged,
-          discharged,
-          imported,
-          exported,
-          battery,
-          )
+          mainStats.production,
+          mainStats.consumption,
+          mainStats.charge,
+          mainStats.discharge,
+          mainStats.import,
+          mainStats.export,
+          mainStats.battery,
+        )
       }
     }
   }

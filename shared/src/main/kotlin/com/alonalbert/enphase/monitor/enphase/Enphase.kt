@@ -10,6 +10,7 @@ import com.alonalbert.enphase.monitor.enphase.model.GatewayConfig
 import com.alonalbert.enphase.monitor.enphase.model.GatewayLiveStatus
 import com.alonalbert.enphase.monitor.enphase.model.GetTokenRequest
 import com.alonalbert.enphase.monitor.enphase.model.LiveStatus
+import com.alonalbert.enphase.monitor.enphase.model.MainStats
 import com.alonalbert.enphase.monitor.enphase.model.SetProfileRequest
 import com.alonalbert.enphase.monitor.enphase.util.DefaultLogger
 import com.alonalbert.enphase.monitor.enphase.util.toText
@@ -118,12 +119,29 @@ class Enphase(
     return BatteryState(soc, reserve)
   }
 
+  suspend fun getMainStats(mainSiteId: String, date: LocalDate): MainStats {
+    val mainStats = loadStats(mainSiteId, date, NO_CACHE)
+    val gridBattery = mainStats.getDoubles("grid_battery")
+    val gridHome = mainStats.getDoubles("grid_home")
+    val battery = mainStats?.getAsJsonArray("soc")?.map { if (it is JsonNull) null else it.asInt } ?: List(96) { 0 }
+
+    return MainStats(
+      mainStats.getDoubles("production"),
+      mainStats.getDoubles("consumption").map { it.coerceAtLeast(0.0) },
+      mainStats.getDoubles("charge"),
+      mainStats.getDoubles("discharge"),
+      gridHome.zip(gridBattery) { gridHome, gridBattery -> gridHome + gridBattery },
+      mainStats.getDoubles("solar_grid"),
+      battery
+    )
+  }
+
   suspend fun getDailyEnergy(mainSiteId: String, exportSiteId: String?, date: LocalDate, cacheMode: CacheMode = CACHE): DailyEnergy? {
     return withContext(Dispatchers.Unconfined) {
-      val mainStats = loadDailyEnergy(mainSiteId, date, cacheMode)
+      val mainStats = loadStats(mainSiteId, date, cacheMode)
       val exportStats = when (exportSiteId) {
         null -> null
-        else -> loadDailyEnergy(exportSiteId, date, cacheMode)
+        else -> loadStats(exportSiteId, date, cacheMode)
       }
       if (mainStats == null && exportStats == null) {
         if (cacheMode == CACHE_ONLY) {
@@ -268,7 +286,7 @@ class Enphase(
     client.get("$LIVE_STREAM_URL?serial_num=$serialNum").bodyAsText()
   }
 
-  private suspend fun loadDailyEnergy(siteId: String, date: LocalDate, cacheMode: CacheMode): GsonObject? {
+  private suspend fun loadStats(siteId: String, date: LocalDate, cacheMode: CacheMode): GsonObject? {
     return withContext(IO) {
       val url = DAILY_ENERGY_URL.format(siteId, date.year, date.month.value, date.dayOfMonth)
       try {

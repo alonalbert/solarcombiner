@@ -11,6 +11,7 @@ import com.alonalbert.enphase.monitor.enphase.EnphaseException
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.enphase.model.Energy
+import com.alonalbert.enphase.monitor.repository.Repository
 import com.alonalbert.enphase.monitor.util.checkNetwork
 import com.alonalbert.enphase.monitor.util.stateIn
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +33,7 @@ class EnergyViewModel @Inject constructor(
   @param:ApplicationContext private val context: Context,
   private val db: AppDatabase,
   private val enphaseAsync: Deferred<Enphase>,
+  private val repository: Repository,
 ) : ViewModel() {
   private var job: Job? = null
   private var day: LocalDate = LocalDate.now().atStartOfDay().toLocalDate()
@@ -73,6 +75,11 @@ class EnergyViewModel @Inject constructor(
     try {
       job?.cancel()
       job = viewModelScope.launch {
+        try {
+          repository.updateDailyEnergy(day)
+        } catch (e: Throwable) {
+          Timber.e(e, "repository.updateDailyEnergy error")
+        }
         withRefreshingState {
           try {
             val settings = settings()

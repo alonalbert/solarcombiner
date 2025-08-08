@@ -40,32 +40,32 @@ interface DayDao {
   @Transaction
   suspend fun updateDay(
     date: LocalDate,
-    produced: List<Double>,
-    consumed: List<Double>,
-    charged: List<Double>,
-    discharged: List<Double>,
-    imported: List<Double>,
-    exported: List<Double>,
+    production: List<Double>,
+    consumption: List<Double>,
+    charge: List<Double>,
+    discharge: List<Double>,
+    import: List<Double>,
+    export: List<Double>,
     battery: List<Int?>,
   ) {
     val dayId = getOrInsertDay(date.format(FORMATTER))
-    assert(produced.size == 96)
-    assert(consumed.size == 96)
-    assert(charged.size == 96)
-    assert(discharged.size == 96)
-    assert(imported.size == 96)
-    assert(exported.size == 96)
+    assert(production.size == 96)
+    assert(consumption.size == 96)
+    assert(charge.size == 96)
+    assert(discharge.size == 96)
+    assert(import.size == 96)
+    assert(export.size == 96)
     assert(battery.size == 96)
     val values = (0..95).map {
       DayValues(
         dayId = dayId,
         index = it,
-        produced = produced[it],
-        consumed = consumed[it],
-        charged = charged[it],
-        discharged = discharged[it],
-        imported = imported[it],
-        exported = exported[it],
+        production = production[it],
+        consumption = consumption[it],
+        charge = charge[it],
+        discharge = discharge[it],
+        import = import[it],
+        export = export[it],
         battery = battery[it],
       )
     }
@@ -93,12 +93,12 @@ interface DayDao {
     val energies = values.values.map {
       Energy(
         exportProduced = 0.0,
-        it.produced,
-        it.consumed,
-        it.charged,
-        it.discharged,
-        it.exported,
-        it.imported,
+        it.production,
+        it.consumption,
+        it.charge,
+        it.discharge,
+        it.export,
+        it.import,
         it.battery,
       )
     }
@@ -110,12 +110,12 @@ interface DayDao {
       val energies = values.values.map {
         Energy(
           exportProduced = 0.0,
-          it.produced,
-          it.consumed,
-          it.charged,
-          it.discharged,
-          it.exported,
-          it.imported,
+          it.production,
+          it.consumption,
+          it.charge,
+          it.discharge,
+          it.export,
+          it.import,
           it.battery,
         )
       }

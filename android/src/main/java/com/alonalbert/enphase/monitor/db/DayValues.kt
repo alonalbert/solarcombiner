@@ -28,11 +28,11 @@ data class DayValues(
 
   val index: Int,
 
-  val produced: Double,
-  val consumed: Double,
-  val charged: Double,
-  val discharged: Double,
-  val imported: Double,
-  val exported: Double,
+  val production: Double,
+  val consumption: Double,
+  val charge: Double,
+  val discharge: Double,
+  val import: Double,
+  val export: Double,
   val battery: Int?,
 )
