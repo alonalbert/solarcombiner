@@ -18,7 +18,7 @@ class ReserveConfigViewModel @Inject constructor(
   @param:ApplicationContext private val context: Context,
   private val db: AppDatabase,
 ) : ViewModel() {
-  val reserveConfig = db.reserveConfigDao().getReserveConfigFlow().mapNotNull { it }.stateIn(viewModelScope, null)
+  val reserveConfig = db.reserveConfigDao().getReserveConfigFlow().mapNotNull { it }.stateIn(viewModelScope, ReserveConfig())
 
   fun update(reserveConfig: ReserveConfig) {
     viewModelScope.launch {
