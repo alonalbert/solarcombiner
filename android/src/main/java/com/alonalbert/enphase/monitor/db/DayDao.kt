@@ -7,8 +7,10 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.enphase.model.Energy
+import com.alonalbert.enphase.monitor.repository.DayTotals
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.transform
 import java.time.LocalDate
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField.DAY_OF_MONTH
@@ -68,6 +70,15 @@ interface DayDao {
         battery = battery[it],
       )
     }
+    updateTotals(
+      dayId,
+      production = production.sum(),
+      consumption = consumption.sum(),
+      charge = charge.sum(),
+      discharge = discharge.sum(),
+      import = import.sum(),
+      export = export.sum(),
+    )
     insertDayValues(values)
   }
 
@@ -85,8 +96,45 @@ interface DayDao {
         production = production[it],
       )
     }
+    updateExportTotals(dayId, production.sum())
     insertDayExportValues(values)
   }
+
+  @Query(
+    """
+    UPDATE Day
+    SET 
+      production = :production,
+      consumption = :consumption,
+      charge = :charge,
+      discharge = :discharge,
+      import = :import,
+      export = :export
+      WHERE id = :id
+  """
+  )
+  suspend fun updateTotals(
+    id: Long,
+    production: Double,
+    consumption: Double,
+    charge: Double,
+    discharge: Double,
+    import: Double,
+    export: Double,
+  )
+
+  @Query(
+    """
+    UPDATE Day
+    SET 
+      exportProduction = :production
+      WHERE id = :id
+  """
+  )
+  suspend fun updateExportTotals(
+    id: Long,
+    production: Double,
+  )
 
   private suspend fun getOrInsertDay(date: String): Long {
     val id = insertDay(Day(date = date))
@@ -108,20 +156,19 @@ interface DayDao {
   @Query("SELECT * FROM Day WHERE date = :date")
   fun getDayWithExportValuesFlow(date: String): Flow<DayWithExportValues?>
 
-
   fun getDailyEnergyFlow(date: LocalDate): Flow<DailyEnergy> {
     val valuesFlow = getDayWithValuesFlow(date.format(FORMATTER))
     val exportValuesFlow = getDayWithExportValuesFlow(date.format(FORMATTER))
     return valuesFlow.combine(exportValuesFlow) { values, exportValues ->
       val energies = values.valuesOrEmpty().zip(exportValues.valuesOrEmpty()) { values, exportValues ->
         Energy(
-          exportValues.production.kwh(),
-          values.production.kwh(),
-          values.consumption.kwh(),
-          values.charge.kwh(),
-          values.discharge.kwh(),
-          values.export.kwh(),
-          values.import.kwh(),
+          exportValues.production / 1000 * 4,
+          values.production / 1000 * 4,
+          values.consumption / 1000 * 4,
+          values.charge / 1000 * 4,
+          values.discharge / 1000 * 4,
+          values.export / 1000 * 4,
+          values.import / 1000 * 4,
           values.battery,
         )
       }
@@ -131,6 +178,33 @@ interface DayDao {
 
   @Query("SELECT id FROM Day WHERE date = :date")
   suspend fun getDayId(date: String): Long?
+
+  @Query(
+    """
+    SELECT * FROM Day 
+    WHERE date BETWEEN :start AND :end
+    ORDER BY date ASC
+    """
+  )
+  fun getTotals(start: String, end: String): Flow<List<Day>>
+
+  fun getTotals(start: LocalDate, end: LocalDate): Flow<List<DayTotals>> {
+    return getTotals(start.format(FORMATTER), end.format(FORMATTER))
+      .transform { days ->
+        days.map { day ->
+          DayTotals(
+            LocalDate.parse(day.date),
+            day.production / 1000,
+            day.consumption / 1000,
+            day.charge / 1000,
+            day.discharge / 1000,
+            day.import / 1000,
+            day.export / 1000,
+            day.exportProduction / 1000,
+          )
+        }
+      }
+  }
 }
 
 private fun DayWithValues?.valuesOrEmpty(): List<DayValues> {
@@ -146,5 +220,3 @@ private fun DayWithExportValues?.valuesOrEmpty(): List<DayExportValues> {
     else -> values
   }
 }
-
-private fun Double.kwh() = this / 1000 * 4
