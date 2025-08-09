@@ -115,13 +115,13 @@ interface DayDao {
     return valuesFlow.combine(exportValuesFlow) { values, exportValues ->
       val energies = values.valuesOrEmpty().zip(exportValues.valuesOrEmpty()) { values, exportValues ->
         Energy(
-          exportValues.production,
-          values.production,
-          values.consumption,
-          values.charge,
-          values.discharge,
-          values.export,
-          values.import,
+          exportValues.production.kwh(),
+          values.production.kwh(),
+          values.consumption.kwh(),
+          values.charge.kwh(),
+          values.discharge.kwh(),
+          values.export.kwh(),
+          values.import.kwh(),
           values.battery,
         )
       }
@@ -146,3 +146,5 @@ private fun DayWithExportValues?.valuesOrEmpty(): List<DayExportValues> {
     else -> values
   }
 }
+
+private fun Double.kwh() = this / 1000 * 4
