@@ -1,8 +1,11 @@
 package com.alonalbert.enphase.monitor.ui.energy
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Power
@@ -23,10 +26,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle.State.STARTED
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -38,6 +43,11 @@ import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.repository.ChartData
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.repository.MonthData
+import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
+import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
+import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
+import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
+import com.alonalbert.enphase.monitor.ui.datepicker.MonthPicker
 import com.alonalbert.enphase.monitor.ui.datepicker.Period
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 import kotlinx.coroutines.delay
@@ -111,10 +121,25 @@ fun EnergyScreen(
       isRefreshing = isRefreshing,
       onRefresh = onRefresh,
     ) {
-      val data = chartData
-      when (data) {
-        is DayData -> DayView(data, batteryState, onPeriodChanged, reserveConfig)
-        is MonthData -> MonthView(data, batteryState, onPeriodChanged)
+      LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
+        val data = chartData
+        item {
+          when (data) {
+            is DayData -> DayPicker(data.day, { onPeriodChanged(DayPeriod(it)) })
+            is MonthData -> MonthPicker(data.month, { onPeriodChanged(MonthPeriod(it)) })
+          }
+        }
+        item {
+          Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
+            BatteryBar(batteryState.soc ?: 0, 20.0, batteryState.reserve ?: 0)
+          }
+        }
+        item {
+          when (data) {
+            is DayData -> DayView(data, reserveConfig)
+            is MonthData -> MonthView(data)
+          }
+        }
       }
     }
 
