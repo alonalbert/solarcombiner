@@ -72,7 +72,7 @@ private fun ConsumedBox(
   val producedAngle = ((production / total) * 360).toFloat()
   val dischargedAngle = ((discharge / total) * 360).toFloat()
   val importedAngle = 360 - producedAngle - dischargedAngle
-  Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
+  Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
     with(LocalContext.current) {
       Canvas(modifier = Modifier.fillMaxSize()) {
         drawArc(colorOf(R.color.solar), -90f, producedAngle, useCenter = false, size = size, style = Stroke(6.dp.px))
