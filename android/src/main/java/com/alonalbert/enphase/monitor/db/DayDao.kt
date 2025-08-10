@@ -5,10 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
-import com.alonalbert.enphase.monitor.enphase.model.Energy
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import java.time.LocalDate
 
 @Dao
@@ -85,35 +82,11 @@ interface DayDao {
 
   @Transaction
   @Query("SELECT * FROM Day WHERE date = :date")
-  suspend fun getDayWithValues(date: LocalDate): DayWithValues?
-
-  @Transaction
-  @Query("SELECT * FROM Day WHERE date = :date")
   fun getDayWithValuesFlow(date: LocalDate): Flow<DayWithValues?>
 
   @Transaction
   @Query("SELECT * FROM Day WHERE date = :date")
   fun getDayWithExportValuesFlow(date: LocalDate): Flow<DayWithExportValues?>
-
-  fun getDailyEnergyFlow(date: LocalDate): Flow<DailyEnergy> {
-    val valuesFlow = getDayWithValuesFlow(date)
-    val exportValuesFlow = getDayWithExportValuesFlow(date)
-    return valuesFlow.combine(exportValuesFlow) { values, exportValues ->
-      val energies = values.valuesOrEmpty().zip(exportValues.valuesOrEmpty()) { values, exportValues ->
-        Energy(
-          exportValues.production / 1000 * 4,
-          values.production / 1000 * 4,
-          values.consumption / 1000 * 4,
-          values.charge / 1000 * 4,
-          values.discharge / 1000 * 4,
-          values.export / 1000 * 4,
-          values.import / 1000 * 4,
-          values.battery,
-        )
-      }
-      DailyEnergy(energies)
-    }
-  }
 
   @Query("SELECT id FROM Day WHERE date = :date")
   suspend fun getDayId(date: LocalDate): Long?
@@ -140,16 +113,3 @@ interface DayDao {
   fun getTotalsFlow(start: LocalDate, end: LocalDate): Flow<List<DayTotals>>
 }
 
-private fun DayWithValues?.valuesOrEmpty(): List<DayValues> {
-  return when {
-    this == null || values.isEmpty() -> List(96) { DayValues(0, 0, it, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0) }
-    else -> values
-  }
-}
-
-private fun DayWithExportValues?.valuesOrEmpty(): List<DayExportValues> {
-  return when {
-    this == null || values.isEmpty() -> List(96) { DayExportValues(0, 0, it, 0.0) }
-    else -> values
-  }
-}

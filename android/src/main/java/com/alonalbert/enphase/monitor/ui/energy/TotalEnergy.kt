@@ -128,15 +128,15 @@ private fun TotalEnergyPreview() {
     modifier = Modifier
       .padding(16.dp)
   ) {
-    val data = SampleData.sampleData
+    val data = SampleData.dayData
     TotalEnergy(
-      data.mainProduced,
-      data.exportProduced,
-      data.consumed,
-      data.charged,
-      data.discharged,
-      data.imported,
-      data.exported,
+      data.totalProductionMain,
+      data.totalProductionExport,
+      data.totalConsumption,
+      data.totalCharge,
+      data.totalDischarge,
+      data.totalImport,
+      data.totalExport,
       )
   }
 }

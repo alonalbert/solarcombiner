@@ -158,7 +158,7 @@ private fun Preview() {
     val modelProducer = CartesianChartModelProducer()
     runBlocking {
       modelProducer.runTransaction(
-        SampleData.sampleData.energies.mapNotNull { it.battery }.subList(0, 50),
+        SampleData.dayData.battery.filterNotNull().subList(0, 50),
         ReserveCalculator.calculateDailyReserves(0.8, 20.16, 20, 9)
       )
     }
