@@ -166,19 +166,19 @@ private fun DatePickerDialog(
 
 @Preview(name = "Today")
 @Composable
-fun DayPickerPreview_Today() {
+private fun DayPickerPreview_Today() {
   DayPicker(LocalDate.now(), {})
 }
 
 @Preview(name = "Yesterday")
 @Composable
-fun DayPickerPreview_Yesterday() {
+private fun DayPickerPreview_Yesterday() {
   DayPicker(LocalDate.now().minusDays(1), {})
 }
 
 @Preview(name = "First")
 @Composable
-fun DayPickerPreview_First() {
+private fun DayPickerPreview_First() {
   DayPicker(LocalDate.of(2022, 4, 8), {})
 }
 

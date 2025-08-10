@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -25,20 +26,26 @@ fun PeriodPicker(
   onPeriodChanged: (Period) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Row(
-    modifier = modifier.padding(4.dp),
-    horizontalArrangement = Arrangement.spacedBy(8.dp)
-  ) {
-    PeriodButton(
-      text = "Day",
-      isSelected = period is DayPeriod,
-      onClick = { onPeriodChanged(DayPeriod(LocalDate.now())) }
-    )
-    PeriodButton(
-      text = "Month",
-      isSelected = period is MonthPeriod,
-      onClick = { onPeriodChanged(MonthPeriod(YearMonth.now())) }
-    )
+  Column {
+    Row(
+      modifier = modifier.padding(4.dp),
+      horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+      PeriodButton(
+        text = "Day",
+        isSelected = period is DayPeriod,
+        onClick = { onPeriodChanged(DayPeriod(LocalDate.now())) }
+      )
+      PeriodButton(
+        text = "Month",
+        isSelected = period is MonthPeriod,
+        onClick = { onPeriodChanged(MonthPeriod(YearMonth.now())) }
+      )
+    }
+    when (period) {
+      is DayPeriod -> DayPicker(period.day, { onPeriodChanged(DayPeriod(it)) })
+      is MonthPeriod -> MonthPicker(period.month, { onPeriodChanged(MonthPeriod(it)) })
+    }
   }
 }
 
@@ -65,6 +72,12 @@ fun PeriodButton(
       color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
     )
   }
+}
+
+@Preview(name = "Today")
+@Composable
+private fun PeriodPickerPreview_Day() {
+  PeriodPicker(DayPeriod(LocalDate.now()), {})
 }
 
 @Preview(name = "Today")

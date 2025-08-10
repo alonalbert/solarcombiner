@@ -1,13 +1,14 @@
 package com.alonalbert.enphase.monitor.enphase.util
 
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.format.FormatStyle.MEDIUM
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
-val Double.kwh get() = "%.2f kWh".format(this)
+private val YEAR_MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMMM yyyy")
 val Double.kw get() = "%.2f kW".format(this)
 val Double.round1 get() = "%.1f".format(this)
 val Double.round2 get() = "%.2f".format(this)
@@ -37,6 +38,8 @@ infix operator fun LocalDate.rangeTo(other: LocalDate): Sequence<LocalDate> {
     }
   }
 }
+
+fun YearMonth.format(): String = format(YEAR_MONTH_FORMATTER)
 
 fun LocalDate.formatMedium(): String = format(DateTimeFormatter.ofLocalizedDate(MEDIUM))
 
