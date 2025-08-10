@@ -44,11 +44,8 @@ import com.alonalbert.enphase.monitor.repository.ChartData
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.repository.MonthData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
-import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
-import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
-import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
-import com.alonalbert.enphase.monitor.ui.datepicker.MonthPicker
 import com.alonalbert.enphase.monitor.ui.datepicker.Period
+import com.alonalbert.enphase.monitor.ui.datepicker.PeriodPicker
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 import kotlinx.coroutines.delay
 import java.time.YearMonth
@@ -124,10 +121,7 @@ fun EnergyScreen(
       LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
         val data = chartData
         item {
-          when (data) {
-            is DayData -> DayPicker(data.day, { onPeriodChanged(DayPeriod(it)) })
-            is MonthData -> MonthPicker(data.month, { onPeriodChanged(MonthPeriod(it)) })
-          }
+          PeriodPicker(data.period, onPeriodChanged)
         }
         item {
           Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {

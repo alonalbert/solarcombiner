@@ -1,9 +1,10 @@
 package com.alonalbert.enphase.monitor.repository
 
+import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
 import java.time.LocalDate
 
 class DayData(
-  val day: LocalDate,
+  day: LocalDate,
   val productionMain: List<Double>,
   val productionExport: List<Double>,
   val consumption: List<Double>,
@@ -12,7 +13,7 @@ class DayData(
   val import: List<Double>,
   val export: List<Double>,
   val battery: List<Int?>,
-) : ChartData() {
+) : ChartData(DayPeriod(day)) {
 
   val production = (0..95).map { (productionMain[it] + productionExport[it]) }
   val grid = (0..95).map { (import[it] - export[it] - productionExport[it]) }

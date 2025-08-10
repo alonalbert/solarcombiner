@@ -103,10 +103,11 @@ class Repository @Inject constructor(
     val end = month.atEndOfMonth()
 
     return db.dayDao().getTotalsFlow(start, end).map { days ->
-      val size = days.size
-      val emptyDays = month.lengthOfMonth() - size
-      val allDays = days + List(emptyDays) { DayTotals.empty(month.atDay(it + size + 1)) }
-      MonthData(YearMonth.now(), allDays)
+      val dayMap = days.associateBy { it.day.dayOfMonth }
+      val allDays = (1..month.lengthOfMonth()).map {
+        dayMap[it] ?: DayTotals.empty(month.atDay(it))
+      }
+      MonthData(month, allDays)
     }
   }
 }
