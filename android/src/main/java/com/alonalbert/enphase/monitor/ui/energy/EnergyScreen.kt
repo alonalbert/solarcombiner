@@ -131,7 +131,7 @@ fun EnergyScreen(
         item {
           Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
             TotalEnergy(
-              dailyEnergy.produced,
+              dailyEnergy.mainProduced,
               dailyEnergy.exportProduced,
               dailyEnergy.consumed,
               dailyEnergy.charged,
