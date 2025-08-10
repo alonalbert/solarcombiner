@@ -9,8 +9,9 @@ import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.repository.ChartData
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.repository.Repository
-import com.alonalbert.enphase.monitor.ui.energy.Period.DayPeriod
-import com.alonalbert.enphase.monitor.ui.energy.Period.MonthPeriod
+import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
+import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
+import com.alonalbert.enphase.monitor.ui.datepicker.Period
 import com.alonalbert.enphase.monitor.util.checkNetwork
 import com.alonalbert.enphase.monitor.util.stateIn
 import dagger.hilt.android.lifecycle.HiltViewModel

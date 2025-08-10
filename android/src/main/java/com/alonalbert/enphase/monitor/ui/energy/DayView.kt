@@ -16,8 +16,9 @@ import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
 import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
+import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
-import com.alonalbert.enphase.monitor.ui.energy.Period.DayPeriod
+import com.alonalbert.enphase.monitor.ui.datepicker.Period
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 
 @Composable

@@ -13,8 +13,9 @@ import androidx.compose.ui.unit.dp
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.repository.MonthData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
+import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.MonthPicker
-import com.alonalbert.enphase.monitor.ui.energy.Period.MonthPeriod
+import com.alonalbert.enphase.monitor.ui.datepicker.Period
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 import java.time.YearMonth
 
