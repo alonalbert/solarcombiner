@@ -14,13 +14,12 @@ import com.alonalbert.enphase.monitor.db.DayTotals
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
-import java.time.LocalDate
 
 @Composable
 fun MonthView(
   days: List<DayTotals>,
   batteryState: BatteryState,
-  onDayChanged: (LocalDate) -> Unit,
+  onPeriodChanged: (Period) -> Unit,
 
   ) {
   LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
@@ -63,7 +62,7 @@ private fun MonthViewPreview() {
     MonthView (
       days = SampleData.days,
       batteryState = BatteryState(null, null),
-      onDayChanged = {},
+      onPeriodChanged = {},
     )
   }
 }

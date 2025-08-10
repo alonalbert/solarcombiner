@@ -35,10 +35,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
-import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
+import com.alonalbert.enphase.monitor.repository.ChartData
+import com.alonalbert.enphase.monitor.repository.ChartData.DayData
+import com.alonalbert.enphase.monitor.repository.ChartData.MonthData
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 import kotlinx.coroutines.delay
-import java.time.LocalDate
 import kotlin.time.Duration.Companion.minutes
 
 @Composable
@@ -51,7 +52,7 @@ fun EnergyScreen(
   val lifecycleOwner = LocalLifecycleOwner.current
 
   LaunchedEffect(lifecycleOwner, viewModel) {
-    viewModel.setCurrentDay(LocalDate.now())
+    viewModel.setPeriod(Period.today())
     lifecycleOwner.lifecycle.repeatOnLifecycle(STARTED) {
       while (true) {
         viewModel.refreshData()
@@ -59,19 +60,19 @@ fun EnergyScreen(
       }
     }
   }
-  val dailyEnergy by viewModel.dailyEnergyState.collectAsStateWithLifecycle()
+  val chartData by viewModel.chartDataFlow.collectAsStateWithLifecycle()
   val batteryState by viewModel.batteryStateState.collectAsStateWithLifecycle()
   val reserveConfig by viewModel.reserveConfigState.collectAsStateWithLifecycle()
   val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
   val snackBarMessage by viewModel.snackbarMessageState.collectAsStateWithLifecycle()
 
   EnergyScreen(
-    dailyEnergy = dailyEnergy,
+    chartData = chartData,
     batteryState = batteryState,
     reserveConfig = reserveConfig,
     snackbarMessage = snackBarMessage,
     onDismissSnackbar = { viewModel.dismissSnackbarMessage() },
-    onDayChanged = { date -> viewModel.setCurrentDay(date) },
+    onPeriodChanged = { viewModel.setPeriod(it) },
     onSettings = onSettings,
     onLiveStatus = onLiveStatus,
     onReserve = onReserve,
@@ -83,12 +84,12 @@ fun EnergyScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EnergyScreen(
-  dailyEnergy: DailyEnergy,
+  chartData: ChartData,
   batteryState: BatteryState,
   reserveConfig: ReserveConfig,
   snackbarMessage: String?,
   onDismissSnackbar: () -> Unit,
-  onDayChanged: (LocalDate) -> Unit,
+  onPeriodChanged: (Period) -> Unit,
   onSettings: () -> Unit,
   onLiveStatus: () -> Unit,
   onReserve: () -> Unit,
@@ -108,12 +109,11 @@ fun EnergyScreen(
       isRefreshing = isRefreshing,
       onRefresh = onRefresh,
     ) {
-      DayView(
-        dailyEnergy = dailyEnergy,
-        batteryState = batteryState,
-        reserveConfig = reserveConfig,
-        onDayChanged = onDayChanged,
-      )
+      val data = chartData
+      when (data) {
+        is DayData -> DayView(data.dailyEnergy, batteryState, onPeriodChanged, reserveConfig)
+        is MonthData -> MonthView(data.days, batteryState, onPeriodChanged)
+      }
     }
 
     val message = snackbarMessage
@@ -179,12 +179,12 @@ private fun TopBar(
 fun GreetingPreviewLight() {
   SolarCombinerTheme {
     EnergyScreen(
-      dailyEnergy = SampleData.sampleData,
+      chartData = DayData(SampleData.sampleData),
       batteryState = BatteryState(null, null),
       reserveConfig = ReserveConfig(),
       snackbarMessage = null,
       onDismissSnackbar = {},
-      onDayChanged = {},
+      onPeriodChanged = {},
       onSettings = {},
       onReserve = {},
       onLiveStatus = {},
@@ -204,12 +204,12 @@ fun GreetingPreviewLight() {
 fun GreetingPreviewDark() {
   SolarCombinerTheme {
     EnergyScreen(
-      dailyEnergy = SampleData.sampleData,
+      chartData = MonthData(SampleData.days),
       batteryState = BatteryState(null, null),
       reserveConfig = ReserveConfig(),
       snackbarMessage = null,
       onDismissSnackbar = {},
-      onDayChanged = {},
+      onPeriodChanged = {},
       onSettings = {},
       onReserve = {},
       onLiveStatus = {},

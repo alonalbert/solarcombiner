@@ -5,14 +5,18 @@ import com.alonalbert.enphase.monitor.db.BatteryStatus
 import com.alonalbert.enphase.monitor.db.DayTotals
 import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
-import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
-import com.alonalbert.enphase.monitor.enphase.util.format
+import com.alonalbert.enphase.monitor.repository.ChartData.DayData
+import com.alonalbert.enphase.monitor.repository.ChartData.MonthData
+import com.alonalbert.enphase.monitor.ui.energy.Period
+import com.alonalbert.enphase.monitor.ui.energy.Period.DayPeriod
+import com.alonalbert.enphase.monitor.ui.energy.Period.MonthPeriod
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.YearMonth
 import javax.inject.Inject
 
 class Repository @Inject constructor(
@@ -20,10 +24,12 @@ class Repository @Inject constructor(
 ) {
   private val enphase: Enphase = Enphase()
 
-  fun getDailyEnergyFlow(day: LocalDate): Flow<DailyEnergy> = db.dayDao().getDailyEnergyFlow(day)
-
-  fun getTotalsFlow(start: LocalDate, end: LocalDate): Flow<List<DayTotals>> =
-    db.dayDao().getTotalsFlow(start.format(), end.format())
+  fun getChartDataFlow(period: Period): Flow<ChartData> {
+    return when (period) {
+      is DayPeriod -> getDayDataFlow(period.day)
+      is MonthPeriod -> getMonthDataFlow(period.month)
+    }
+  }
 
   fun getBatteryStateFlow(): Flow<BatteryState> =
     db.batteryStatusDao()
@@ -66,6 +72,21 @@ class Repository @Inject constructor(
           )
         )
       }
+    }
+  }
+
+  private fun getDayDataFlow(day: LocalDate): Flow<ChartData> {
+    return db.dayDao().getDailyEnergyFlow(day).map { DayData(it) }
+  }
+
+  private fun getMonthDataFlow(month: YearMonth): Flow<ChartData> {
+    val start = month.atDay(1)
+    val end = month.atEndOfMonth()
+
+    return db.dayDao().getTotalsFlow(start, end).map { days ->
+      val size = days.size
+      val emptyDays = month.lengthOfMonth() - size
+      MonthData(days + List(emptyDays) { DayTotals.empty(month.atDay(it + size + 1)) })
     }
   }
 }

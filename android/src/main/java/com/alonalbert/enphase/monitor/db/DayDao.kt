@@ -137,7 +137,7 @@ interface DayDao {
       ORDER BY d.date ASC 
     """
   )
-  fun getTotalsFlow(start: String, end: String): Flow<List<DayTotals>>
+  fun getTotalsFlow(start: LocalDate, end: LocalDate): Flow<List<DayTotals>>
 }
 
 private fun DayWithValues?.valuesOrEmpty(): List<DayValues> {
