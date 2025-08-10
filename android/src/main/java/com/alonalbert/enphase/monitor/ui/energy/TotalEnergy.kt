@@ -53,8 +53,8 @@ fun TotalEnergy(
       EnergyBox("Exported", R.drawable.grid, R.color.grid, export)
       val netImport = import - export
       when (netImport > 0) {
-        true -> EnergyBox("Net Imported", R.drawable.net_import, R.color.consumption, netImport)
-        false -> EnergyBox("Net Exported", R.drawable.net_export, R.color.solar, -netImport)
+        true -> EnergyBox("Net Imported", R.drawable.net_import, R.color.consumption, netImport, "")
+        false -> EnergyBox("Net Exported", R.drawable.net_export, R.color.solar, -netImport, "")
       }
       EnergyBox("Charged", R.drawable.battery, R.color.battery, charge)
     }
