@@ -56,15 +56,6 @@ interface DayDao {
         battery = battery[it],
       )
     }
-    updateTotals(
-      dayId,
-      production = production.sum(),
-      consumption = consumption.sum(),
-      charge = charge.sum(),
-      discharge = discharge.sum(),
-      import = import.sum(),
-      export = export.sum(),
-    )
     insertDayValues(values)
   }
 
@@ -82,45 +73,8 @@ interface DayDao {
         production = production[it],
       )
     }
-    updateExportTotals(dayId, production.sum())
     insertDayExportValues(values)
   }
-
-  @Query(
-    """
-    UPDATE Day
-    SET 
-      production = :production,
-      consumption = :consumption,
-      charge = :charge,
-      discharge = :discharge,
-      import = :import,
-      export = :export
-      WHERE id = :id
-  """
-  )
-  suspend fun updateTotals(
-    id: Long,
-    production: Double,
-    consumption: Double,
-    charge: Double,
-    discharge: Double,
-    import: Double,
-    export: Double,
-  )
-
-  @Query(
-    """
-    UPDATE Day
-    SET 
-      exportProduction = :production
-      WHERE id = :id
-  """
-  )
-  suspend fun updateExportTotals(
-    id: Long,
-    production: Double,
-  )
 
   private suspend fun getOrInsertDay(date: String): Long {
     val id = insertDay(Day(date = date))

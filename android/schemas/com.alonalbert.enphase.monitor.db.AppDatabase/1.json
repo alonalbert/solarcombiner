@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "dc6585236558370e3f66c5e6263c6e48",
+    "identityHash": "c422f5a6753c94ac5c28a818f675e3d2",
     "entities": [
       {
         "tableName": "Settings",
@@ -120,7 +120,7 @@
       },
       {
         "tableName": "Day",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` TEXT NOT NULL, `production` REAL NOT NULL, `consumption` REAL NOT NULL, `charge` REAL NOT NULL, `discharge` REAL NOT NULL, `import` REAL NOT NULL, `export` REAL NOT NULL, `exportProduction` REAL NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -132,48 +132,6 @@
             "fieldPath": "date",
             "columnName": "date",
             "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "production",
-            "columnName": "production",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
-            "fieldPath": "consumption",
-            "columnName": "consumption",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
-            "fieldPath": "charge",
-            "columnName": "charge",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
-            "fieldPath": "discharge",
-            "columnName": "discharge",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
-            "fieldPath": "import",
-            "columnName": "import",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
-            "fieldPath": "export",
-            "columnName": "export",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
-            "fieldPath": "exportProduction",
-            "columnName": "exportProduction",
-            "affinity": "REAL",
             "notNull": true
           }
         ],
@@ -385,7 +343,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dc6585236558370e3f66c5e6263c6e48')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c422f5a6753c94ac5c28a818f675e3d2')"
     ]
   }
 }
