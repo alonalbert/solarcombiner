@@ -7,13 +7,14 @@ class DailyEnergy(val date: LocalDate, val energies: List<Energy>) {
   val exportProduced = energies.sumOf { it.exportProduced } / 4
   val mainProduced = energies.sumOf { it.mainProduced } / 4
   val consumed = energies.sumOf { it.consumed } / 4
-  val imported = energies.sumOf { it.imported } / 4
   val mainExported = energies.sumOf { it.mainExported } / 4
   val charged = energies.sumOf { it.charged } / 4
   val discharged = energies.sumOf { it.discharged } / 4
   val produced get() = exportProduced + mainProduced
-  val exported get() = mainExported + exportProduced
   val netImported get() = imported - exported
+  private val grid =  energies.map { (it.imported - it.mainExported - it.exportProduced) / 4 }
+  val imported = grid.filter { it > 0 }.sum()
+  val exported = -grid.filter { it < 0 }.sum()
 
   override fun toString(): String {
     return buildString {
