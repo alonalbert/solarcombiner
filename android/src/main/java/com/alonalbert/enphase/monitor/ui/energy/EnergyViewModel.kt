@@ -7,7 +7,6 @@ import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
-import com.alonalbert.enphase.monitor.enphase.util.round2
 import com.alonalbert.enphase.monitor.repository.Repository
 import com.alonalbert.enphase.monitor.util.checkNetwork
 import com.alonalbert.enphase.monitor.util.stateIn
@@ -53,10 +52,8 @@ class EnergyViewModel @Inject constructor(
     viewModelScope.launch {
       repository.getTotalsFlow(LocalDate.of(2025, 8, 1), LocalDate.of(2025, 8, 31)).collect { totals ->
         totals.forEach {
-          println("${it.day}: Net export: ${(it.export - it.import).round2}")
+          println("$it,")
         }
-        val netExport = totals.sumOf { it.export - it.import }.round2
-        println("Month: $netExport")
       }
     }
   }

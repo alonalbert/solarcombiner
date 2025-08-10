@@ -1,10 +1,24 @@
 package com.alonalbert.enphase.monitor.ui.energy
 
+import com.alonalbert.enphase.monitor.db.DayTotals
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.enphase.model.Energy
 import java.time.LocalDate
 
 object SampleData {
+
+  val days = listOf(
+    DayTotals(day= LocalDate.parse("2025-08-01"), production=29.48, exportProduction=27.81, consumption=37.131, charge=17.976, discharge=14.922, import=8.294, export=25.402),
+    DayTotals(day=LocalDate.parse("2025-08-02"), production=26.116, exportProduction=28.827, consumption=30.209, charge=16.432, discharge=13.284, import=6.015, export=27.604),
+    DayTotals(day=LocalDate.parse("2025-08-03"), production=30.718, exportProduction=28.886, consumption=41.112, charge=17.967, discharge=14.903, import=10.603, export=26.03),
+    DayTotals(day=LocalDate.parse("2025-08-04"), production=27.545, exportProduction=28.343, consumption=38.967, charge=17.043, discharge=14.278, import=10.444, export=24.6),
+    DayTotals(day=LocalDate.parse("2025-08-05"), production=26.868, exportProduction=27.025, consumption=33.868, charge=17.993, discharge=14.909, import=4.467, export=21.411),
+    DayTotals(day=LocalDate.parse("2025-08-06"), production=25.495, exportProduction=27.827, consumption=29.397, charge=19.079, discharge=16.051, import=2.983, export=23.713),
+    DayTotals(day=LocalDate.parse("2025-08-07"), production=24.628, exportProduction=27.769, consumption=22.889, charge=16.941, discharge=11.082, import=2.794, export=26.44),
+    DayTotals(day=LocalDate.parse("2025-08-08"), production=33.328, exportProduction=28.084, consumption=54.049, charge=14.664, discharge=14.782, import=11.011, export=18.489),
+    DayTotals(day=LocalDate.parse("2025-08-09"), production=34.511, exportProduction=27.452, consumption=39.163, charge=18.53, discharge=13.105, import=4.822, export=22.194),
+  ) + List(31-9) {DayTotals(day=LocalDate.of(2025, 8, it + 10), production=0.0, exportProduction=0.0, consumption=0.0, charge=0.0, discharge=0.0, import=0.0, export=0.0) }
+
   val sampleData = DailyEnergy(
     LocalDate.now().atStartOfDay().toLocalDate(),
     energies = listOf(
