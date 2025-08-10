@@ -130,7 +130,7 @@ private fun TotalEnergyPreview() {
   ) {
     val data = SampleData.sampleData
     TotalEnergy(
-      data.produced,
+      data.mainProduced,
       data.exportProduced,
       data.consumed,
       data.charged,
