@@ -130,7 +130,15 @@ fun EnergyScreen(
         }
         item {
           Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
-            TotalEnergy(dailyEnergy)
+            TotalEnergy(
+              dailyEnergy.produced,
+              dailyEnergy.exportProduced,
+              dailyEnergy.consumed,
+              dailyEnergy.charged,
+              dailyEnergy.discharged,
+              dailyEnergy.imported,
+              dailyEnergy.exported,
+            )
           }
         }
         item {

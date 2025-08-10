@@ -26,41 +26,54 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
-import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.enphase.util.round1
 import com.alonalbert.enphase.monitor.ui.theme.colorOf
 import com.alonalbert.enphase.monitor.util.px
 import com.alonalbert.enphase.monitor.util.toDisplay
 
 @Composable
-fun TotalEnergy(dailyEnergy: DailyEnergy) {
+fun TotalEnergy(
+  production: Double,
+  productionExport: Double,
+  consumption: Double,
+  charge: Double,
+  discharge: Double,
+  import: Double,
+  export: Double,
+) {
   Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = CenterVertically) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-      EnergyBox("Imported", R.drawable.grid, R.color.grid, dailyEnergy.imported)
-      val breakdown = "${dailyEnergy.mainProduced.round1} + ${dailyEnergy.exportProduced.round1}"
-      EnergyBox("Produced", R.drawable.solar, R.color.solar, dailyEnergy.produced, breakdown)
-      EnergyBox("Discharged", R.drawable.battery, R.color.battery, dailyEnergy.discharged)
+      EnergyBox("Imported", R.drawable.grid, R.color.grid, import)
+      val breakdown = "${production.round1} + ${productionExport.round1}"
+      EnergyBox("Produced", R.drawable.solar, R.color.solar, production + productionExport, breakdown)
+      EnergyBox("Discharged", R.drawable.battery, R.color.battery, discharge)
     }
-    ConsumedBox(dailyEnergy)
+    ConsumedBox(consumption, production + productionExport, discharge, import)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-      EnergyBox("Exported", R.drawable.grid, R.color.grid, dailyEnergy.exported)
-      when (dailyEnergy.netImported > 0) {
-        true -> EnergyBox("Net Imported", R.drawable.net_import, R.color.consumption, dailyEnergy.netImported)
-        false -> EnergyBox("Net Exported", R.drawable.net_export, R.color.solar, -dailyEnergy.netImported)
+      EnergyBox("Exported", R.drawable.grid, R.color.grid, export)
+      val netImport = import - export
+      when (netImport > 0) {
+        true -> EnergyBox("Net Imported", R.drawable.net_import, R.color.consumption, netImport)
+        false -> EnergyBox("Net Exported", R.drawable.net_export, R.color.solar, -netImport)
       }
-      EnergyBox("Charged", R.drawable.battery, R.color.battery, dailyEnergy.charged)
+      EnergyBox("Charged", R.drawable.battery, R.color.battery, charge)
     }
   }
 }
 
 @Composable
-private fun ConsumedBox(dailyEnergy: DailyEnergy) {
-  val total = dailyEnergy.produced + dailyEnergy.imported + dailyEnergy.discharged
-  val producedAngle = ((dailyEnergy.produced / total) * 360).toFloat()
-  val dischargedAngle = ((dailyEnergy.discharged / total) * 360).toFloat()
+private fun ConsumedBox(
+  consumption: Double,
+  production: Double,
+  discharge: Double,
+  import: Double,
+) {
+  val total = production + import + discharge
+  val producedAngle = ((production / total) * 360).toFloat()
+  val dischargedAngle = ((discharge / total) * 360).toFloat()
   val importedAngle = 360 - producedAngle - dischargedAngle
   Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
-    with (LocalContext.current) {
+    with(LocalContext.current) {
       Canvas(modifier = Modifier.fillMaxSize()) {
         drawArc(colorOf(R.color.solar), -90f, producedAngle, useCenter = false, size = size, style = Stroke(6.dp.px))
         drawArc(colorOf(R.color.battery), -90 + producedAngle, dischargedAngle, useCenter = false, size = size, style = Stroke(6.dp.px))
@@ -72,7 +85,7 @@ private fun ConsumedBox(dailyEnergy: DailyEnergy) {
           contentDescription = null,
           modifier = Modifier.size(40.dp),
         )
-        Text(dailyEnergy.consumed.toDisplay("kWh", valueWeight = Bold), color = colorOf(R.color.consumption))
+        Text(consumption.toDisplay("kWh", valueWeight = Bold), color = colorOf(R.color.consumption))
       }
     }
   }
@@ -115,6 +128,15 @@ private fun TotalEnergyPreview() {
     modifier = Modifier
       .padding(16.dp)
   ) {
-    TotalEnergy(SampleData.sampleData)
+    val data = SampleData.sampleData
+    TotalEnergy(
+      data.produced,
+      data.exportProduced,
+      data.consumed,
+      data.charged,
+      data.discharged,
+      data.imported,
+      data.exported,
+      )
   }
 }
