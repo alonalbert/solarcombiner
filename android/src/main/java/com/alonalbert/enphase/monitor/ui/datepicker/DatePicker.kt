@@ -35,7 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
-import com.alonalbert.enphase.monitor.enphase.util.format
+import com.alonalbert.enphase.monitor.enphase.util.formatMedium
 import com.alonalbert.enphase.monitor.enphase.util.toEpochMillis
 import java.time.Instant
 import java.time.LocalDate
@@ -83,7 +83,7 @@ fun DayPicker(
         )
         Spacer(modifier = Modifier.width(8.dp)) // Spacing between icon and text
         Text(
-          text = day.format()
+          text = day.formatMedium()
         )
       }
     }

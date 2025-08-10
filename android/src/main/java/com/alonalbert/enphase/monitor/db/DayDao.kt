@@ -7,24 +7,10 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.enphase.model.Energy
-import com.alonalbert.enphase.monitor.repository.DayTotals
+import com.alonalbert.enphase.monitor.enphase.util.format
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.transform
 import java.time.LocalDate
-import java.time.format.DateTimeFormatterBuilder
-import java.time.temporal.ChronoField.DAY_OF_MONTH
-import java.time.temporal.ChronoField.MONTH_OF_YEAR
-import java.time.temporal.ChronoField.YEAR
-
-private val FORMATTER = DateTimeFormatterBuilder()
-  .parseCaseInsensitive()
-  .appendValue(YEAR)
-  .appendLiteral('-')
-  .appendValue(MONTH_OF_YEAR, 2)
-  .appendLiteral('-')
-  .appendValue(DAY_OF_MONTH, 2)
-  .toFormatter()
 
 @Dao
 interface DayDao {
@@ -49,7 +35,7 @@ interface DayDao {
     export: List<Double>,
     battery: List<Int?>,
   ) {
-    val dayId = getOrInsertDay(date.format(FORMATTER))
+    val dayId = getOrInsertDay(date.format())
     assert(production.size == 96)
     assert(consumption.size == 96)
     assert(charge.size == 96)
@@ -87,7 +73,7 @@ interface DayDao {
     date: LocalDate,
     production: List<Double>,
   ) {
-    val dayId = getOrInsertDay(date.format(FORMATTER))
+    val dayId = getOrInsertDay(date.format())
     assert(production.size == 96)
     val values = (0..95).map {
       DayExportValues(
@@ -157,8 +143,8 @@ interface DayDao {
   fun getDayWithExportValuesFlow(date: String): Flow<DayWithExportValues?>
 
   fun getDailyEnergyFlow(date: LocalDate): Flow<DailyEnergy> {
-    val valuesFlow = getDayWithValuesFlow(date.format(FORMATTER))
-    val exportValuesFlow = getDayWithExportValuesFlow(date.format(FORMATTER))
+    val valuesFlow = getDayWithValuesFlow(date.format())
+    val exportValuesFlow = getDayWithExportValuesFlow(date.format())
     return valuesFlow.combine(exportValuesFlow) { values, exportValues ->
       val energies = values.valuesOrEmpty().zip(exportValues.valuesOrEmpty()) { values, exportValues ->
         Energy(
@@ -181,30 +167,24 @@ interface DayDao {
 
   @Query(
     """
-    SELECT * FROM Day 
-    WHERE date BETWEEN :start AND :end
-    ORDER BY date ASC
+      SELECT 
+        d.date as day,
+        SUM(v.production) / 1000 as production,
+        SUM(e.production) / 1000 as exportProduction,
+        SUM(v.consumption) / 1000 as consumption,
+        SUM(v.charge) / 1000 as charge,
+        SUM(v.discharge) / 1000 as discharge,
+        SUM(MAX(v.import - v.export - e.production, 0))  / 1000 as import,
+        -SUM(MIN(v.import - v.export - e.production, 0))  / 1000 as export
+      FROM Day as d
+      JOIN DayValues as v ON d.id = v.day_id
+      JOIN DayExportValues as e ON d.id = e.day_id AND v.`index` = e.`index`
+      WHERE date BETWEEN :start  AND :end
+      GROUP BY d.date
+      ORDER BY d.date ASC 
     """
   )
-  fun getTotals(start: String, end: String): Flow<List<Day>>
-
-  fun getTotals(start: LocalDate, end: LocalDate): Flow<List<DayTotals>> {
-    return getTotals(start.format(FORMATTER), end.format(FORMATTER))
-      .transform { days ->
-        days.map { day ->
-          DayTotals(
-            LocalDate.parse(day.date),
-            day.production / 1000,
-            day.consumption / 1000,
-            day.charge / 1000,
-            day.discharge / 1000,
-            day.import / 1000,
-            day.export / 1000,
-            day.exportProduction / 1000,
-          )
-        }
-      }
-  }
+  fun getTotalsFlow(start: String, end: String): Flow<List<DayTotals>>
 }
 
 private fun DayWithValues?.valuesOrEmpty(): List<DayValues> {

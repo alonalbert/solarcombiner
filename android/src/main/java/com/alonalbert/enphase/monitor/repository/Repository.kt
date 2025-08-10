@@ -2,9 +2,11 @@ package com.alonalbert.enphase.monitor.repository
 
 import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.db.BatteryStatus
+import com.alonalbert.enphase.monitor.db.DayTotals
 import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
+import com.alonalbert.enphase.monitor.enphase.util.format
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
@@ -19,6 +21,9 @@ class Repository @Inject constructor(
   private val enphase: Enphase = Enphase()
 
   fun getDailyEnergyFlow(day: LocalDate): Flow<DailyEnergy> = db.dayDao().getDailyEnergyFlow(day)
+
+  fun getTotalsFlow(start: LocalDate, end: LocalDate): Flow<List<DayTotals>> =
+    db.dayDao().getTotalsFlow(start.format(), end.format())
 
   fun getBatteryStateFlow(): Flow<BatteryState> =
     db.batteryStatusDao()

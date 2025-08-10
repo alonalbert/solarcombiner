@@ -27,6 +27,7 @@ infix operator fun LocalDate.rangeUntil(other: LocalDate): Sequence<LocalDate> {
     }
   }
 }
+
 infix operator fun LocalDate.rangeTo(other: LocalDate): Sequence<LocalDate> {
   return sequence {
     var current = this@rangeTo
@@ -37,7 +38,9 @@ infix operator fun LocalDate.rangeTo(other: LocalDate): Sequence<LocalDate> {
   }
 }
 
-fun LocalDate.format(): String = format(DateTimeFormatter.ofLocalizedDate(MEDIUM))
+fun LocalDate.formatMedium(): String = format(DateTimeFormatter.ofLocalizedDate(MEDIUM))
+
+fun LocalDate.format(): String = format(ISO_LOCAL_DATE)
 
 fun Double.zerofy() = if (abs(this) < 0.01) 0.0 else this
 
