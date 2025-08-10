@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.time.LocalDate
 
 @Entity(
   indices = [Index(value = ["date"], unique = true)]
@@ -13,5 +14,5 @@ data class Day(
   @ColumnInfo(name = "id")
   val id: Long = 0,
 
-  val date: String,
+  val date: LocalDate,
 )

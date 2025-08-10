@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 
 @Database(
   entities = [
@@ -17,6 +18,7 @@ import androidx.room.RoomDatabase
   version = 1,
   exportSchema = true,
 )
+@TypeConverters(LocalDateConverter::class)
 abstract class AppDatabase : RoomDatabase() {
   abstract fun settingsDao(): SettingsDao
   abstract fun reserveConfigDao(): ReserveConfigDao
@@ -25,11 +27,8 @@ abstract class AppDatabase : RoomDatabase() {
 
   companion object {
     fun getDatabase(context: Context, filename: String): AppDatabase {
-      return Room.databaseBuilder(
-        context.applicationContext,
-        AppDatabase::class.java,
-        filename
-      )
+      return Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, filename)
+        .fallbackToDestructiveMigration(true)
         .build()
     }
   }

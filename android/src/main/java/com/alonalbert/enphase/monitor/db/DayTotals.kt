@@ -1,7 +1,9 @@
 package com.alonalbert.enphase.monitor.db
 
+import java.time.LocalDate
+
 data class DayTotals(
-  val day: String,
+  val day: LocalDate,
   val production: Double,
   val consumption: Double,
   val charge: Double,

@@ -7,7 +7,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.enphase.model.Energy
-import com.alonalbert.enphase.monitor.enphase.util.format
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import java.time.LocalDate
@@ -35,7 +34,7 @@ interface DayDao {
     export: List<Double>,
     battery: List<Int?>,
   ) {
-    val dayId = getOrInsertDay(date.format())
+    val dayId = getOrInsertDay(date)
     assert(production.size == 96)
     assert(consumption.size == 96)
     assert(charge.size == 96)
@@ -64,7 +63,7 @@ interface DayDao {
     date: LocalDate,
     production: List<Double>,
   ) {
-    val dayId = getOrInsertDay(date.format())
+    val dayId = getOrInsertDay(date)
     assert(production.size == 96)
     val values = (0..95).map {
       DayExportValues(
@@ -76,7 +75,7 @@ interface DayDao {
     insertDayExportValues(values)
   }
 
-  private suspend fun getOrInsertDay(date: String): Long {
+  private suspend fun getOrInsertDay(date: LocalDate): Long {
     val id = insertDay(Day(date = date))
     if (id > 0) {
       return id
@@ -86,19 +85,19 @@ interface DayDao {
 
   @Transaction
   @Query("SELECT * FROM Day WHERE date = :date")
-  suspend fun getDayWithValues(date: String): DayWithValues?
+  suspend fun getDayWithValues(date: LocalDate): DayWithValues?
 
   @Transaction
   @Query("SELECT * FROM Day WHERE date = :date")
-  fun getDayWithValuesFlow(date: String): Flow<DayWithValues?>
+  fun getDayWithValuesFlow(date: LocalDate): Flow<DayWithValues?>
 
   @Transaction
   @Query("SELECT * FROM Day WHERE date = :date")
-  fun getDayWithExportValuesFlow(date: String): Flow<DayWithExportValues?>
+  fun getDayWithExportValuesFlow(date: LocalDate): Flow<DayWithExportValues?>
 
   fun getDailyEnergyFlow(date: LocalDate): Flow<DailyEnergy> {
-    val valuesFlow = getDayWithValuesFlow(date.format())
-    val exportValuesFlow = getDayWithExportValuesFlow(date.format())
+    val valuesFlow = getDayWithValuesFlow(date)
+    val exportValuesFlow = getDayWithExportValuesFlow(date)
     return valuesFlow.combine(exportValuesFlow) { values, exportValues ->
       val energies = values.valuesOrEmpty().zip(exportValues.valuesOrEmpty()) { values, exportValues ->
         Energy(
@@ -117,7 +116,7 @@ interface DayDao {
   }
 
   @Query("SELECT id FROM Day WHERE date = :date")
-  suspend fun getDayId(date: String): Long?
+  suspend fun getDayId(date: LocalDate): Long?
 
   @Query(
     """
