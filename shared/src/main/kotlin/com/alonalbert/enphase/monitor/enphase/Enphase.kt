@@ -9,7 +9,6 @@ import com.alonalbert.enphase.monitor.enphase.model.LiveStatus
 import com.alonalbert.enphase.monitor.enphase.model.MainStats
 import com.alonalbert.enphase.monitor.enphase.model.SetProfileRequest
 import com.alonalbert.enphase.monitor.enphase.util.DefaultLogger
-import com.alonalbert.enphase.monitor.enphase.util.toText
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonNull
@@ -109,7 +108,7 @@ class Enphase(
     val stats = loadStats(mainSiteId, date)
     val gridBattery = stats.getDoubles("grid_battery")
     val gridHome = stats.getDoubles("grid_home")
-    val battery = stats?.getAsJsonArray("soc")?.map { if (it is JsonNull) null else it.asInt } ?: List(96) { 0 }
+    val battery = stats.getSoc()
 
     return MainStats(
       stats.getDoubles("production"),
@@ -236,14 +235,9 @@ class Enphase(
   private suspend fun loadStats(siteId: String, date: LocalDate): GsonObject? {
     return withContext(IO) {
       val url = DAILY_ENERGY_URL.format(siteId, date.year, date.month.value, date.dayOfMonth)
-      try {
-        val response = client.get(url)
-        val data = response.bodyAsPrettyJson()
-        gson.getObject(data).getStats()
-      } catch (e: IOException) {
-        logger.error("Failed to load data for ${date.toText()}", e)
-        null
-      }
+      val response = client.get(url)
+      val data = response.bodyAsPrettyJson()
+      gson.getObject(data).getStats()
     }
   }
 
@@ -304,6 +298,23 @@ private fun GsonObject?.getDoubles(key: String): List<Double> {
   }
   return when (result.size < 96) {
     true -> result + List(96 - result.size) { 0.0 }
+    false -> result
+  }
+}
+
+private fun GsonObject?.getSoc(): List<Int?> {
+  val values = this?.getAsJsonArray("soc")
+  if (values == null) {
+    return List(96) { 0 }
+  }
+  val result = values.map {
+    when (it is JsonNull) {
+      true -> null
+      false -> it.asInt
+    }
+  }
+  return when (result.size < 96) {
+    true -> result + List(96 - result.size) { null }
     false -> result
   }
 }
