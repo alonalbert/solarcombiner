@@ -3,6 +3,7 @@ package com.alonalbert.enphase.monitor.ui.energy
 import com.alonalbert.enphase.monitor.db.DayTotals
 import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.enphase.model.Energy
+import com.alonalbert.enphase.monitor.repository.DayData
 import java.time.LocalDate
 
 object SampleData {
@@ -983,5 +984,17 @@ object SampleData {
       ),
 
       )
+  )
+
+  val dayData = DayData(
+    LocalDate.now(),
+    productionMain = sampleData.energies.map { it.mainProduced / 4},
+    productionExport = sampleData.energies.map { it.exportProduced  / 4},
+    consumption = sampleData.energies.map { it.consumed  / 4},
+    charge = sampleData.energies.map { it.charged  / 4},
+    discharge = sampleData.energies.map { it.discharged  / 4},
+    import = sampleData.energies.map { it.imported  / 4},
+    export = sampleData.energies.map { it.exportProduced  / 4},
+    battery = sampleData.energies.map { it.battery },
   )
 }

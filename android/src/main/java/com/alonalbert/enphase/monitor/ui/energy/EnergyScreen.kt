@@ -36,11 +36,10 @@ import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.repository.ChartData
-import com.alonalbert.enphase.monitor.repository.ChartData.DayData
-import com.alonalbert.enphase.monitor.repository.ChartData.MonthData
+import com.alonalbert.enphase.monitor.repository.DayData
+import com.alonalbert.enphase.monitor.repository.MonthData
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 import kotlinx.coroutines.delay
-import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.time.Duration.Companion.minutes
 
@@ -113,8 +112,8 @@ fun EnergyScreen(
     ) {
       val data = chartData
       when (data) {
-        is DayData -> DayView(data.day, data.dailyEnergy, batteryState, onPeriodChanged, reserveConfig)
-        is MonthData -> MonthView(data.days, batteryState, onPeriodChanged)
+        is DayData -> DayView(data, batteryState, onPeriodChanged, reserveConfig)
+        is MonthData -> MonthView(data, batteryState, onPeriodChanged)
       }
     }
 
@@ -181,7 +180,7 @@ private fun TopBar(
 fun GreetingPreviewLight() {
   SolarCombinerTheme {
     EnergyScreen(
-      chartData = DayData(LocalDate.now(), SampleData.sampleData),
+      chartData = SampleData.dayData,
       batteryState = BatteryState(null, null),
       reserveConfig = ReserveConfig(),
       snackbarMessage = null,

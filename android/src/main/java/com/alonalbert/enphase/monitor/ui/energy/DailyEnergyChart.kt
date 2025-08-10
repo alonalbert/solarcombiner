@@ -15,7 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
-import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
+import com.alonalbert.enphase.monitor.repository.DayData
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
@@ -41,12 +41,12 @@ import kotlinx.coroutines.runBlocking
 
 @Composable
 fun DailyEnergyChart(
-  dailyEnergy: DailyEnergy,
+  dayData: DayData,
   modifier: Modifier = Modifier,
 ) {
   val modelProducer = remember { CartesianChartModelProducer() }
-  LaunchedEffect(dailyEnergy) {
-    modelProducer.runTransaction(dailyEnergy)
+  LaunchedEffect(dayData) {
+    modelProducer.runTransaction(dayData)
   }
   DailyEnergyChart(modelProducer, modifier)
 }
@@ -106,15 +106,15 @@ private fun DailyEnergyChart(
   )
 }
 
-private suspend fun CartesianChartModelProducer.runTransaction(dailyEnergy: DailyEnergy) {
+private suspend fun CartesianChartModelProducer.runTransaction(dayData: DayData) {
   runTransaction {
     columnSeries {
-      series(dailyEnergy.energies.map { it.mainProduced + it.exportProduced })
-      series(dailyEnergy.energies.map { -it.consumed })
-      series(dailyEnergy.energies.map { it.imported - it.mainExported - it.exportProduced })
-      series(dailyEnergy.energies.map { it.discharged - it.charged })
+      series(dayData.production.map { it * 4 })
+      series(dayData.consumption.map { -it * 4 })
+      series(dayData.grid.map { it * 4 })
+      series(dayData.storage.map { it * 4 })
     }
-    lineSeries { series(dailyEnergy.energies.map { it.mainProduced }) }
+    lineSeries { series(dayData.productionMain.map { it * 4 }) }
   }
 }
 
@@ -128,7 +128,7 @@ private fun Preview() {
   ) {
     val modelProducer = CartesianChartModelProducer()
     runBlocking {
-      modelProducer.runTransaction(SampleData.sampleData)
+      modelProducer.runTransaction(SampleData.dayData)
     }
     DailyEnergyChart(modelProducer)
   }

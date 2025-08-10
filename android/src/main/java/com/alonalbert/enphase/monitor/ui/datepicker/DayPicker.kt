@@ -48,7 +48,7 @@ import java.time.ZoneOffset.UTC
 fun DayPicker(
   date: LocalDate,
   onDayChanged: (LocalDate) -> Unit,
-  installDate: LocalDate = LocalDate.of(2022, 4, 8),
+  installDate: LocalDate = INSTALL_DATE,
 ) {
   val color = MaterialTheme.colorScheme.onBackground
   val disabledColor = color.copy(alpha = .5f)

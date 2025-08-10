@@ -13,23 +13,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
-import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
+import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
 import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
 import com.alonalbert.enphase.monitor.ui.energy.Period.DayPeriod
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
-import java.time.LocalDate
 
 @Composable
 fun DayView(
-  day: LocalDate,
-  dailyEnergy: DailyEnergy,
+  dayData: DayData,
   batteryState: BatteryState,
   onPeriodChanged: (Period) -> Unit,
   reserveConfig: ReserveConfig,
 
   ) {
+  val day = dayData.day
   LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
     item {
       DayPicker(day, { onPeriodChanged(DayPeriod(it)) })
@@ -44,21 +43,21 @@ fun DayView(
     }
     item {
       TotalEnergy(
-        dailyEnergy.mainProduced,
-        dailyEnergy.exportProduced,
-        dailyEnergy.consumed,
-        dailyEnergy.charged,
-        dailyEnergy.discharged,
-        dailyEnergy.imported,
-        dailyEnergy.exported,
+        dayData.totalProductionMain,
+        dayData.totalProductionExport,
+        dayData.totalConsumption,
+        dayData.totalCharge,
+        dayData.totalDischarge,
+        dayData.totalImport,
+        dayData.totalExport,
       )
     }
     item {
-      DailyEnergyChart(dailyEnergy)
+      DailyEnergyChart(dayData)
     }
     item {
       BatteryLevelChart(
-        batteryLevels = dailyEnergy.energies.mapNotNull { it.battery },
+        batteryLevels = dayData.battery.filterNotNull(),
         reserveConfig = reserveConfig
       )
     }
@@ -76,8 +75,7 @@ fun DayView(
 private fun DayViewPreviewDark() {
   SolarCombinerTheme {
     DayView(
-      day = LocalDate.now(),
-      dailyEnergy = SampleData.sampleData,
+      dayData = SampleData.dayData,
       batteryState = BatteryState(null, null),
       reserveConfig = ReserveConfig(),
       onPeriodChanged = {},

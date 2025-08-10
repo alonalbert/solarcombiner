@@ -6,9 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
-import com.alonalbert.enphase.monitor.enphase.model.DailyEnergy
 import com.alonalbert.enphase.monitor.repository.ChartData
-import com.alonalbert.enphase.monitor.repository.ChartData.DayData
+import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.repository.Repository
 import com.alonalbert.enphase.monitor.ui.energy.Period.DayPeriod
 import com.alonalbert.enphase.monitor.ui.energy.Period.MonthPeriod
@@ -43,7 +42,7 @@ class EnergyViewModel @Inject constructor(
   val chartDataFlow: StateFlow<ChartData> =
     periodFlow.flatMapLatest {
       repository.getChartDataFlow(it)
-    }.stateIn(viewModelScope, DayData(LocalDate.now(), DailyEnergy.EMPTY))
+    }.stateIn(viewModelScope, DayData.empty(LocalDate.now()))
 
   val batteryStateState: StateFlow<BatteryState> = repository.getBatteryStateFlow().stateIn(viewModelScope, BatteryState(soc = 0, reserve = 0))
   val reserveConfigState: StateFlow<ReserveConfig> =

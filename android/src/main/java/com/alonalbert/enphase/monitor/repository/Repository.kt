@@ -2,16 +2,19 @@ package com.alonalbert.enphase.monitor.repository
 
 import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.db.BatteryStatus
+import com.alonalbert.enphase.monitor.db.DayExportValues
 import com.alonalbert.enphase.monitor.db.DayTotals
+import com.alonalbert.enphase.monitor.db.DayValues
+import com.alonalbert.enphase.monitor.db.DayWithExportValues
+import com.alonalbert.enphase.monitor.db.DayWithValues
 import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
-import com.alonalbert.enphase.monitor.repository.ChartData.DayData
-import com.alonalbert.enphase.monitor.repository.ChartData.MonthData
 import com.alonalbert.enphase.monitor.ui.energy.Period
 import com.alonalbert.enphase.monitor.ui.energy.Period.DayPeriod
 import com.alonalbert.enphase.monitor.ui.energy.Period.MonthPeriod
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -76,7 +79,23 @@ class Repository @Inject constructor(
   }
 
   private fun getDayDataFlow(day: LocalDate): Flow<ChartData> {
-    return db.dayDao().getDailyEnergyFlow(day).map { DayData(day, it) }
+    val dao = db.dayDao()
+    val valuesFlow = dao.getDayWithValuesFlow(day)
+    val exportValuesFlow = dao.getDayWithExportValuesFlow(day)
+    return valuesFlow.combine(exportValuesFlow) { values, exportValues ->
+      val values = values.valuesOrEmpty()
+      DayData(
+        day = day,
+        productionMain = exportValues.valuesOrEmpty().map { it.production / 1000 },
+        productionExport = values.map { it.production / 1000 },
+        consumption = values.map { it.consumption / 1000 },
+        charge = values.map { it.charge / 1000 },
+        discharge = values.map { it.discharge / 1000 },
+        import = values.map { it.import / 1000 },
+        export = values.map { it.export / 1000 },
+        battery = values.map { it.battery },
+      )
+    }
   }
 
   private fun getMonthDataFlow(month: YearMonth): Flow<ChartData> {
@@ -89,5 +108,19 @@ class Repository @Inject constructor(
       val allDays = days + List(emptyDays) { DayTotals.empty(month.atDay(it + size + 1)) }
       MonthData(YearMonth.now(), allDays)
     }
+  }
+}
+
+private fun DayWithValues?.valuesOrEmpty(): List<DayValues> {
+  return when {
+    this == null || values.isEmpty() -> List(96) { DayValues(0, 0, it, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0) }
+    else -> values
+  }
+}
+
+private fun DayWithExportValues?.valuesOrEmpty(): List<DayExportValues> {
+  return when {
+    this == null || values.isEmpty() -> List(96) { DayExportValues(0, 0, it, 0.0) }
+    else -> values
   }
 }

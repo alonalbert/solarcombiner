@@ -10,21 +10,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.alonalbert.enphase.monitor.db.DayTotals
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
+import com.alonalbert.enphase.monitor.repository.MonthData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
+import com.alonalbert.enphase.monitor.ui.datepicker.MonthPicker
+import com.alonalbert.enphase.monitor.ui.energy.Period.MonthPeriod
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
+import java.time.YearMonth
 
 @Composable
 fun MonthView(
-  days: List<DayTotals>,
+  monthData: MonthData,
   batteryState: BatteryState,
   onPeriodChanged: (Period) -> Unit,
-
-  ) {
+) {
   LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
     item {
-//      MonthPicker(dailyEnergy.date, onDayChanged)
+      MonthPicker(monthData.month, { onPeriodChanged(MonthPeriod(it)) })
     }
     item {
       Box(
@@ -34,6 +36,7 @@ fun MonthView(
         BatteryBar(batteryState.soc ?: 0, 20.0, batteryState.reserve ?: 0)
       }
     }
+    val days = monthData.days
     item {
       TotalEnergy(
         days.sumOf { it.production },
@@ -55,12 +58,12 @@ fun MonthView(
   showBackground = true,
   showSystemUi = true,
   device = Devices.PIXEL_7_PRO,
-  )
+)
 @Composable
 private fun MonthViewPreview() {
   SolarCombinerTheme {
-    MonthView (
-      days = SampleData.days,
+    MonthView(
+      monthData = MonthData(YearMonth.now(), SampleData.days),
       batteryState = BatteryState(null, null),
       onPeriodChanged = {},
     )
