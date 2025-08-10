@@ -111,5 +111,18 @@ interface DayDao {
     """
   )
   fun getTotalsFlow(start: LocalDate, end: LocalDate): Flow<List<DayTotals>>
+
+  @Query(
+    """
+      SELECT 
+        d.date
+      FROM Day d
+      JOIN DayValues v ON d.id = v.day_id AND v.`index`= 95
+      JOIN DayExportValues e ON d.id = e.day_id AND e.`index` = 95
+      WHERE date BETWEEN :start  AND :end
+      GROUP BY date 
+    """
+  )
+  suspend fun getAvailableDays(start: LocalDate, end: LocalDate): List<LocalDate>
 }
 

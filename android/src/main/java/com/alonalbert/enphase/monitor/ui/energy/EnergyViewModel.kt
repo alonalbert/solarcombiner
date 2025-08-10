@@ -69,7 +69,7 @@ class EnergyViewModel @Inject constructor(
           val period = periodFlow.value
           when (period) {
             is DayPeriod -> repository.updateRepository(period.day)
-            is MonthPeriod -> repository.updateRepository(Period.today().day) // TODO(): Update month
+            is MonthPeriod -> repository.updateRepository(period.month)
           }
         } catch (e: Throwable) {
           if (e is CancellationException) {
