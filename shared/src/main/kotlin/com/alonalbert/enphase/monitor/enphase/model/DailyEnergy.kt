@@ -1,9 +1,8 @@
 package com.alonalbert.enphase.monitor.enphase.model
 
 import com.alonalbert.enphase.monitor.enphase.util.kwh
-import java.time.LocalDate
 
-class DailyEnergy(val date: LocalDate, val energies: List<Energy>) {
+class DailyEnergy(val energies: List<Energy>) {
   val exportProduced = energies.sumOf { it.exportProduced } / 4
   val mainProduced = energies.sumOf { it.mainProduced } / 4
   val consumed = energies.sumOf { it.consumed } / 4
@@ -12,7 +11,7 @@ class DailyEnergy(val date: LocalDate, val energies: List<Energy>) {
   val discharged = energies.sumOf { it.discharged } / 4
   val produced get() = exportProduced + mainProduced
   val netImported get() = imported - exported
-  private val grid =  energies.map { (it.imported - it.mainExported - it.exportProduced) / 4 }
+  private val grid = energies.map { (it.imported - it.mainExported - it.exportProduced) / 4 }
   val imported = grid.filter { it > 0 }.sum()
   val exported = -grid.filter { it < 0 }.sum()
 
@@ -30,6 +29,6 @@ class DailyEnergy(val date: LocalDate, val energies: List<Energy>) {
   }
 
   companion object {
-    fun empty(day: LocalDate) = DailyEnergy(day, List(96) { Energy(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0) })
+    val EMPTY = DailyEnergy(List(96) { Energy(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0) })
   }
 }

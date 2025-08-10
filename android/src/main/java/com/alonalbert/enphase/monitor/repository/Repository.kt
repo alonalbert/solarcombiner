@@ -76,7 +76,7 @@ class Repository @Inject constructor(
   }
 
   private fun getDayDataFlow(day: LocalDate): Flow<ChartData> {
-    return db.dayDao().getDailyEnergyFlow(day).map { DayData(it) }
+    return db.dayDao().getDailyEnergyFlow(day).map { DayData(day, it) }
   }
 
   private fun getMonthDataFlow(month: YearMonth): Flow<ChartData> {
@@ -86,7 +86,8 @@ class Repository @Inject constructor(
     return db.dayDao().getTotalsFlow(start, end).map { days ->
       val size = days.size
       val emptyDays = month.lengthOfMonth() - size
-      MonthData(days + List(emptyDays) { DayTotals.empty(month.atDay(it + size + 1)) })
+      val allDays = days + List(emptyDays) { DayTotals.empty(month.atDay(it + size + 1)) }
+      MonthData(YearMonth.now(), allDays)
     }
   }
 }

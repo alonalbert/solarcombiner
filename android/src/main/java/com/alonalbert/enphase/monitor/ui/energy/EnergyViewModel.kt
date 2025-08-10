@@ -43,7 +43,7 @@ class EnergyViewModel @Inject constructor(
   val chartDataFlow: StateFlow<ChartData> =
     periodFlow.flatMapLatest {
       repository.getChartDataFlow(it)
-    }.stateIn(viewModelScope, DayData(DailyEnergy.empty(Period.today().day)))
+    }.stateIn(viewModelScope, DayData(LocalDate.now(), DailyEnergy.EMPTY))
 
   val batteryStateState: StateFlow<BatteryState> = repository.getBatteryStateFlow().stateIn(viewModelScope, BatteryState(soc = 0, reserve = 0))
   val reserveConfigState: StateFlow<ReserveConfig> =

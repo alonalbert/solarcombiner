@@ -20,7 +20,6 @@ object SampleData {
   ) + List(31-9) {DayTotals(day=LocalDate.of(2025, 8, it + 10), production=0.0, exportProduction=0.0, consumption=0.0, charge=0.0, discharge=0.0, import=0.0, export=0.0) }
 
   val sampleData = DailyEnergy(
-    LocalDate.now().atStartOfDay().toLocalDate(),
     energies = listOf(
       Energy(
         exportProduced = 0.0,

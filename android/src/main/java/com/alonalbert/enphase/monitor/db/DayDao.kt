@@ -111,7 +111,7 @@ interface DayDao {
           values.battery,
         )
       }
-      DailyEnergy(date, energies)
+      DailyEnergy(energies)
     }
   }
 

@@ -19,9 +19,11 @@ import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
 import com.alonalbert.enphase.monitor.ui.energy.Period.DayPeriod
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
+import java.time.LocalDate
 
 @Composable
 fun DayView(
+  day: LocalDate,
   dailyEnergy: DailyEnergy,
   batteryState: BatteryState,
   onPeriodChanged: (Period) -> Unit,
@@ -30,7 +32,7 @@ fun DayView(
   ) {
   LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
     item {
-      DayPicker(dailyEnergy.date, { onPeriodChanged(DayPeriod(it)) })
+      DayPicker(day, { onPeriodChanged(DayPeriod(it)) })
     }
     item {
       Box(
@@ -74,6 +76,7 @@ fun DayView(
 private fun DayViewPreviewDark() {
   SolarCombinerTheme {
     DayView(
+      day = LocalDate.now(),
       dailyEnergy = SampleData.sampleData,
       batteryState = BatteryState(null, null),
       reserveConfig = ReserveConfig(),
