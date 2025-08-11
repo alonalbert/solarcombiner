@@ -24,7 +24,9 @@ class LiveStatusViewModel @Inject constructor(
 
   val liveStatusFlow: StateFlow<LiveStatus> = flow {
     val settings = settings() ?: return@flow
-    enphase().streamLiveStatus(settings.email, settings.mainGateway, settings.exportGateway).collect {
+    val enphase = enphase()
+    enphase.ensureLogin(settings.email, settings.password)
+    enphase.streamLiveStatus(settings.email, settings.mainGateway, settings.exportGateway).collect {
       emit(it)
     }
   }.stateIn(viewModelScope, LiveStatus(0.0, 0.0, 0.0, 0.0, 0.0, 0, 0))

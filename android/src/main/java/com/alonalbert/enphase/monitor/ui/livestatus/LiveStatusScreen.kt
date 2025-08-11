@@ -35,12 +35,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.enphase.calculateEnergyFlow
 import com.alonalbert.enphase.monitor.enphase.model.LiveStatus
+import com.alonalbert.enphase.monitor.enphase.util.format
 import com.alonalbert.enphase.monitor.enphase.util.round1
 import com.alonalbert.enphase.monitor.enphase.util.zerofy
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
 import com.alonalbert.enphase.monitor.ui.components.EnergyArrow
 import com.alonalbert.enphase.monitor.util.toDisplay
+import java.time.LocalDateTime
 import kotlin.math.abs
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 
 private val nodeRadius = 20.dp
 private val nodeSize = 100.dp
@@ -63,6 +67,7 @@ fun LiveStatusScreen(
   liveStatus: LiveStatus,
   modifier: Modifier = Modifier,
 ) {
+  val capacity = 20.16
   Scaffold(
     modifier = Modifier.fillMaxSize(),
   ) { innerPadding ->
@@ -77,7 +82,7 @@ fun LiveStatusScreen(
           .fillMaxWidth()
           .padding(8.dp)
       ) {
-        BatteryBar(liveStatus.soc, 20.0, liveStatus.reserve)
+        BatteryBar(liveStatus.soc, capacity, liveStatus.reserve)
       }
       Box(
         modifier = modifier
@@ -137,14 +142,31 @@ fun LiveStatusScreen(
             .padding(top = loadPad)
             .size(nodeSize)
         )
+
+        val rate = abs(storageToGrid + storageToLoad)
+        val batteryLevel = capacity * liveStatus.soc.toDouble() / 100
+        val charging = buildString {
+          append("Full by ")
+          if (rate > 0) {
+            val remaining = ((capacity - batteryLevel) / rate).hours
+            append(remaining.format())
+          }
+        }
+        val discharging = buildString {
+          append("Empty by ")
+          if (rate > 0) {
+            val remaining = ((batteryLevel - capacity * 0.1) / rate).hours
+            append(remaining.format())
+          }
+        }
         Node(
-          name = "Discharging",
+          name = discharging,
           iconRes = R.drawable.battery,
           value = storage,
           color = colorResource(R.color.battery),
           alignment = Alignment.BottomCenter,
-          alternateName = "Charging",
-          modifier = Modifier.size(nodeSize),
+          alternateName = charging,
+          modifier = Modifier.height(nodeSize),
         )
         Node(
           name = "Importing",
@@ -152,7 +174,9 @@ fun LiveStatusScreen(
           value = grid,
           color = colorResource(R.color.grid),
           alignment = Alignment.CenterStart,
-          modifier = Modifier.padding(top = gridPad).size(nodeSize),
+          modifier = Modifier
+            .padding(top = gridPad)
+            .size(nodeSize),
           alternateName = "Exporting",
         )
 
@@ -300,4 +324,8 @@ private fun BoxScope.Node(
 @Composable
 fun LiveStatusScreenPreview() {
   LiveStatusScreen(LiveStatus(pv = 6.2, exportPv = 4.0, storage = 0.6, grid = -3.84, load = 6.96, soc = 20, reserve = 24))
+}
+
+private fun Duration.format(): String {
+  return LocalDateTime.now().plusMinutes(inWholeMinutes).format()
 }
