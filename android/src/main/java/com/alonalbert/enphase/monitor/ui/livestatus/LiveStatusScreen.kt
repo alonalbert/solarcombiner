@@ -143,16 +143,17 @@ fun LiveStatusScreen(
             .size(nodeSize)
         )
 
-        val rate = abs(storageToGrid + storageToLoad)
         val batteryLevel = capacity * liveStatus.soc.toDouble() / 100
         val charging = buildString {
           append("Full by ")
+          val rate = abs(gridToStorage + pvToStorage)
           if (rate > 0) {
             val remaining = ((capacity - batteryLevel) / rate).hours
             append(remaining.format())
           }
         }
         val discharging = buildString {
+          val rate = abs(storageToGrid + storageToLoad)
           append("Empty by ")
           if (rate > 0) {
             val remaining = ((batteryLevel - capacity * 0.1) / rate).hours
