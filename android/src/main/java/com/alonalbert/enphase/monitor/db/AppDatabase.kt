@@ -8,23 +8,19 @@ import androidx.room.TypeConverters
 
 @Database(
   entities = [
-    BatteryStatus::class,
-    Config::class,
+    KeyValue::class,
     Day::class,
     DayExportValues::class,
     DayValues::class,
-    ReserveConfig::class,
-    Settings::class,
   ],
-  version = 2,
+  version = 1,
   exportSchema = true,
 )
 @TypeConverters(LocalDateConverter::class)
 abstract class AppDatabase : RoomDatabase() {
-  abstract fun batteryStatusDao(): BatteryStatusDao
+  abstract fun batteryDao(): BatteryDao
   abstract fun dayDao(): DayDao
-  abstract fun configDao(): ConfigDao
-  abstract fun reserveConfigDao(): ReserveConfigDao
+  abstract fun configDao(): KeyValueDao
   abstract fun settingsDao(): SettingsDao
 
   companion object {

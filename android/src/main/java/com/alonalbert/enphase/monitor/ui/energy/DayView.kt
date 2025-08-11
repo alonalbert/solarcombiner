@@ -49,7 +49,7 @@ private fun DayViewPreviewDark() {
   SolarCombinerTheme {
     DayView(
       dayData = SampleData.dayData,
-      reserveConfig = ReserveConfig(),
+      reserveConfig = ReserveConfig.DEFAULT,
     )
   }
 }

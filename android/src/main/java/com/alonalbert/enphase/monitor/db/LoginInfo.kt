@@ -1,13 +1,8 @@
 package com.alonalbert.enphase.monitor.db
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import com.alonalbert.enphase.monitor.enphase.model.GatewayConfig
 
-@Entity
-data class Settings(
-  @PrimaryKey
-  val id: Int = 1,
+data class LoginInfo(
   val email: String,
   val password: String,
   val mainSiteId: String,
@@ -19,19 +14,6 @@ data class Settings(
   val exportHost: String,
   val exportPort: Int,
 ) {
-  constructor(
-    email: String,
-    password: String,
-    mainSiteId: String,
-    mainSerialNumber: String,
-    mainHost: String,
-    mainPort: Int,
-    exportSiteId: String,
-    exportSerialNumber: String,
-    exportHost: String,
-    exportPort: Int,
-  ) : this(1,  email, password, mainSiteId, mainSerialNumber, mainHost, mainPort, exportSiteId, exportSerialNumber, exportHost, exportPort)
-
   fun isValid(): Boolean {
     if (email.isBlank() || password.isBlank()) {
       return false
@@ -49,8 +31,8 @@ data class Settings(
   }
 }
 
-val Settings.mainGateway get() = GatewayConfig(mainSiteId, mainSerialNumber, mainHost, mainPort)
-val Settings.exportGateway get() =
+val LoginInfo.mainGateway get() = GatewayConfig(mainSiteId, mainSerialNumber, mainHost, mainPort)
+val LoginInfo.exportGateway get() =
   when {
     exportSiteId.isBlank() -> null
     exportSerialNumber.isBlank() -> null

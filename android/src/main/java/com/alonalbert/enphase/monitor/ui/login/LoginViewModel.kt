@@ -3,7 +3,7 @@ package com.alonalbert.enphase.monitor.ui.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alonalbert.enphase.monitor.db.AppDatabase
-import com.alonalbert.enphase.monitor.db.Settings
+import com.alonalbert.enphase.monitor.db.LoginInfo
 import com.alonalbert.enphase.monitor.util.stateIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -15,9 +15,9 @@ class LoginViewModel @Inject constructor(
 ) : ViewModel() {
   val settings = db.settingsDao().getSettingsFlow().stateIn(viewModelScope, null)
 
-  fun login(settings: Settings, onLoggedIn: () -> Unit) {
+  fun login(loginInfo: LoginInfo, onLoggedIn: () -> Unit) {
     viewModelScope.launch {
-      db.settingsDao().set(settings)
+      db.settingsDao().updateSettings(loginInfo)
       onLoggedIn()
     }
   }

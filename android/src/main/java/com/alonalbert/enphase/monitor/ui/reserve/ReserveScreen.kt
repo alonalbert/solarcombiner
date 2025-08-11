@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,7 +46,7 @@ fun ReserveScreen(
   modifier: Modifier = Modifier,
 ) {
   val viewModel: ReserveConfigViewModel = hiltViewModel()
-  val reserveConfig by viewModel.reserveConfig.collectAsStateWithLifecycle(ReserveConfig())
+  val reserveConfig by viewModel.reserveConfig.collectAsStateWithLifecycle(ReserveConfig.DEFAULT)
 
   val config = reserveConfig
   ReserveScreen(
@@ -79,8 +78,7 @@ fun ReserveScreen(
     ) {
       var idleLoad by remember { mutableDoubleStateOf(reserveConfig.idleLoad) }
       var minReserve by remember { mutableIntStateOf(reserveConfig.minReserve) }
-      var chargeTime by remember { mutableIntStateOf(reserveConfig.chargeStart) }
-      var chartConfig by remember { mutableStateOf(reserveConfig) }
+      var chargeStart by remember { mutableIntStateOf(reserveConfig.chargeStart) }
 
       Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -91,26 +89,21 @@ fun ReserveScreen(
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           val weight = Modifier.weight(1f)
-          IdleLoad(value = idleLoad, onValueChange = { idleLoad = it }, modifier = weight)
-          MinReserve(value = minReserve, onValueChange = { minReserve = it }, modifier = weight)
-          SelfConsumptionTime(value = chargeTime, onValueChange = { chargeTime = it }, modifier = weight)
+          IdleLoad(value = reserveConfig.idleLoad, onValueChange = { idleLoad = it }, modifier = weight)
+          MinReserve(value = reserveConfig.minReserve, onValueChange = { minReserve = it }, modifier = weight)
+          SelfConsumptionTime(value = reserveConfig.chargeStart, onValueChange = { chargeStart = it }, modifier = weight)
         }
         Spacer(modifier.height(16.dp))
         ChartTitle()
-        chartConfig = ReserveConfig(
-          idleLoad = idleLoad,
-          minReserve = minReserve,
-          chargeStart = chargeTime
-        )
 
-        BatteryChart(chartConfig, batteryCapacity)
+        BatteryChart(ReserveConfig(idleLoad, minReserve, chargeStart), batteryCapacity)
         Spacer(modifier.height(16.dp))
         Button(
           onClick = {
             val config = ReserveConfig(
               idleLoad = idleLoad,
               minReserve = minReserve,
-              chargeStart = chargeTime,
+              chargeStart = chargeStart,
             )
             onUpdate(config)
           }) {
@@ -208,7 +201,7 @@ private fun ChartTitle() {
 @Composable
 fun ReserveScreenPreview() {
   ReserveScreen(
-    ReserveConfig(),
+    ReserveConfig.DEFAULT,
     batteryCapacity = 20.0,
     {},
   )

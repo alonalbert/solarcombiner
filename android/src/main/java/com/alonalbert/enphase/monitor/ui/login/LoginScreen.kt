@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
-import com.alonalbert.enphase.monitor.db.Settings
+import com.alonalbert.enphase.monitor.db.LoginInfo
 import com.alonalbert.enphase.monitor.ui.components.ButtonComponent
 import com.alonalbert.enphase.monitor.ui.components.HeadingTextComponent
 import com.alonalbert.enphase.monitor.ui.components.PasswordTextFieldComponent
@@ -50,8 +50,8 @@ fun LoginScreen(
 
 @Composable
 fun LoginScreenContent(
-  settings: Settings?,
-  onApplyClick: (Settings) -> Unit,
+  loginInfo: LoginInfo?,
+  onApplyClick: (LoginInfo) -> Unit,
 ) {
 //  var loginInfo by remember { mutableStateOf(enphaseConfig) }
 
@@ -77,17 +77,17 @@ fun LoginScreenContent(
   var exportHost by remember { mutableStateOf(exportHostValue) }
   var exportPort by remember { mutableStateOf(exportPortValue) }
 
-  if (settings != null) {
-    email = settings.email
-    password = settings.password
-    mainSiteId = settings.mainSiteId
-    mainSerialNum = settings.mainSerialNumber
-    mainHost = settings.mainHost
-    mainPort = settings.mainPort.toString()
-    exportSiteId = settings.exportSiteId
-    exportSerialNum = settings.exportSerialNumber
-    exportHost = settings.exportHost
-    exportPort = settings.exportPort.toString()
+  if (loginInfo != null) {
+    email = loginInfo.email
+    password = loginInfo.password
+    mainSiteId = loginInfo.mainSiteId
+    mainSerialNum = loginInfo.mainSerialNumber
+    mainHost = loginInfo.mainHost
+    mainPort = loginInfo.mainPort.toString()
+    exportSiteId = loginInfo.exportSiteId
+    exportSerialNum = loginInfo.exportSerialNumber
+    exportHost = loginInfo.exportHost
+    exportPort = loginInfo.exportPort.toString()
   }
 
   Surface(
@@ -177,8 +177,8 @@ fun LoginScreenContent(
         )
 
         Spacer(modifier = Modifier.height(40.dp))
-        val settings =
-          Settings(
+        val loginInfo =
+          LoginInfo(
             email,
             password,
             mainSiteId,
@@ -193,9 +193,9 @@ fun LoginScreenContent(
         ButtonComponent(
           value = stringResource(id = R.string.login),
           onButtonClicked = {
-            onApplyClick(settings)
+            onApplyClick(loginInfo)
           },
-          isEnabled = settings.isValid(),
+          isEnabled = loginInfo.isValid(),
         )
       }
     }
@@ -207,5 +207,5 @@ private fun String.toPort() = toIntOrNull() ?: 0
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun PreviewLoginScreen() {
-  LoginScreenContent(settings = null, onApplyClick = {})
+  LoginScreenContent(loginInfo = null, onApplyClick = {})
 }

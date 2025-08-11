@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
-class Config(
+class KeyValue(
   @PrimaryKey
   val name: String,
   val value: String,

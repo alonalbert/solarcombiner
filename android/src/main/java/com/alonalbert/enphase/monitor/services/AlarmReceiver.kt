@@ -85,7 +85,7 @@ class AlarmReceiver : BroadcastReceiver() {
           log("Settings not found")
           return DELAY
         }
-        val config = db.reserveConfigDao().getReserveConfig() ?: ReserveConfig()
+        val config = db.batteryDao().getReserveConfig() ?: ReserveConfig.DEFAULT
         val reserve = ReserveCalculator.calculateReserve(
           LocalTime.now(),
           config.idleLoad,

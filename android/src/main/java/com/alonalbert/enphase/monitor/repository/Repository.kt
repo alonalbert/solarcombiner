@@ -7,7 +7,7 @@ import com.alonalbert.enphase.monitor.db.DayTotals
 import com.alonalbert.enphase.monitor.db.DayValues
 import com.alonalbert.enphase.monitor.db.DayWithExportValues
 import com.alonalbert.enphase.monitor.db.DayWithValues
-import com.alonalbert.enphase.monitor.db.Settings
+import com.alonalbert.enphase.monitor.db.LoginInfo
 import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
@@ -37,7 +37,7 @@ class Repository @Inject constructor(
   }
 
   fun getBatteryStateFlow(): Flow<BatteryState> =
-    db.batteryStatusDao()
+    db.batteryDao()
       .getBatteryStatusFlow()
       .filterNotNull()
       .map { BatteryState(it.battery, it.reserve) }
@@ -78,10 +78,10 @@ class Repository @Inject constructor(
     updateBatteryState(settings)
   }
 
-  private suspend fun updateMainStats(settings: Settings, day: LocalDate) {
+  private suspend fun updateMainStats(loginInfo: LoginInfo, day: LocalDate) {
     coroutineScope {
       launch {
-        val stats = enphase.getMainStats(settings.mainSiteId, day)
+        val stats = enphase.getMainStats(loginInfo.mainSiteId, day)
         db.dayDao().updateValues(
           day,
           stats.production,
@@ -96,10 +96,10 @@ class Repository @Inject constructor(
     }
   }
 
-  private suspend fun updateExportStats(settings: Settings, day: LocalDate) {
+  private suspend fun updateExportStats(loginInfo: LoginInfo, day: LocalDate) {
     coroutineScope {
       launch {
-        val stats = enphase.getExportStats(settings.exportSiteId, day)
+        val stats = enphase.getExportStats(loginInfo.exportSiteId, day)
         db.dayDao().updateExportValues(
           day,
           stats.production,
@@ -108,11 +108,11 @@ class Repository @Inject constructor(
     }
   }
 
-  private suspend fun updateBatteryState(settings: Settings) {
+  private suspend fun updateBatteryState(loginInfo: LoginInfo) {
     coroutineScope {
       launch {
-        val batteryState = enphase.getBatteryState(settings.mainSiteId)
-        db.batteryStatusDao().set(
+        val batteryState = enphase.getBatteryState(loginInfo.mainSiteId)
+        db.batteryDao().updateBatteryStatus(
           BatteryStatus(
             battery = batteryState.soc ?: 0,
             reserve = batteryState.reserve ?: 0

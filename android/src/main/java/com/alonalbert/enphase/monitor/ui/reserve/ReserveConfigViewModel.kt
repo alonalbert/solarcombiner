@@ -18,11 +18,11 @@ class ReserveConfigViewModel @Inject constructor(
   @param:ApplicationContext private val context: Context,
   private val db: AppDatabase,
 ) : ViewModel() {
-  val reserveConfig = db.reserveConfigDao().getReserveConfigFlow().mapNotNull { it }.stateIn(viewModelScope, ReserveConfig())
+  val reserveConfig = db.batteryDao().getReserveConfigFlow().mapNotNull { it }.stateIn(viewModelScope, ReserveConfig.DEFAULT)
 
   fun update(reserveConfig: ReserveConfig) {
     viewModelScope.launch {
-      db.reserveConfigDao().set(reserveConfig)
+      db.batteryDao().updateReserveConfig(reserveConfig)
       AlarmReceiver.scheduleAlarm(context)
     }
   }

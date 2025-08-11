@@ -202,7 +202,7 @@ fun GreetingPreviewLight() {
     EnergyScreen(
       chartData = SampleData.dayData,
       batteryState = BatteryState(null, null),
-      reserveConfig = ReserveConfig(),
+      reserveConfig = ReserveConfig.DEFAULT,
       snackbarMessage = null,
       onDismissSnackbar = {},
       onPeriodChanged = {},
@@ -227,7 +227,7 @@ fun GreetingPreviewDark() {
     EnergyScreen(
       chartData = MonthData(YearMonth.now(), SampleData.days),
       batteryState = BatteryState(null, null),
-      reserveConfig = ReserveConfig(),
+      reserveConfig = ReserveConfig.DEFAULT,
       snackbarMessage = null,
       onDismissSnackbar = {},
       onPeriodChanged = {},

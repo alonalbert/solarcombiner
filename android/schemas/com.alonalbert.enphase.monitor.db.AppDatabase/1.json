@@ -2,40 +2,10 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "ba3a4c9f8702cd5be9cc312247c23f12",
+    "identityHash": "fc9fd98b6bb0a8778041eec7ddcc50c1",
     "entities": [
       {
-        "tableName": "BatteryStatus",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `battery` INTEGER NOT NULL, `reserve` INTEGER NOT NULL, PRIMARY KEY(`id`))",
-        "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "battery",
-            "columnName": "battery",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "reserve",
-            "columnName": "reserve",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "id"
-          ]
-        }
-      },
-      {
-        "tableName": "Config",
+        "tableName": "KeyValue",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `value` TEXT NOT NULL, PRIMARY KEY(`name`))",
         "fields": [
           {
@@ -249,125 +219,11 @@
             ]
           }
         ]
-      },
-      {
-        "tableName": "ReserveConfig",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `idleLoad` REAL NOT NULL, `minReserve` INTEGER NOT NULL, `chargeStart` INTEGER NOT NULL, PRIMARY KEY(`id`))",
-        "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "idleLoad",
-            "columnName": "idleLoad",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
-            "fieldPath": "minReserve",
-            "columnName": "minReserve",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "chargeStart",
-            "columnName": "chargeStart",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "id"
-          ]
-        }
-      },
-      {
-        "tableName": "Settings",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `email` TEXT NOT NULL, `password` TEXT NOT NULL, `mainSiteId` TEXT NOT NULL, `mainSerialNumber` TEXT NOT NULL, `mainHost` TEXT NOT NULL, `mainPort` INTEGER NOT NULL, `exportSiteId` TEXT NOT NULL, `exportSerialNumber` TEXT NOT NULL, `exportHost` TEXT NOT NULL, `exportPort` INTEGER NOT NULL, PRIMARY KEY(`id`))",
-        "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "email",
-            "columnName": "email",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "password",
-            "columnName": "password",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "mainSiteId",
-            "columnName": "mainSiteId",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "mainSerialNumber",
-            "columnName": "mainSerialNumber",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "mainHost",
-            "columnName": "mainHost",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "mainPort",
-            "columnName": "mainPort",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "exportSiteId",
-            "columnName": "exportSiteId",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "exportSerialNumber",
-            "columnName": "exportSerialNumber",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "exportHost",
-            "columnName": "exportHost",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "exportPort",
-            "columnName": "exportPort",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "id"
-          ]
-        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ba3a4c9f8702cd5be9cc312247c23f12')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fc9fd98b6bb0a8778041eec7ddcc50c1')"
     ]
   }
 }
