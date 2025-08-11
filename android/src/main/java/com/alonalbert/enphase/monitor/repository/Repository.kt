@@ -130,8 +130,8 @@ class Repository @Inject constructor(
       val values = values.valuesOrEmpty()
       DayData(
         day = day,
-        productionMain = exportValues.valuesOrEmpty().map { it.production / 1000 },
-        productionExport = values.map { it.production / 1000 },
+        productionMain = values.map { it.production / 1000 },
+        productionExport = exportValues.valuesOrEmpty().map { it.production / 1000 },
         consumption = values.map { it.consumption / 1000 },
         charge = values.map { it.charge / 1000 },
         discharge = values.map { it.discharge / 1000 },

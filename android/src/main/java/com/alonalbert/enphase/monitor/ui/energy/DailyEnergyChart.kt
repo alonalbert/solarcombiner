@@ -114,7 +114,7 @@ private suspend fun CartesianChartModelProducer.runTransaction(dayData: DayData)
       series(dayData.grid.map { it * 4 })
       series(dayData.storage.map { it * 4 })
     }
-    lineSeries { series(dayData.productionMain.map { it * 4 }) }
+    lineSeries { series(dayData.productionExport.map { it * 4 }) }
   }
 }
 
