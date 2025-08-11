@@ -2,10 +2,8 @@
 agp = "8.12.0"
 androidx-activity-compose = "1.10.1"
 androidx-compose-bom = "2025.07.00"
-androidx-core-ktx = "1.16.0"
 androidx-hilt = "1.2.0"
 androidx-lifecycle = "2.9.2"
-androidx-navigation = "2.9.3"
 androidx-room = "2.7.2"
 appcompat-v7 = "28.0.0"
 core-splashscreen = "1.0.1"
@@ -14,7 +12,6 @@ espresso-core = "3.0.2"
 gson = "2.13.1"
 hilt = "2.57"
 jakarta-persistence = "3.2.0"
-javax-inject = "1"
 junit4 = "4.13.2"
 kotlin = "2.2.0" # TODO: Hilt Work Manager doesm't seem to work with Kotlin 2.2.0
 kotlinx-cli = "0.3.6"
@@ -23,14 +20,12 @@ kotlinx-datetime = "0.7.1"
 kotlinx-serialization = "1.9.0"
 ksp = "2.2.0-2.0.2" # TODO: Hilt Work Manager doesm't seem to work with Kotlin 2.2.0
 ktor = "3.2.3"
-robolectric = "4.15.1"
 runner = "1.0.2"
 slf4j = "2.0.17"
 spring-boot = "3.5.4"
 spring-dependency-management = "1.1.7"
 sqlite = "3.50.3.0"
 timber = "5.0.1"
-truth = "1.4.4"
 vico = "2.1.3"
 work-runtime-ktx = "2.10.3"
 
@@ -42,16 +37,12 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-ui = { module = "androidx.compose.ui:ui" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
-androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "core-splashscreen" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "androidx-hilt" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidx-hilt" }
 androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "androidx-hilt" }
-androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
-androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
-androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidx-room" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidx-room" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidx-room" }
@@ -66,11 +57,9 @@ hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt"
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 jakarta-persistence = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence" }
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api" }
-javax-inject = { module = "javax.inject:javax.inject", version.ref = "javax-inject" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-core-jvm = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
@@ -79,10 +68,8 @@ ktor-client-apache = { group = "io.ktor", name = "ktor-client-apache", version.r
 ktor-client-auth = { group = "io.ktor", name = "ktor-client-auth", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
-ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
-robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 runner = { group = "com.android.support.test", name = "runner", version.ref = "runner" }
 slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 slf4j-nop = { group = "org.slf4j", name = "slf4j-nop", version.ref = "slf4j" }
@@ -92,7 +79,6 @@ spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-start
 sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite" }
 sqlite-dialect = { module = "org.hibernate.orm:hibernate-community-dialects" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
-truth = { module = "com.google.truth:truth", version.ref = "truth" }
 vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 
