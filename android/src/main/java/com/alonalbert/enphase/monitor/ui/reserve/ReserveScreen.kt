@@ -202,7 +202,7 @@ private fun ChartTitle() {
 fun ReserveScreenPreview() {
   ReserveScreen(
     ReserveConfig.DEFAULT,
-    batteryCapacity = 20.0,
+    batteryCapacity = 20.16,
     {},
   )
 }

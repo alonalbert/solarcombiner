@@ -125,7 +125,7 @@ fun EnergyScreen(
         }
         item {
           Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
-            BatteryBar(batteryState.soc ?: 0, 20.0, batteryState.reserve ?: 0)
+            BatteryBar(batteryState.soc ?: 0, 20.16, batteryState.reserve ?: 0)
           }
         }
         item {
