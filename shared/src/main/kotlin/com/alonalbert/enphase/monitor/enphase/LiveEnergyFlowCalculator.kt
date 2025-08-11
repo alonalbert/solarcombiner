@@ -83,6 +83,11 @@ fun LiveStatus.calculateEnergyFlow(): LiveEnergyFlow {
     storage = 0.0
     load = 0.0
   }
+  if (grid.zerofy() < 0 && load.zerofy() < 0 && (grid - load).zerofy() == 0.0) {
+    gridToLoad += abs(load)
+    grid = 0.0
+    load = 0.0
+  }
   if (pv.zerofy() != 0.0 || storage.zerofy() != 0.0 || grid.zerofy() != 0.0 || load.zerofy() != 0.0) {
     throw IllegalArgumentException("Unexpected LiveStatus: $this")
   }
@@ -99,7 +104,7 @@ fun LiveStatus.calculateEnergyFlow(): LiveEnergyFlow {
 }
 
 fun main() {
-  val liveStatus = LiveStatus(pv = 4.808691, exportPv = 5.0, storage = -2.238, grid = -8.6881, load = -1.117409, soc = 36, reserve = 20)
+  val liveStatus = LiveStatus(pv = 1.895469, exportPv=2.507981, storage = 0.0, grid = -5.260403, load = -0.856953, soc=87, reserve=86)
   println(liveStatus)
   println(liveStatus.calculateEnergyFlow())
 }
