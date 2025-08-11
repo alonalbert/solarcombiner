@@ -72,6 +72,7 @@ fun EnergyScreen(
   val chartData by viewModel.chartDataFlow.collectAsStateWithLifecycle()
   val batteryState by viewModel.batteryStateState.collectAsStateWithLifecycle()
   val reserveConfig by viewModel.reserveConfigState.collectAsStateWithLifecycle()
+  val batteryCapacity by viewModel.batteryCapacity.collectAsStateWithLifecycle()
   val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
   val snackBarMessage by viewModel.snackbarMessageState.collectAsStateWithLifecycle()
 
@@ -79,6 +80,7 @@ fun EnergyScreen(
     chartData = chartData,
     batteryState = batteryState,
     reserveConfig = reserveConfig,
+    batteryCapacity = batteryCapacity,
     snackbarMessage = snackBarMessage,
     onDismissSnackbar = { viewModel.dismissSnackbarMessage() },
     onPeriodChanged = { viewModel.setPeriod(it) },
@@ -96,6 +98,7 @@ fun EnergyScreen(
   chartData: ChartData,
   batteryState: BatteryState,
   reserveConfig: ReserveConfig,
+  batteryCapacity: Double,
   snackbarMessage: String?,
   onDismissSnackbar: () -> Unit,
   onPeriodChanged: (Period) -> Unit,
@@ -125,12 +128,12 @@ fun EnergyScreen(
         }
         item {
           Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
-            BatteryBar(batteryState.soc ?: 0, 20.16, batteryState.reserve ?: 0)
+            BatteryBar(batteryState.soc ?: 0, batteryCapacity, batteryState.reserve ?: 0)
           }
         }
         item {
           when (data) {
-            is DayData -> DayView(data, reserveConfig)
+            is DayData -> DayView(data, reserveConfig, batteryCapacity)
             is MonthData -> MonthView(data)
           }
         }
@@ -203,6 +206,7 @@ fun GreetingPreviewLight() {
       chartData = SampleData.dayData,
       batteryState = BatteryState(null, null),
       reserveConfig = ReserveConfig.DEFAULT,
+      batteryCapacity = 20.16,
       snackbarMessage = null,
       onDismissSnackbar = {},
       onPeriodChanged = {},
@@ -228,6 +232,7 @@ fun GreetingPreviewDark() {
       chartData = MonthData(YearMonth.now(), SampleData.days),
       batteryState = BatteryState(null, null),
       reserveConfig = ReserveConfig.DEFAULT,
+      batteryCapacity = 20.16,
       snackbarMessage = null,
       onDismissSnackbar = {},
       onPeriodChanged = {},

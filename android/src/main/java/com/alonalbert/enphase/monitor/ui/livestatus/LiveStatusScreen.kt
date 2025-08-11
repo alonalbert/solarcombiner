@@ -59,15 +59,16 @@ fun LiveStatusScreen(
 ) {
   val viewModel: LiveStatusViewModel = hiltViewModel()
   val liveStatus by viewModel.liveStatusFlow.collectAsStateWithLifecycle()
-  LiveStatusScreen(liveStatus, modifier)
+  val batteryCapacity by viewModel.batteryCapacity.collectAsStateWithLifecycle()
+  LiveStatusScreen(liveStatus, batteryCapacity, modifier)
 }
 
 @Composable
 fun LiveStatusScreen(
   liveStatus: LiveStatus,
+  batteryCapacity: Double,
   modifier: Modifier = Modifier,
 ) {
-  val capacity = 20.16
   Scaffold(
     modifier = Modifier.fillMaxSize(),
   ) { innerPadding ->
@@ -82,7 +83,7 @@ fun LiveStatusScreen(
           .fillMaxWidth()
           .padding(8.dp)
       ) {
-        BatteryBar(liveStatus.soc, capacity, liveStatus.reserve)
+        BatteryBar(liveStatus.soc, batteryCapacity, liveStatus.reserve)
       }
       Box(
         modifier = modifier
@@ -143,12 +144,12 @@ fun LiveStatusScreen(
             .size(nodeSize)
         )
 
-        val batteryLevel = capacity * liveStatus.soc.toDouble() / 100
+        val batteryLevel = batteryCapacity * liveStatus.soc.toDouble() / 100
         val charging = buildString {
           append("Full by ")
           val rate = abs(gridToStorage + pvToStorage)
           if (rate > 0) {
-            val remaining = ((capacity - batteryLevel) / rate).hours
+            val remaining = ((batteryCapacity - batteryLevel) / rate).hours
             append(remaining.format())
           }
         }
@@ -156,7 +157,7 @@ fun LiveStatusScreen(
           val rate = abs(storageToGrid + storageToLoad)
           append("Empty by ")
           if (rate > 0) {
-            val remaining = ((batteryLevel - capacity * 0.1) / rate).hours
+            val remaining = ((batteryLevel - batteryCapacity * 0.1) / rate).hours
             append(remaining.format())
           }
         }
@@ -324,7 +325,10 @@ private fun BoxScope.Node(
 @Preview(showBackground = true, widthDp = 400, heightDp = 800, backgroundColor = 0xFFE0E0E0)
 @Composable
 fun LiveStatusScreenPreview() {
-  LiveStatusScreen(LiveStatus(pv = 6.2, exportPv = 4.0, storage = 0.6, grid = -3.84, load = 6.96, soc = 20, reserve = 24))
+  LiveStatusScreen(
+    LiveStatus(pv = 6.2, exportPv = 4.0, storage = 0.6, grid = -3.84, load = 6.96, soc = 20, reserve = 24),
+    20.16
+  )
 }
 
 private fun Duration.format(): String {

@@ -13,6 +13,7 @@ import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.Period
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
@@ -42,7 +44,7 @@ class Repository @Inject constructor(
       .filterNotNull()
       .map { BatteryState(it.battery, it.reserve) }
 
-  suspend fun updateRepository(month: YearMonth) {
+  suspend fun updateStats(month: YearMonth) {
     val availableDays = db.dayDao().getAvailableDays(month.atDay(1), month.atEndOfMonth()).mapTo(HashSet()) { it.dayOfMonth }
     val daysToUpdate = buildSet {
       (1..month.lengthOfMonth()).forEach {
@@ -70,12 +72,29 @@ class Repository @Inject constructor(
     joinAll(*jobs.toTypedArray())
   }
 
-  suspend fun updateRepository(day: LocalDate) {
+  suspend fun updateStats(day: LocalDate) {
     val settings = db.settingsDao().getSettings() ?: return
     enphase.ensureLogin(settings.email, settings.password)
     updateMainStats(settings, day)
     updateExportStats(settings, day)
     updateBatteryState(settings)
+  }
+
+  suspend fun updateBatteryCapacity() {
+    coroutineScope {
+      launch {
+        try {
+          val settings = db.settingsDao().getSettings() ?: return@launch
+          enphase.ensureLogin(settings.email, settings.password)
+          db.batteryDao().updateBatteryCapacity(enphase.getBatteryCapacity(settings.mainSiteId))
+        } catch (e: Exception) {
+          if (e is CancellationException) {
+            throw e
+          }
+          Timber.e(e, "Failed to update battery capacity")
+        }
+      }
+    }
   }
 
   private suspend fun updateMainStats(loginInfo: LoginInfo, day: LocalDate) {

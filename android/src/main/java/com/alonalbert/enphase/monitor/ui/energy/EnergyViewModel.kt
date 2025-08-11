@@ -48,12 +48,20 @@ class EnergyViewModel @Inject constructor(
   val batteryStateState: StateFlow<BatteryState> = repository.getBatteryStateFlow().stateIn(viewModelScope, BatteryState(soc = 0, reserve = 0))
   val reserveConfigState: StateFlow<ReserveConfig> =
     db.batteryDao().getReserveConfigFlow().filterNotNull().stateIn(viewModelScope, ReserveConfig.DEFAULT)
+  val batteryCapacity: StateFlow<Double> =
+    db.batteryDao().getBatteryCapacityFlow().filterNotNull().stateIn(viewModelScope, 0.0)
 
   private val isRefreshingStateFlow = MutableStateFlow(false)
   val isRefreshing = isRefreshingStateFlow.asStateFlow()
 
   private val snackbarMessageFlow: MutableStateFlow<String?> = MutableStateFlow(null)
   val snackbarMessageState: StateFlow<String?> = snackbarMessageFlow.stateIn(viewModelScope, null)
+
+  init {
+    viewModelScope.launch {
+      repository.updateBatteryCapacity()
+    }
+  }
 
   fun refreshData() {
     Timber.i("refreshData")
@@ -68,8 +76,8 @@ class EnergyViewModel @Inject constructor(
         try {
           val period = periodFlow.value
           when (period) {
-            is DayPeriod -> repository.updateRepository(period.day)
-            is MonthPeriod -> repository.updateRepository(period.month)
+            is DayPeriod -> repository.updateStats(period.day)
+            is MonthPeriod -> repository.updateStats(period.month)
           }
         } catch (e: Throwable) {
           if (e is CancellationException) {

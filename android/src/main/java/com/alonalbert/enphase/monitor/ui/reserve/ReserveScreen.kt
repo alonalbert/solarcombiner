@@ -47,11 +47,12 @@ fun ReserveScreen(
 ) {
   val viewModel: ReserveConfigViewModel = hiltViewModel()
   val reserveConfig by viewModel.reserveConfig.collectAsStateWithLifecycle(ReserveConfig.DEFAULT)
+  val batteryCapacity by viewModel.batteryCapacity.collectAsStateWithLifecycle(0.0)
 
   val config = reserveConfig
   ReserveScreen(
     reserveConfig = config,
-    batteryCapacity = 20.16,
+    batteryCapacity = batteryCapacity,
     onUpdate = {
       viewModel.update(it)
       onUpdateClicked()
@@ -177,7 +178,7 @@ private fun BatteryChart(reserveConfig: ReserveConfig, batteryCapacity: Double) 
     reserveConfig.minReserve,
     reserveConfig.chargeStart
   )
-  BatteryLevelChart(reserves, modifier = Modifier.height(200.dp))
+  BatteryLevelChart(reserves, batteryCapacity, modifier = Modifier.height(200.dp))
 }
 
 @Composable

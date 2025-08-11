@@ -48,4 +48,13 @@ interface BatteryDao: KeyValueDao {
     upsert("minReserve", reserveConfig.minReserve.toString())
     upsert("chargeStart", reserveConfig.chargeStart.toString())
   }
+
+  @Query("SELECT CAST(value AS REAL) FROM KeyValue WHERE name='batteryCapacity'")
+  fun getBatteryCapacityFlow() : Flow<Double?>
+
+  suspend fun getBatteryCapacity() = getBatteryCapacityFlow().firstOrNull()
+
+  suspend fun updateBatteryCapacity(value: Double) {
+    upsert("batteryCapacity", value.toString())
+  }
 }

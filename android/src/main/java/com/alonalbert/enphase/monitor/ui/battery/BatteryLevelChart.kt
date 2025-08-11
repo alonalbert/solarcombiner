@@ -41,6 +41,7 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun BatteryLevelChart(
   batteryLevels: List<Int>,
+  batteryCapacity: Double,
   modifier: Modifier = Modifier,
   reserveConfig: ReserveConfig? = null,
 ) {
@@ -48,7 +49,7 @@ fun BatteryLevelChart(
     true -> List(96) { 0 }
     false -> ReserveCalculator.calculateDailyReserves(
       reserveConfig.idleLoad,
-      20.16,
+      batteryCapacity,
       reserveConfig.minReserve,
       reserveConfig.chargeStart
     )

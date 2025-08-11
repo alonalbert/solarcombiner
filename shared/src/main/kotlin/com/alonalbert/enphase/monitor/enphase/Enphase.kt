@@ -68,6 +68,7 @@ private const val TOKEN_URL = "https://entrez.enphaseenergy.com/tokens"
 private const val LIVE_STREAM_URL = "$BASE_URL/pv/aws_sigv4/livestream.json"
 private const val DAILY_ENERGY_URL = "$BASE_URL/pv/systems/%1\$s/daily_energy?start_date=%2\$d-%3$02d-%4$02d&end_date=%2\$d-%3$02d-%4$02d"
 private const val TODAY_URL = "$BASE_URL/pv/systems/%s/today"
+private const val BATTERY_CONFIG_URL = "$BASE_URL/pv/settings/%s/battery_status.json"
 private const val BAD_VALUE = 30_000
 
 private val gson = GsonBuilder()
@@ -175,6 +176,12 @@ class Enphase(
       true -> body["message"]?.jsonPrimitive?.content ?: "Unexpected response: $body"
       false -> body["error"]?.jsonObject["message"]?.jsonPrimitive?.content ?: "Unexpected response $body"
     }
+  }
+
+  suspend fun getBatteryCapacity(mainSiteId: String): Double {
+    val batteryConfigResponse = client.get(BATTERY_CONFIG_URL.format(mainSiteId))
+    val body = batteryConfigResponse.body<JsonObject>()
+    return body.getValue("max_capacity").jsonPrimitive.double
   }
 
   override fun close() {

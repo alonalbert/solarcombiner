@@ -17,7 +17,7 @@ import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 fun DayView(
   dayData: DayData,
   reserveConfig: ReserveConfig,
-
+  batteryCapacity: Double,
   ) {
   Column(modifier = Modifier.padding(horizontal = 8.dp)) {
     TotalEnergy(
@@ -30,10 +30,7 @@ fun DayView(
       dayData.totalExport,
     )
     DailyEnergyChart(dayData)
-    BatteryLevelChart(
-      batteryLevels = dayData.battery.filterNotNull(),
-      reserveConfig = reserveConfig
-    )
+    BatteryLevelChart(dayData.battery.filterNotNull(), batteryCapacity, reserveConfig = reserveConfig)
   }
 }
 
@@ -49,6 +46,7 @@ private fun DayViewPreviewDark() {
   SolarCombinerTheme {
     DayView(
       dayData = SampleData.dayData,
+      batteryCapacity = 20.16,
       reserveConfig = ReserveConfig.DEFAULT,
     )
   }
