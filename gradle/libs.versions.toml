@@ -16,7 +16,6 @@ hilt = "2.57"
 jakarta-persistence = "3.2.0"
 javax-inject = "1"
 junit4 = "4.13.2"
-kandy = "0.7.1"
 kotlin = "2.2.0" # TODO: Hilt Work Manager doesm't seem to work with Kotlin 2.2.0
 kotlinx-cli = "0.3.6"
 kotlinx-coroutines = "1.10.2"
@@ -69,7 +68,6 @@ jakarta-persistence = { module = "jakarta.persistence:jakarta.persistence-api", 
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api" }
 javax-inject = { module = "javax.inject:javax.inject", version.ref = "javax-inject" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
-kandy = { module = "org.jetbrains.kotlinx:kandy-lets-plot", version.ref = "kandy" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }

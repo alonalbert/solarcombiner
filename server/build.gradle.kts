@@ -25,8 +25,6 @@ dependencies {
   implementation(libs.sqlite)
   implementation(libs.sqlite.dialect)
   implementation(project(":shared"))
-
-  implementation(libs.kandy)
 }
 
 java {
