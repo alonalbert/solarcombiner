@@ -42,7 +42,7 @@ internal fun rememberMarker(
   showIndicator: Boolean = true,
   lineCount: Int = 1,
 ): CartesianMarker {
-  val labelBackgroundShape = markerCorneredShape(CorneredShape.Corner.Rounded)
+  val labelBackgroundShape = markerCorneredShape(CorneredShape.Corner.Sharp)
   val labelBackground =
     rememberShapeComponent(
       fill = fill(MaterialTheme.colorScheme.background),
@@ -84,5 +84,6 @@ internal fun rememberMarker(
       },
     indicatorSize = 36.dp,
     guideline = guideline,
+    labelPosition = DefaultCartesianMarker.LabelPosition.AroundPoint,
   )
 }
