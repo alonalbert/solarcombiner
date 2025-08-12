@@ -4,6 +4,10 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -11,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.PRODUCTION
+import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.EXPORT
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 
 @Composable
@@ -19,6 +25,8 @@ fun DayView(
   reserveConfig: ReserveConfig,
   batteryCapacity: Double,
   ) {
+  var productionSplit by remember { mutableStateOf(EXPORT) }
+
   Column(modifier = Modifier.padding(horizontal = 8.dp)) {
     TotalEnergy(
       dayData.totalProductionMain,
@@ -28,8 +36,9 @@ fun DayView(
       dayData.totalDischarge,
       dayData.totalImport,
       dayData.totalExport,
+      { if (it == PRODUCTION) productionSplit = !productionSplit}
     )
-    DailyEnergyChart(dayData)
+    DailyEnergyChart(dayData, productionSplit)
     BatteryLevelChart(dayData.battery.filterNotNull(), batteryCapacity, reserveConfig = reserveConfig)
   }
 }

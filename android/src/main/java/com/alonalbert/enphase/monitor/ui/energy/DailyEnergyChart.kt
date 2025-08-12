@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.repository.DayData
+import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.EXPORT
+import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.MAIN
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
@@ -42,13 +44,14 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun DailyEnergyChart(
   dayData: DayData,
+  productionSplit: ProductionSplit,
   modifier: Modifier = Modifier,
 ) {
   val modelProducer = remember { CartesianChartModelProducer() }
-  LaunchedEffect(dayData) {
-    modelProducer.runTransaction(dayData)
+  LaunchedEffect(dayData, productionSplit) {
+    modelProducer.runTransaction(dayData, productionSplit)
   }
-  DailyEnergyChart(modelProducer, modifier)
+  DailyEnergyChart(modelProducer,modifier)
 }
 
 @Composable
@@ -106,7 +109,9 @@ private fun DailyEnergyChart(
   )
 }
 
-private suspend fun CartesianChartModelProducer.runTransaction(dayData: DayData) {
+private suspend fun CartesianChartModelProducer.runTransaction(
+  dayData: DayData,
+  productionSplit: ProductionSplit) {
   runTransaction {
     columnSeries {
       series(dayData.production.map { it * 4 })
@@ -114,7 +119,13 @@ private suspend fun CartesianChartModelProducer.runTransaction(dayData: DayData)
       series(dayData.grid.map { it * 4 })
       series(dayData.storage.map { it * 4 })
     }
-    lineSeries { series(dayData.productionExport.map { it * 4 }) }
+    lineSeries {
+      val values = when (productionSplit) {
+        MAIN -> dayData.productionMain
+        EXPORT -> dayData.productionExport
+      }
+      series(values.map { it * 4 })
+    }
   }
 }
 
@@ -128,7 +139,7 @@ private fun Preview() {
   ) {
     val modelProducer = CartesianChartModelProducer()
     runBlocking {
-      modelProducer.runTransaction(SampleData.dayData)
+      modelProducer.runTransaction(SampleData.dayData, EXPORT)
     }
     DailyEnergyChart(modelProducer)
   }

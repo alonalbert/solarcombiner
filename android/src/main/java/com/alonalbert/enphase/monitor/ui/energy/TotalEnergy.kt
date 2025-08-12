@@ -4,6 +4,7 @@ import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.enphase.util.round1
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.PRODUCTION
 import com.alonalbert.enphase.monitor.ui.theme.colorOf
 import com.alonalbert.enphase.monitor.util.px
 import com.alonalbert.enphase.monitor.util.toDisplay
@@ -40,12 +42,13 @@ fun TotalEnergy(
   discharge: Double,
   import: Double,
   export: Double,
+  onClickTotals: (EnergyType) -> Unit = {}
 ) {
   Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = CenterVertically) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
       EnergyBox("Imported", R.drawable.grid, R.color.grid, import)
       val breakdown = "${production.round1} + ${productionExport.round1}"
-      EnergyBox("Produced", R.drawable.solar, R.color.solar, production + productionExport, breakdown)
+      EnergyBox("Produced", R.drawable.solar, R.color.solar, production + productionExport, breakdown) { onClickTotals(PRODUCTION) }
       EnergyBox("Discharged", R.drawable.battery, R.color.battery, discharge)
     }
     ConsumedBox(consumption, production + productionExport, discharge, import)
@@ -98,10 +101,13 @@ private fun EnergyBox(
   @ColorRes colorRes: Int,
   value: Double,
   subName: String? = null,
+  onClick: (() -> Unit)? = null,
 ) {
+  val modifier = if (onClick != null) Modifier.clickable(true) { onClick() } else Modifier
   Row(
     verticalAlignment = CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(8.dp),
+    modifier = modifier
   ) {
     Image(
       painterResource(iconRes),
@@ -137,6 +143,6 @@ private fun TotalEnergyPreview() {
       data.totalDischarge,
       data.totalImport,
       data.totalExport,
-      )
+    )
   }
 }
