@@ -18,7 +18,6 @@ import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.EXPORT
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.MAIN
-import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.NONE
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
@@ -48,14 +47,22 @@ private val EMPTY = List(96) { 0.0 }
 fun DailyEnergyChart(
   dayData: DayData,
   productionSplit: ProductionSplit,
+  showProduction: Boolean,
   showConsumption: Boolean,
   showStorage: Boolean,
   showGrid: Boolean,
   modifier: Modifier = Modifier,
 ) {
   val modelProducer = remember { CartesianChartModelProducer() }
-  LaunchedEffect(dayData, productionSplit, showConsumption, showStorage, showGrid) {
-    modelProducer.runTransaction(dayData, productionSplit, showConsumption, showStorage, showGrid)
+  LaunchedEffect(dayData, productionSplit, showProduction, showConsumption, showStorage, showGrid) {
+    modelProducer.runTransaction(
+      dayData,
+      productionSplit,
+      showProduction,
+      showConsumption,
+      showStorage,
+      showGrid
+    )
   }
   DailyEnergyChart(modelProducer, modifier)
 }
@@ -112,7 +119,7 @@ private fun DailyEnergyChart(
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),
     modelProducer = modelProducer,
-    modifier = modifier.height(300.dp),
+    modifier = modifier.height(280.dp),
     zoomState = rememberVicoZoomState(zoomEnabled = false),
   )
 }
@@ -120,15 +127,16 @@ private fun DailyEnergyChart(
 private suspend fun CartesianChartModelProducer.runTransaction(
   dayData: DayData,
   productionSplit: ProductionSplit,
+  showProduction: Boolean,
   showConsumption: Boolean,
   showStorage: Boolean,
   showGrid: Boolean,
 ) {
   runTransaction {
     columnSeries {
-      when (productionSplit) {
-        NONE -> series(EMPTY)
-        else -> series(dayData.production.map { it * 4 })
+      when (showProduction) {
+        true -> series(dayData.production.map { it * 4 })
+        false -> series(EMPTY)
       }
       when (showConsumption) {
         true -> series(dayData.consumption.map { -it * 4 })
@@ -144,10 +152,12 @@ private suspend fun CartesianChartModelProducer.runTransaction(
       }
     }
     lineSeries {
-      val values = when (productionSplit) {
-        MAIN -> dayData.productionMain
-        EXPORT -> dayData.productionExport
-        NONE -> EMPTY
+      val values = when (showProduction) {
+        false -> EMPTY
+        true -> when (productionSplit) {
+          EXPORT -> dayData.productionExport
+          MAIN -> dayData.productionMain
+        }
       }
       series(values.map { it * 4 })
     }
@@ -164,11 +174,19 @@ private fun Preview() {
   ) {
     val modelProducer = CartesianChartModelProducer()
     val productionSplit = EXPORT
+    val showProduction = true
     val showConsumption = true
     val showStorage = true
     val showGrid = true
     runBlocking {
-      modelProducer.runTransaction(SampleData.dayData, productionSplit, showConsumption, showStorage, showGrid)
+      modelProducer.runTransaction(
+        SampleData.dayData,
+        productionSplit,
+        showProduction,
+        showConsumption,
+        showStorage,
+        showGrid
+      )
     }
     DailyEnergyChart(modelProducer)
   }

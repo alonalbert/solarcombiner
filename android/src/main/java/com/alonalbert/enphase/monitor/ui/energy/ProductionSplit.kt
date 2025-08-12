@@ -2,15 +2,12 @@ package com.alonalbert.enphase.monitor.ui.energy
 
 enum class ProductionSplit {
   EXPORT {
-    override fun next() = MAIN
+    override fun not() = MAIN
   },
   MAIN {
-    override fun next() = NONE
-  },
-  NONE {
-    override fun next() = EXPORT
+    override fun not() = EXPORT
   },
   ;
 
-  abstract fun next(): ProductionSplit
+  abstract operator fun not(): ProductionSplit
 }

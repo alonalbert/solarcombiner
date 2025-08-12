@@ -15,12 +15,6 @@ import androidx.compose.ui.unit.dp
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
-import com.alonalbert.enphase.monitor.ui.energy.EnergyType.CHARGE
-import com.alonalbert.enphase.monitor.ui.energy.EnergyType.CONSUMPTION
-import com.alonalbert.enphase.monitor.ui.energy.EnergyType.DISCHARGE
-import com.alonalbert.enphase.monitor.ui.energy.EnergyType.IMPORT
-import com.alonalbert.enphase.monitor.ui.energy.EnergyType.NET_GRID
-import com.alonalbert.enphase.monitor.ui.energy.EnergyType.PRODUCTION
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.EXPORT
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 
@@ -29,7 +23,8 @@ fun DayView(
   dayData: DayData,
   reserveConfig: ReserveConfig,
   batteryCapacity: Double,
-  ) {
+) {
+  var showProduction by remember { mutableStateOf(true) }
   var showConsumption by remember { mutableStateOf(true) }
   var showStorage by remember { mutableStateOf(true) }
   var showGrid by remember { mutableStateOf(true) }
@@ -43,17 +38,21 @@ fun DayView(
       dayData.totalCharge,
       dayData.totalDischarge,
       dayData.totalImport,
-      dayData.totalExport
-    ) {
-      when (it) {
-        PRODUCTION -> productionSplit = productionSplit.next()
-        CONSUMPTION -> showConsumption = !showConsumption
-        CHARGE, DISCHARGE -> showStorage = !showStorage
-        IMPORT, EnergyType.EXPORT, NET_GRID -> showGrid = !showGrid
-      }
-    }
-    DailyEnergyChart(dayData, productionSplit, showConsumption, showStorage, showGrid)
+      dayData.totalExport,
+      onProductionClicked = { productionSplit = !productionSplit }
+    )
+    DailyEnergyChart(dayData, productionSplit, showProduction, showConsumption, showStorage, showGrid)
     BatteryLevelChart(dayData.battery.filterNotNull(), batteryCapacity, reserveConfig = reserveConfig)
+    ChartSwitches(
+      isProductionChecked = showProduction,
+      isConsumptionChecked = showConsumption,
+      isStorageChecked = showStorage,
+      isGridChecked = showGrid,
+      onProductionChanged = { showProduction = !showProduction },
+      onConsumptionChanged = { showConsumption = !showConsumption },
+      onStorageChanged = { showStorage = !showStorage },
+      onGridChanged = { showGrid = !showGrid },
+    )
   }
 }
 
