@@ -64,7 +64,6 @@ class EnergyViewModel @Inject constructor(
   }
 
   fun refreshData() {
-    Timber.i("refreshData")
     if (!context.checkNetwork()) {
       Timber.w("Network connected but not validated. Might be an issue in Doze. Retrying.")
       return

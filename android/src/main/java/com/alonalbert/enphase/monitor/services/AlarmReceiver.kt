@@ -21,39 +21,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.PrintWriter
-import java.nio.file.StandardOpenOption.APPEND
-import java.nio.file.StandardOpenOption.CREATE
-import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.format.DateTimeFormatterBuilder
-import java.time.temporal.ChronoField.DAY_OF_MONTH
-import java.time.temporal.ChronoField.HOUR_OF_DAY
-import java.time.temporal.ChronoField.MINUTE_OF_HOUR
-import java.time.temporal.ChronoField.MONTH_OF_YEAR
-import java.time.temporal.ChronoField.SECOND_OF_MINUTE
-import java.time.temporal.ChronoField.YEAR
 import javax.inject.Inject
-import kotlin.io.path.writer
-import kotlin.text.Charsets.UTF_8
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 private val DELAY = 5.minutes
-private val TIMESTAMP_FORMATTER = DateTimeFormatterBuilder()
-  .parseCaseInsensitive()
-  .appendValue(YEAR)
-  .appendLiteral('-')
-  .appendValue(MONTH_OF_YEAR, 2)
-  .appendLiteral('-')
-  .appendValue(DAY_OF_MONTH, 2)
-  .appendLiteral(' ')
-  .appendValue(HOUR_OF_DAY, 2)
-  .appendLiteral(':')
-  .appendValue(MINUTE_OF_HOUR, 2)
-  .appendLiteral(':')
-  .appendValue(SECOND_OF_MINUTE, 2)
-  .toFormatter()
 
 @AndroidEntryPoint
 class AlarmReceiver : BroadcastReceiver() {
@@ -75,20 +48,19 @@ class AlarmReceiver : BroadcastReceiver() {
   private suspend fun setReserve(context: Context): Duration {
     with(context) {
       try {
-        log("AlarmReceiver.onReceive()")
         if (!checkNetwork()) {
-          log("Network connected but not validated. Might be an issue in Doze.")
+          Timber.i("Network connected but not validated. Might be an issue in Doze.")
           return 1.minutes
         }
         val settings = db.settingsDao().getSettings()
         if (settings == null) {
-          log("Settings not found")
+          Timber.i("Settings not found")
           return DELAY
         }
         val batteryDao = db.batteryDao()
         val batteryCapacity = batteryDao.getBatteryCapacity()
         if (batteryCapacity == null) {
-          log("Battery capacity not found")
+          Timber.i("Battery capacity not found")
           return DELAY
         }
 
@@ -102,22 +74,11 @@ class AlarmReceiver : BroadcastReceiver() {
         )
         val enphase = enphaseAsync.await()
         enphase.ensureLogin(settings.email, settings.password)
-        val result = enphase.setBatteryReserve(settings.mainSiteId, reserve)
-        log("Setting reserve to $reserve: $result")
+        enphase.setBatteryReserve(settings.mainSiteId, reserve)
       } catch (e: Exception) {
-        log("Failed to set reserve", e)
+        Timber.e(e, "Failed to set reserve")
       }
       return DELAY
-    }
-  }
-
-  context(context: Context)
-  private fun log(message: String, e: Exception? = null) {
-    Timber.d(e, message)
-    val logFile = context.cacheDir.toPath().resolve("reserve.log")
-    logFile.writer(UTF_8, APPEND, CREATE).use {
-      it.write("${LocalDateTime.now().format(TIMESTAMP_FORMATTER  )}: $message\n")
-      e?.printStackTrace(PrintWriter(it))
     }
   }
 
