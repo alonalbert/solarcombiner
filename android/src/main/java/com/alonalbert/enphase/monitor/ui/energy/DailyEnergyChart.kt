@@ -18,6 +18,7 @@ import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.EXPORT
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.MAIN
+import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.NONE
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
@@ -41,17 +42,22 @@ import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineStroke
 import kotlinx.coroutines.runBlocking
 
+private val EMPTY = List(96) { 0.0 }
+
 @Composable
 fun DailyEnergyChart(
   dayData: DayData,
   productionSplit: ProductionSplit,
+  showConsumption: Boolean,
+  showStorage: Boolean,
+  showGrid: Boolean,
   modifier: Modifier = Modifier,
 ) {
   val modelProducer = remember { CartesianChartModelProducer() }
-  LaunchedEffect(dayData, productionSplit) {
-    modelProducer.runTransaction(dayData, productionSplit)
+  LaunchedEffect(dayData, productionSplit, showConsumption, showStorage, showGrid) {
+    modelProducer.runTransaction(dayData, productionSplit, showConsumption, showStorage, showGrid)
   }
-  DailyEnergyChart(modelProducer,modifier)
+  DailyEnergyChart(modelProducer, modifier)
 }
 
 @Composable
@@ -93,12 +99,14 @@ private fun DailyEnergyChart(
             label = rememberAxisLabelComponent(textSize = 10.sp),
             valueFormatter = TimeOfDayAxisValueFormatter,
             guideline = null,
-            itemPlacer = remember { HorizontalAxis.ItemPlacer.aligned(
-              spacing = { 12 },
-              offset = { 0 },
-              shiftExtremeLines = false,
-              addExtremeLabelPadding = true
-            ) },
+            itemPlacer = remember {
+              HorizontalAxis.ItemPlacer.aligned(
+                spacing = { 12 },
+                offset = { 0 },
+                shiftExtremeLines = false,
+                addExtremeLabelPadding = true
+              )
+            },
           ),
         marker = rememberMarker(DailyEnergyValueFormatter(LocalContext.current), lineCount = 4),
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
@@ -111,18 +119,35 @@ private fun DailyEnergyChart(
 
 private suspend fun CartesianChartModelProducer.runTransaction(
   dayData: DayData,
-  productionSplit: ProductionSplit) {
+  productionSplit: ProductionSplit,
+  showConsumption: Boolean,
+  showStorage: Boolean,
+  showGrid: Boolean,
+) {
   runTransaction {
     columnSeries {
-      series(dayData.production.map { it * 4 })
-      series(dayData.consumption.map { -it * 4 })
-      series(dayData.grid.map { it * 4 })
-      series(dayData.storage.map { it * 4 })
+      when (productionSplit) {
+        NONE -> series(EMPTY)
+        else -> series(dayData.production.map { it * 4 })
+      }
+      when (showConsumption) {
+        true -> series(dayData.consumption.map { -it * 4 })
+        false -> series(EMPTY)
+      }
+      when (showGrid) {
+        true -> series(dayData.grid.map { it * 4 })
+        false -> series(EMPTY)
+      }
+      when (showStorage) {
+        true -> series(dayData.storage.map { it * 4 })
+        false -> series(EMPTY)
+      }
     }
     lineSeries {
       val values = when (productionSplit) {
         MAIN -> dayData.productionMain
         EXPORT -> dayData.productionExport
+        NONE -> EMPTY
       }
       series(values.map { it * 4 })
     }
@@ -138,8 +163,12 @@ private fun Preview() {
       .padding(16.dp)
   ) {
     val modelProducer = CartesianChartModelProducer()
+    val productionSplit = EXPORT
+    val showConsumption = true
+    val showStorage = true
+    val showGrid = true
     runBlocking {
-      modelProducer.runTransaction(SampleData.dayData, EXPORT)
+      modelProducer.runTransaction(SampleData.dayData, productionSplit, showConsumption, showStorage, showGrid)
     }
     DailyEnergyChart(modelProducer)
   }

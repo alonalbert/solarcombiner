@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -28,6 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.enphase.util.round1
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.CHARGE
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.CONSUMPTION
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.DISCHARGE
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.EXPORT
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.IMPORT
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.NET_GRID
 import com.alonalbert.enphase.monitor.ui.energy.EnergyType.PRODUCTION
 import com.alonalbert.enphase.monitor.ui.theme.colorOf
 import com.alonalbert.enphase.monitor.util.px
@@ -46,20 +52,20 @@ fun TotalEnergy(
 ) {
   Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = CenterVertically) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-      EnergyBox("Imported", R.drawable.grid, R.color.grid, import)
+      EnergyBox("Imported", R.drawable.grid, R.color.grid, import) { onClickTotals(IMPORT) }
       val breakdown = "${production.round1} + ${productionExport.round1}"
       EnergyBox("Produced", R.drawable.solar, R.color.solar, production + productionExport, breakdown) { onClickTotals(PRODUCTION) }
-      EnergyBox("Discharged", R.drawable.battery, R.color.battery, discharge)
+      EnergyBox("Discharged", R.drawable.battery, R.color.battery, discharge) { onClickTotals(DISCHARGE) }
     }
-    ConsumedBox(consumption, production + productionExport, discharge, import)
+    ConsumedBox(consumption, production + productionExport, discharge, import) { onClickTotals(CONSUMPTION) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-      EnergyBox("Exported", R.drawable.grid, R.color.grid, export)
+      EnergyBox("Exported", R.drawable.grid, R.color.grid, export) { onClickTotals(EXPORT) }
       val netImport = import - export
       when (netImport > 0) {
-        true -> EnergyBox("Net Imported", R.drawable.net_import, R.color.consumption, netImport, "")
-        false -> EnergyBox("Net Exported", R.drawable.net_export, R.color.solar, -netImport, "")
+        true -> EnergyBox("Net Imported", R.drawable.net_import, R.color.consumption, netImport, "") { onClickTotals(NET_GRID) }
+        false -> EnergyBox("Net Exported", R.drawable.net_export, R.color.solar, -netImport, "") { onClickTotals(NET_GRID) }
       }
-      EnergyBox("Charged", R.drawable.battery, R.color.battery, charge)
+      EnergyBox("Charged", R.drawable.battery, R.color.battery, charge) { onClickTotals(CHARGE) }
     }
   }
 }
@@ -70,12 +76,13 @@ private fun ConsumedBox(
   production: Double,
   discharge: Double,
   import: Double,
+  onClick: (() -> Unit),
 ) {
   val total = production + import + discharge
   val producedAngle = ((production / total) * 360).toFloat()
   val dischargedAngle = ((discharge / total) * 360).toFloat()
   val importedAngle = 360 - producedAngle - dischargedAngle
-  Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
+  Box(contentAlignment = Center, modifier = Modifier.size(110.dp).clickable(true, onClick = onClick)) {
     with(LocalContext.current) {
       Canvas(modifier = Modifier.fillMaxSize()) {
         drawArc(colorOf(R.color.solar), -90f, producedAngle, useCenter = false, size = size, style = Stroke(6.dp.px))
@@ -101,13 +108,12 @@ private fun EnergyBox(
   @ColorRes colorRes: Int,
   value: Double,
   subName: String? = null,
-  onClick: (() -> Unit)? = null,
+  onClick: (() -> Unit),
 ) {
-  val modifier = if (onClick != null) Modifier.clickable(true) { onClick() } else Modifier
   Row(
     verticalAlignment = CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(8.dp),
-    modifier = modifier
+    modifier = Modifier.clickable(true, onClick = onClick)
   ) {
     Image(
       painterResource(iconRes),

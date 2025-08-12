@@ -15,6 +15,11 @@ import androidx.compose.ui.unit.dp
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryLevelChart
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.CHARGE
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.CONSUMPTION
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.DISCHARGE
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.IMPORT
+import com.alonalbert.enphase.monitor.ui.energy.EnergyType.NET_GRID
 import com.alonalbert.enphase.monitor.ui.energy.EnergyType.PRODUCTION
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.EXPORT
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
@@ -25,6 +30,9 @@ fun DayView(
   reserveConfig: ReserveConfig,
   batteryCapacity: Double,
   ) {
+  var showConsumption by remember { mutableStateOf(true) }
+  var showStorage by remember { mutableStateOf(true) }
+  var showGrid by remember { mutableStateOf(true) }
   var productionSplit by remember { mutableStateOf(EXPORT) }
 
   Column(modifier = Modifier.padding(horizontal = 8.dp)) {
@@ -35,10 +43,16 @@ fun DayView(
       dayData.totalCharge,
       dayData.totalDischarge,
       dayData.totalImport,
-      dayData.totalExport,
-      { if (it == PRODUCTION) productionSplit = !productionSplit}
-    )
-    DailyEnergyChart(dayData, productionSplit)
+      dayData.totalExport
+    ) {
+      when (it) {
+        PRODUCTION -> productionSplit = productionSplit.next()
+        CONSUMPTION -> showConsumption = !showConsumption
+        CHARGE, DISCHARGE -> showStorage = !showStorage
+        IMPORT, EnergyType.EXPORT, NET_GRID -> showGrid = !showGrid
+      }
+    }
+    DailyEnergyChart(dayData, productionSplit, showConsumption, showStorage, showGrid)
     BatteryLevelChart(dayData.battery.filterNotNull(), batteryCapacity, reserveConfig = reserveConfig)
   }
 }
