@@ -30,7 +30,7 @@ fun MonthView(
       days.sumOf { it.import },
       days.sumOf { it.export },
     )
-    MonthChart(days, showProduction, showConsumption, showStorage, showGrid)
+    MonthChart(monthData, showProduction, showConsumption, showStorage, showGrid)
   }
 }
 

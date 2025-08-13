@@ -20,7 +20,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.text.buildSpannedString
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.db.DayTotals
-import com.alonalbert.enphase.monitor.enphase.util.rangeOfChunk
+import com.alonalbert.enphase.monitor.enphase.util.dayOfMonth
+import com.alonalbert.enphase.monitor.repository.MonthData
 import com.alonalbert.enphase.monitor.ui.theme.colorOf
 import com.alonalbert.enphase.monitor.util.appendEnergyValue
 import com.alonalbert.enphase.monitor.util.seriesOrEmpty
@@ -50,10 +51,11 @@ import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
 import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarkerTarget
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker.ValueFormatter
 import kotlinx.coroutines.runBlocking
+import java.time.YearMonth
 
 @Composable
 fun MonthChart(
-  days: List<DayTotals>,
+  monthData: MonthData,
   showProduction: Boolean,
   showConsumption: Boolean,
   showStorage: Boolean,
@@ -61,14 +63,15 @@ fun MonthChart(
   modifier: Modifier = Modifier,
 ) {
   val modelProducer = remember { CartesianChartModelProducer() }
-  LaunchedEffect(days, showProduction, showConsumption, showStorage, showGrid) {
-    modelProducer.runTransaction(days, showProduction, showConsumption, showStorage, showGrid)
+  LaunchedEffect(monthData, showProduction, showConsumption, showStorage, showGrid) {
+    modelProducer.runTransaction(monthData.days, showProduction, showConsumption, showStorage, showGrid)
   }
-  MonthChart(modelProducer, modifier)
+  MonthChart(monthData.month, modelProducer, modifier)
 }
 
 @Composable
 private fun MonthChart(
+  month: YearMonth,
   modelProducer: CartesianChartModelProducer,
   modifier: Modifier = Modifier,
 ) {
@@ -116,7 +119,7 @@ private fun MonthChart(
               )
             },
           ),
-        marker = rememberMarker(MonthMarkerValueFormatter(LocalContext.current), lineCount = 7),
+        marker = rememberMarker(MonthMarkerValueFormatter(LocalContext.current, month), lineCount = 7),
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),
     modelProducer = modelProducer,
@@ -149,6 +152,7 @@ private suspend fun CartesianChartModelProducer.runTransaction(
 
 private class MonthMarkerValueFormatter(
   private val androidContext: Context,
+  private val month: YearMonth,
 ) : ValueFormatter {
   override fun format(
     context: CartesianDrawingContext,
@@ -169,7 +173,7 @@ private class MonthMarkerValueFormatter(
           val export = -columns[4].entry.y
           val charge = -columns[5].entry.y
 
-          append("${rangeOfChunk(target.x.toInt())}\n")
+          append("${month.atDay(target.x.toInt()).dayOfMonth()}\n")
           appendEnergyValue("Produced", production, solarColor)
           appendEnergyValue("Imported", import, gridColor)
           appendEnergyValue("Discharged", discharge, storageColor)
@@ -202,6 +206,6 @@ private fun Preview() {
         showGrid = true,
       )
     }
-    MonthChart(modelProducer)
+    MonthChart(YearMonth.now(), modelProducer)
   }
 }

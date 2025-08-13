@@ -12,6 +12,7 @@ import kotlin.math.abs
 
 private val YEAR_MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMMM yyyy")
 private val TIME_OF_DAY_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
+private val DAY_OF_MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMMM d")
 
 val Double.kw get() = "%.2f kW".format(this)
 val Double.round1 get() = "%.1f".format(this)
@@ -44,6 +45,7 @@ infix operator fun LocalDate.rangeTo(other: LocalDate): Sequence<LocalDate> {
 fun YearMonth.format(): String = format(YEAR_MONTH_FORMATTER)
 
 fun LocalDate.formatMedium(): String = format(DateTimeFormatter.ofLocalizedDate(MEDIUM))
+fun LocalDate.dayOfMonth(): String = format(DAY_OF_MONTH_FORMATTER)
 
 fun LocalDateTime.format(): String = format(TIME_OF_DAY_FORMATTER)
 
