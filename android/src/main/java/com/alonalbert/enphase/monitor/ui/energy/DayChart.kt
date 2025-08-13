@@ -166,7 +166,7 @@ private suspend fun CartesianChartModelProducer.runTransaction(
   }
 }
 
-class DayMarkerValueFormatter(
+private class DayMarkerValueFormatter(
   private val androidContext: Context,
 ) : ValueFormatter {
   override fun format(
