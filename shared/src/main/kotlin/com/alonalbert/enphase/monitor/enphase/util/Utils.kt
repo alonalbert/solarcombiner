@@ -2,6 +2,7 @@ package com.alonalbert.enphase.monitor.enphase.util
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
@@ -46,8 +47,18 @@ fun LocalDate.formatMedium(): String = format(DateTimeFormatter.ofLocalizedDate(
 
 fun LocalDateTime.format(): String = format(TIME_OF_DAY_FORMATTER)
 
+fun LocalTime.format(): String = format(TIME_OF_DAY_FORMATTER)
+
 fun LocalDate.format(): String = format(ISO_LOCAL_DATE)
 
 fun Double.zerofy() = if (abs(this) < 0.01) 0.0 else this
 
 fun LocalDate.toEpochMillis() = TimeUnit.DAYS.toMillis(toEpochDay())
+
+fun rangeOfChunk(chunk: Int): String {
+  val startTime = timeOfMin(chunk * 15)
+  val endTime = startTime.plusMinutes(15)
+  return "${startTime.format()} - ${endTime.format()}"
+}
+
+fun timeOfMin(minute: Int): LocalTime = LocalTime.of(minute / 60, minute % 60)

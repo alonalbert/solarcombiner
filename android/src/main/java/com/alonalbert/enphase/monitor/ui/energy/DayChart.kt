@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.text.buildSpannedString
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.enphase.util.kw
+import com.alonalbert.enphase.monitor.enphase.util.rangeOfChunk
 import com.alonalbert.enphase.monitor.enphase.util.zerofy
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.EXPORT
@@ -130,7 +131,7 @@ private fun DayChart(
               )
             },
           ),
-        marker = rememberMarker(DayMarkerValueFormatter(LocalContext.current), lineCount = 4),
+        marker = rememberMarker(DayMarkerValueFormatter(LocalContext.current), lineCount = 5),
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),
     modelProducer = modelProducer,
@@ -155,7 +156,7 @@ private suspend fun CartesianChartModelProducer.runTransaction(
       data.storage.seriesOrEmpty(showStorage) { it * 4 }
     }
     lineSeries {
-      val values = when  {
+      val values = when {
         !showProduction -> EMPTY
         productionSplit == EXPORT -> data.productionExport
         productionSplit == MAIN -> data.productionMain
@@ -185,16 +186,17 @@ private class DayMarkerValueFormatter(
           val consumed = -columns[1].entry.y
           val grid = columns[2].entry.y
           val battery = columns[3].entry.y
-          appendEnergyColumn("Produced", produced, solarColor)
+          append("${rangeOfChunk(target.x.toInt())}\n")
+          appendValue("Produced", produced, solarColor)
           when (grid >= 0) {
-            true -> appendEnergyColumn("Imported", grid, gridColor)
-            false -> appendEnergyColumn("Exported", -grid, gridColor)
+            true -> appendValue("Imported", grid, gridColor)
+            false -> appendValue("Exported", -grid, gridColor)
           }
           when (battery >= 0) {
-            true -> appendEnergyColumn("Discharged", battery, batteryColor)
-            false -> appendEnergyColumn("Charged", -battery, batteryColor)
+            true -> appendValue("Discharged", battery, batteryColor)
+            false -> appendValue("Charged", -battery, batteryColor)
           }
-          appendEnergyColumn("Consumed", consumed, consumptionColor)
+          appendValue("Consumed", consumed, consumptionColor)
 
           setSpan(TabStopSpan.Standard(100), 0, length, SPAN_EXCLUSIVE_EXCLUSIVE)
         }
@@ -203,7 +205,7 @@ private class DayMarkerValueFormatter(
   }
 }
 
-private fun SpannableStringBuilder.appendEnergyColumn(name: String, value: Double, color: Color) {
+private fun SpannableStringBuilder.appendValue(name: String, value: Double, color: Color) {
   if (value.zerofy() != 0.0) {
     append("$name:\t${value.kw}\n", ForegroundColorSpan(color.toInt()), SPAN_EXCLUSIVE_EXCLUSIVE)
   }
