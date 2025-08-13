@@ -23,11 +23,11 @@ fun DayView(
   dayData: DayData,
   reserveConfig: ReserveConfig,
   batteryCapacity: Double,
+  showProduction: Boolean,
+  showConsumption: Boolean,
+  showStorage: Boolean,
+  showGrid: Boolean,
 ) {
-  var showProduction by remember { mutableStateOf(true) }
-  var showConsumption by remember { mutableStateOf(true) }
-  var showStorage by remember { mutableStateOf(true) }
-  var showGrid by remember { mutableStateOf(true) }
   var productionSplit by remember { mutableStateOf(EXPORT) }
 
   Column(modifier = Modifier.padding(horizontal = 8.dp)) {
@@ -43,16 +43,6 @@ fun DayView(
     )
     DailyEnergyChart(dayData, productionSplit, showProduction, showConsumption, showStorage, showGrid)
     BatteryLevelChart(dayData.battery.filterNotNull(), batteryCapacity, reserveConfig = reserveConfig)
-    ChartSwitches(
-      isProductionChecked = showProduction,
-      isConsumptionChecked = showConsumption,
-      isStorageChecked = showStorage,
-      isGridChecked = showGrid,
-      onProductionChanged = { showProduction = !showProduction },
-      onConsumptionChanged = { showConsumption = !showConsumption },
-      onStorageChanged = { showStorage = !showStorage },
-      onGridChanged = { showGrid = !showGrid },
-    )
   }
 }
 
@@ -70,6 +60,10 @@ private fun DayViewPreviewDark() {
       dayData = SampleData.dayData,
       batteryCapacity = 20.16,
       reserveConfig = ReserveConfig.DEFAULT,
+      showProduction = true,
+      showConsumption = true,
+      showStorage = true,
+      showGrid = true,
     )
   }
 }

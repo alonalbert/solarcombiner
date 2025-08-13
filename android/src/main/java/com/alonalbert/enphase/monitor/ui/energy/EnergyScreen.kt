@@ -25,7 +25,9 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -121,6 +123,11 @@ fun EnergyScreen(
       isRefreshing = isRefreshing,
       onRefresh = onRefresh,
     ) {
+      var showProduction by remember { mutableStateOf(true) }
+      var showConsumption by remember { mutableStateOf(true) }
+      var showStorage by remember { mutableStateOf(true) }
+      var showGrid by remember { mutableStateOf(true) }
+
       LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
         val data = chartData
         item {
@@ -133,9 +140,21 @@ fun EnergyScreen(
         }
         item {
           when (data) {
-            is DayData -> DayView(data, reserveConfig, batteryCapacity)
-            is MonthData -> MonthView(data)
+            is DayData -> DayView(data, reserveConfig, batteryCapacity, showProduction, showConsumption, showStorage, showGrid)
+            is MonthData -> MonthView(data, showProduction, showConsumption, showStorage, showGrid)
           }
+        }
+        item {
+          ChartSwitches(
+            isProductionChecked = showProduction,
+            isConsumptionChecked = showConsumption,
+            isStorageChecked = showStorage,
+            isGridChecked = showGrid,
+            onProductionChanged = { showProduction = !showProduction },
+            onConsumptionChanged = { showConsumption = !showConsumption },
+            onStorageChanged = { showStorage = !showStorage },
+            onGridChanged = { showGrid = !showGrid },
+          )
         }
       }
     }

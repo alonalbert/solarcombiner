@@ -14,6 +14,10 @@ import java.time.YearMonth
 @Composable
 fun MonthView(
   monthData: MonthData,
+  showProduction: Boolean,
+  showConsumption: Boolean,
+  showStorage: Boolean,
+  showGrid: Boolean,
 ) {
   Column(modifier = Modifier.padding(horizontal = 8.dp)) {
     val days = monthData.days
@@ -26,7 +30,7 @@ fun MonthView(
       days.sumOf { it.import },
       days.sumOf { it.export },
     )
-    MonthChart(days)
+    MonthChart(days, showProduction, showConsumption, showStorage, showGrid)
   }
 }
 
@@ -40,6 +44,10 @@ private fun MonthViewPreview() {
   SolarCombinerTheme {
     MonthView(
       monthData = MonthData(YearMonth.now(), SampleData.days),
+      showProduction = true,
+      showConsumption = true,
+      showStorage = true,
+      showGrid = true,
     )
   }
 }

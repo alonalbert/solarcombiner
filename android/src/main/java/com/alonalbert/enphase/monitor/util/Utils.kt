@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.enphase.util.round2
+import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 
 fun Double.toDisplay(
   unit: String,
@@ -42,5 +43,16 @@ fun stringResourceOrDefault(@StringRes id: Int, default: String): String {
     resources.getString(id)
   } catch (_: Resources.NotFoundException) {
     default
+  }
+}
+
+context(scope: ColumnCartesianLayerModel.BuilderScope)
+fun <T> List<T>.seriesOrEmpty(show: Boolean, transform: (T) -> Double) {
+  with(scope) {
+    val values = when (show) {
+      true -> map(transform)
+      false -> List(size) { 0.0 }
+    }
+    series(values)
   }
 }

@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.db.DayTotals
+import com.alonalbert.enphase.monitor.util.seriesOrEmpty
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
@@ -42,11 +43,15 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun MonthChart(
   days: List<DayTotals>,
+  showProduction: Boolean,
+  showConsumption: Boolean,
+  showStorage: Boolean,
+  showGrid: Boolean,
   modifier: Modifier = Modifier,
 ) {
   val modelProducer = remember { CartesianChartModelProducer() }
-  LaunchedEffect(days) {
-    modelProducer.runTransaction(days)
+  LaunchedEffect(days, showProduction, showConsumption, showStorage, showGrid) {
+    modelProducer.runTransaction(days, showProduction, showConsumption, showStorage, showGrid)
   }
   MonthChart(modelProducer, modifier)
 }
@@ -109,15 +114,21 @@ private fun MonthChart(
   )
 }
 
-private suspend fun CartesianChartModelProducer.runTransaction(days: List<DayTotals>) {
+private suspend fun CartesianChartModelProducer.runTransaction(
+  days: List<DayTotals>,
+  showProduction: Boolean,
+  showConsumption: Boolean,
+  showStorage: Boolean,
+  showGrid: Boolean,
+) {
   runTransaction {
     columnSeries {
-      series(days.map { it.production + it.exportProduction })
-      series(days.map { it.import })
-      series(days.map { it.discharge })
-      series(days.map { -it.consumption })
-      series(days.map { -it.export })
-      series(days.map { -it.charge })
+      days.seriesOrEmpty(showProduction) { it.production + it.exportProduction }
+      days.seriesOrEmpty(showGrid) { it.import }
+      days.seriesOrEmpty(showStorage) { it.discharge }
+      days.seriesOrEmpty(showConsumption) { -it.consumption }
+      days.seriesOrEmpty(showGrid) { -it.export }
+      days.seriesOrEmpty(showStorage) { -it.charge }
       lineSeries {
         series(List(days.size) { 0 })
       }
@@ -135,7 +146,13 @@ private fun Preview() {
   ) {
     val modelProducer = CartesianChartModelProducer()
     runBlocking {
-      modelProducer.runTransaction(SampleData.days)
+      modelProducer.runTransaction(
+        SampleData.days,
+        showProduction = true,
+        showConsumption = true,
+        showStorage = true,
+        showGrid = true,
+      )
     }
     MonthChart(modelProducer)
   }

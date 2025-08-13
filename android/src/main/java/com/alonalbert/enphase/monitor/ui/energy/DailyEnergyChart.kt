@@ -18,6 +18,7 @@ import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.EXPORT
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.MAIN
+import com.alonalbert.enphase.monitor.util.seriesOrEmpty
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
@@ -125,7 +126,7 @@ private fun DailyEnergyChart(
 }
 
 private suspend fun CartesianChartModelProducer.runTransaction(
-  dayData: DayData,
+  data: DayData,
   productionSplit: ProductionSplit,
   showProduction: Boolean,
   showConsumption: Boolean,
@@ -134,30 +135,17 @@ private suspend fun CartesianChartModelProducer.runTransaction(
 ) {
   runTransaction {
     columnSeries {
-      when (showProduction) {
-        true -> series(dayData.production.map { it * 4 })
-        false -> series(EMPTY)
-      }
-      when (showConsumption) {
-        true -> series(dayData.consumption.map { -it * 4 })
-        false -> series(EMPTY)
-      }
-      when (showGrid) {
-        true -> series(dayData.grid.map { it * 4 })
-        false -> series(EMPTY)
-      }
-      when (showStorage) {
-        true -> series(dayData.storage.map { it * 4 })
-        false -> series(EMPTY)
-      }
+      data.production.seriesOrEmpty(showProduction) { it * 4 }
+      data.consumption.seriesOrEmpty(showConsumption) { -it * 4 }
+      data.grid.seriesOrEmpty(showGrid) { it * 4 }
+      data.storage.seriesOrEmpty(showStorage) { it * 4 }
     }
     lineSeries {
-      val values = when (showProduction) {
-        false -> EMPTY
-        true -> when (productionSplit) {
-          EXPORT -> dayData.productionExport
-          MAIN -> dayData.productionMain
-        }
+      val values = when  {
+        !showProduction -> EMPTY
+        productionSplit == EXPORT -> data.productionExport
+        productionSplit == MAIN -> data.productionMain
+        else -> return@lineSeries
       }
       series(values.map { it * 4 })
     }
