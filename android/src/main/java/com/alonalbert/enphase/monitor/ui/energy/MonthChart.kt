@@ -22,7 +22,7 @@ import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.db.DayTotals
 import com.alonalbert.enphase.monitor.enphase.util.rangeOfChunk
 import com.alonalbert.enphase.monitor.ui.theme.colorOf
-import com.alonalbert.enphase.monitor.util.appendValue
+import com.alonalbert.enphase.monitor.util.appendEnergyValue
 import com.alonalbert.enphase.monitor.util.seriesOrEmpty
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
@@ -170,12 +170,12 @@ private class MonthMarkerValueFormatter(
           val charge = -columns[5].entry.y
 
           append("${rangeOfChunk(target.x.toInt())}\n")
-          appendValue("Produced", production, solarColor)
-          appendValue("Imported", import, gridColor)
-          appendValue("Discharged", discharge, storageColor)
-          appendValue("Consumed", consumption, consumptionColor)
-          appendValue("Exported", export, gridColor)
-          appendValue("Charged", charge, storageColor)
+          appendEnergyValue("Produced", production, solarColor)
+          appendEnergyValue("Imported", import, gridColor)
+          appendEnergyValue("Discharged", discharge, storageColor)
+          appendEnergyValue("Consumed", consumption, consumptionColor)
+          appendEnergyValue("Exported", export, gridColor)
+          appendEnergyValue("Charged", charge, storageColor)
 
           setSpan(TabStopSpan.Standard(100), 0, length, SPAN_EXCLUSIVE_EXCLUSIVE)
         }

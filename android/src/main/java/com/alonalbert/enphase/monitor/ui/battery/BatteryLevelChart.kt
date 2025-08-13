@@ -1,5 +1,9 @@
 package com.alonalbert.enphase.monitor.ui.battery
 
+import android.content.Context
+import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+import android.text.style.ForegroundColorSpan
+import android.text.style.TabStopSpan
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
@@ -9,16 +13,23 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.text.buildSpannedString
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.enphase.ReserveCalculator
+import com.alonalbert.enphase.monitor.enphase.util.kw
+import com.alonalbert.enphase.monitor.enphase.util.rangeOfChunk
 import com.alonalbert.enphase.monitor.ui.energy.DecimalValueFormatter
 import com.alonalbert.enphase.monitor.ui.energy.SampleData
 import com.alonalbert.enphase.monitor.ui.energy.TimeOfDayAxisValueFormatter
+import com.alonalbert.enphase.monitor.ui.energy.rememberMarker
+import com.alonalbert.enphase.monitor.ui.theme.colorOf
+import com.alonalbert.enphase.monitor.ui.theme.toInt
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
@@ -28,6 +39,7 @@ import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLa
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
 import com.patrykandpatrick.vico.compose.common.fill
+import com.patrykandpatrick.vico.core.cartesian.CartesianDrawingContext
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis.HorizontalLabelPosition.Inside
@@ -36,6 +48,9 @@ import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineStroke
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
+import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker.ValueFormatter
+import com.patrykandpatrick.vico.core.cartesian.marker.LineCartesianLayerMarkerTarget
 import kotlinx.coroutines.runBlocking
 
 @Composable
@@ -58,12 +73,13 @@ fun BatteryLevelChart(
   LaunchedEffect(batteryLevels) {
     modelProducer.runTransaction(batteryLevels, reserves)
   }
-  BatteryLevelChart(modelProducer, modifier)
+  BatteryLevelChart(modelProducer, batteryCapacity, modifier)
 }
 
 @Composable
 private fun BatteryLevelChart(
   modelProducer: CartesianChartModelProducer,
+  batteryCapacity: Double,
   modifier: Modifier = Modifier,
 ) {
   val fill = fill(colorResource(R.color.battery_chart))
@@ -120,6 +136,7 @@ private fun BatteryLevelChart(
               )
             },
           ),
+        marker = rememberMarker(BatteryMarkerValueFormatter(LocalContext.current, batteryCapacity), lineCount = 3),
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),
     modelProducer = modelProducer,
@@ -148,6 +165,31 @@ private suspend fun CartesianChartModelProducer.runTransaction(
   }
 }
 
+private class BatteryMarkerValueFormatter(
+  private val androidContext: Context,
+  private val batteryCapacity: Double,
+) : ValueFormatter {
+  override fun format(
+    context: CartesianDrawingContext,
+    targets: List<CartesianMarker.Target>
+  ): CharSequence {
+    with(androidContext) {
+      val color = colorOf(R.color.battery).toInt()
+      return buildSpannedString {
+        targets.filterIsInstance<LineCartesianLayerMarkerTarget>().forEach { target ->
+          val points = target.points
+          val percent = points[0].entry.y.toInt()
+          val charge = percent * batteryCapacity / 100
+          append("${rangeOfChunk(target.x.toInt())}\n")
+          append("Charge:\t${charge.kw}\n", ForegroundColorSpan(color), SPAN_EXCLUSIVE_EXCLUSIVE)
+          append("Percent:\t$percent%\n", ForegroundColorSpan(color), SPAN_EXCLUSIVE_EXCLUSIVE)
+          setSpan(TabStopSpan.Standard(100), 0, length, SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+      }
+    }
+  }
+}
+
 @Composable
 @Preview
 private fun Preview() {
@@ -163,6 +205,6 @@ private fun Preview() {
         ReserveCalculator.calculateDailyReserves(0.8, 20.16, 20, 9)
       )
     }
-    BatteryLevelChart(modelProducer)
+    BatteryLevelChart(modelProducer, 20.16)
   }
 }

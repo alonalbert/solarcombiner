@@ -24,7 +24,7 @@ import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.EXPORT
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.MAIN
 import com.alonalbert.enphase.monitor.ui.theme.colorOf
-import com.alonalbert.enphase.monitor.util.appendValue
+import com.alonalbert.enphase.monitor.util.appendEnergyValue
 import com.alonalbert.enphase.monitor.util.seriesOrEmpty
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
@@ -183,16 +183,16 @@ private class DayMarkerValueFormatter(
           val grid = columns[2].entry.y
           val battery = columns[3].entry.y
           append("${rangeOfChunk(target.x.toInt())}\n")
-          appendValue("Produced", produced, solarColor)
+          appendEnergyValue("Produced", produced, solarColor)
           when (grid >= 0) {
-            true -> appendValue("Imported", grid, gridColor)
-            false -> appendValue("Exported", -grid, gridColor)
+            true -> appendEnergyValue("Imported", grid, gridColor)
+            false -> appendEnergyValue("Exported", -grid, gridColor)
           }
           when (battery >= 0) {
-            true -> appendValue("Discharged", battery, batteryColor)
-            false -> appendValue("Charged", -battery, batteryColor)
+            true -> appendEnergyValue("Discharged", battery, batteryColor)
+            false -> appendEnergyValue("Charged", -battery, batteryColor)
           }
-          appendValue("Consumed", consumed, consumptionColor)
+          appendEnergyValue("Consumed", consumed, consumptionColor)
 
           setSpan(TabStopSpan.Standard(100), 0, length, SPAN_EXCLUSIVE_EXCLUSIVE)
         }

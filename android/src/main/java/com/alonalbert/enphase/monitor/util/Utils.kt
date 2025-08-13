@@ -64,7 +64,7 @@ fun <T> List<T>.seriesOrEmpty(show: Boolean, transform: (T) -> Double) {
   }
 }
 
-fun SpannableStringBuilder.appendValue(name: String, value: Double, color: Color) {
+fun SpannableStringBuilder.appendEnergyValue(name: String, value: Double, color: Color) {
   if (value.zerofy() != 0.0) {
     append("$name:\t${value.kw}\n", ForegroundColorSpan(color.toInt()), SPAN_EXCLUSIVE_EXCLUSIVE)
   }
