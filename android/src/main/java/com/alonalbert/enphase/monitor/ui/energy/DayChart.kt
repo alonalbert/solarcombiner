@@ -1,9 +1,7 @@
 package com.alonalbert.enphase.monitor.ui.energy
 
 import android.content.Context
-import android.text.SpannableStringBuilder
 import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-import android.text.style.ForegroundColorSpan
 import android.text.style.TabStopSpan
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,14 +19,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.buildSpannedString
 import com.alonalbert.enphase.monitor.R
-import com.alonalbert.enphase.monitor.enphase.util.kw
 import com.alonalbert.enphase.monitor.enphase.util.rangeOfChunk
-import com.alonalbert.enphase.monitor.enphase.util.zerofy
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.EXPORT
 import com.alonalbert.enphase.monitor.ui.energy.ProductionSplit.MAIN
 import com.alonalbert.enphase.monitor.ui.theme.colorOf
-import com.alonalbert.enphase.monitor.ui.theme.toInt
+import com.alonalbert.enphase.monitor.util.appendValue
 import com.alonalbert.enphase.monitor.util.seriesOrEmpty
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
@@ -202,12 +198,6 @@ private class DayMarkerValueFormatter(
         }
       }
     }
-  }
-}
-
-private fun SpannableStringBuilder.appendValue(name: String, value: Double, color: Color) {
-  if (value.zerofy() != 0.0) {
-    append("$name:\t${value.kw}\n", ForegroundColorSpan(color.toInt()), SPAN_EXCLUSIVE_EXCLUSIVE)
   }
 }
 

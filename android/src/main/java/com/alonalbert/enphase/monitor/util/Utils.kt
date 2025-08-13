@@ -1,9 +1,13 @@
 package com.alonalbert.enphase.monitor.util
 
 import android.content.res.Resources
+import android.text.SpannableStringBuilder
+import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+import android.text.style.ForegroundColorSpan
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
@@ -13,7 +17,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import com.alonalbert.enphase.monitor.enphase.util.kw
 import com.alonalbert.enphase.monitor.enphase.util.round2
+import com.alonalbert.enphase.monitor.enphase.util.zerofy
+import com.alonalbert.enphase.monitor.ui.theme.toInt
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 
 fun Double.toDisplay(
@@ -54,5 +61,11 @@ fun <T> List<T>.seriesOrEmpty(show: Boolean, transform: (T) -> Double) {
       false -> List(size) { 0.0 }
     }
     series(values)
+  }
+}
+
+fun SpannableStringBuilder.appendValue(name: String, value: Double, color: Color) {
+  if (value.zerofy() != 0.0) {
+    append("$name:\t${value.kw}\n", ForegroundColorSpan(color.toInt()), SPAN_EXCLUSIVE_EXCLUSIVE)
   }
 }
