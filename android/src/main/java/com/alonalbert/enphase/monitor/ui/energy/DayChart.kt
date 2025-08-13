@@ -45,7 +45,7 @@ import kotlinx.coroutines.runBlocking
 private val EMPTY = List(96) { 0.0 }
 
 @Composable
-fun DailyEnergyChart(
+fun DayChart(
   dayData: DayData,
   productionSplit: ProductionSplit,
   showProduction: Boolean,
@@ -65,11 +65,11 @@ fun DailyEnergyChart(
       showGrid
     )
   }
-  DailyEnergyChart(modelProducer, modifier)
+  DayChart(modelProducer, modifier)
 }
 
 @Composable
-private fun DailyEnergyChart(
+private fun DayChart(
   modelProducer: CartesianChartModelProducer,
   modifier: Modifier = Modifier,
 ) {
@@ -176,6 +176,6 @@ private fun Preview() {
         showGrid
       )
     }
-    DailyEnergyChart(modelProducer)
+    DayChart(modelProducer)
   }
 }
