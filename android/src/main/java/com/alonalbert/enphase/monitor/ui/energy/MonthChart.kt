@@ -173,7 +173,8 @@ private class MonthMarkerValueFormatter(
           val export = -columns[4].entry.y
           val charge = -columns[5].entry.y
 
-          append("${month.atDay(target.x.toInt()).dayOfMonth()}\n")
+          val dayOfMonth = target.x.toInt() + 1
+          append("${month.atDay(dayOfMonth).dayOfMonth()}\n")
           appendEnergyValue("Produced", production, solarColor)
           appendEnergyValue("Imported", import, gridColor)
           appendEnergyValue("Discharged", discharge, storageColor)
