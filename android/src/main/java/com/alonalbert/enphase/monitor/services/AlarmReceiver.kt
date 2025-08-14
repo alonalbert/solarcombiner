@@ -21,12 +21,39 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.PrintWriter
+import java.nio.file.StandardOpenOption.APPEND
+import java.nio.file.StandardOpenOption.CREATE
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.format.DateTimeFormatterBuilder
+import java.time.temporal.ChronoField.DAY_OF_MONTH
+import java.time.temporal.ChronoField.HOUR_OF_DAY
+import java.time.temporal.ChronoField.MINUTE_OF_HOUR
+import java.time.temporal.ChronoField.MONTH_OF_YEAR
+import java.time.temporal.ChronoField.SECOND_OF_MINUTE
+import java.time.temporal.ChronoField.YEAR
 import javax.inject.Inject
+import kotlin.io.path.writer
+import kotlin.text.Charsets.UTF_8
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 private val DELAY = 5.minutes
+private val TIMESTAMP_FORMATTER = DateTimeFormatterBuilder()
+  .parseCaseInsensitive()
+  .appendValue(YEAR)
+  .appendLiteral('-')
+  .appendValue(MONTH_OF_YEAR, 2)
+  .appendLiteral('-')
+  .appendValue(DAY_OF_MONTH, 2)
+  .appendLiteral(' ')
+  .appendValue(HOUR_OF_DAY, 2)
+  .appendLiteral(':')
+  .appendValue(MINUTE_OF_HOUR, 2)
+  .appendLiteral(':')
+  .appendValue(SECOND_OF_MINUTE, 2)
+  .toFormatter()
 
 @AndroidEntryPoint
 class AlarmReceiver : BroadcastReceiver() {
@@ -49,18 +76,18 @@ class AlarmReceiver : BroadcastReceiver() {
     with(context) {
       try {
         if (!checkNetwork()) {
-          Timber.i("Network connected but not validated. Might be an issue in Doze.")
+          log("Network connected but not validated. Might be an issue in Doze.")
           return 1.minutes
         }
         val settings = db.settingsDao().getSettings()
         if (settings == null) {
-          Timber.i("Settings not found")
+          log("Settings not found")
           return DELAY
         }
         val batteryDao = db.batteryDao()
         val batteryCapacity = batteryDao.getBatteryCapacity()
         if (batteryCapacity == null) {
-          Timber.i("Battery capacity not found")
+          log("Battery capacity not found")
           return DELAY
         }
 
@@ -74,11 +101,22 @@ class AlarmReceiver : BroadcastReceiver() {
         )
         val enphase = enphaseAsync.await()
         enphase.ensureLogin(settings.email, settings.password)
-        enphase.setBatteryReserve(settings.mainSiteId, reserve)
+        val result = enphase.setBatteryReserve(settings.mainSiteId, reserve)
+        log("Setting reserve to $reserve ($config): $result")
       } catch (e: Exception) {
-        Timber.e(e, "Failed to set reserve")
+        log("Failed to set reserve", e)
       }
       return DELAY
+    }
+  }
+
+  context(context: Context)
+  private fun log(message: String, e: Exception? = null) {
+    Timber.d(e, message)
+    val logFile = context.cacheDir.toPath().resolve("reserve.log")
+    logFile.writer(UTF_8, APPEND, CREATE).use {
+      it.write("${LocalDateTime.now().format(TIMESTAMP_FORMATTER  )}: $message\n")
+      e?.printStackTrace(PrintWriter(it))
     }
   }
 
@@ -89,7 +127,7 @@ class AlarmReceiver : BroadcastReceiver() {
       val context = context.applicationContext
       val alarmManager = context.getSystemService<AlarmManager>()!!
       if (!alarmManager.canScheduleExactAlarms()) {
-        Timber.w("CAnnot schedule exact alarms")
+        Timber.w("Cannot schedule exact alarms")
         return
       }
       val intent = Intent(context, AlarmReceiver::class.java)
@@ -105,7 +143,6 @@ class AlarmReceiver : BroadcastReceiver() {
       val triggerAt = System.currentTimeMillis() + delay.inWholeMilliseconds
 
       try {
-        Timber.d("Alarm scheduled to trigger in approx. $delay.")
         alarmManager.setExactAndAllowWhileIdle(RTC_WAKEUP, triggerAt, pendingIntent)
       } catch (e: SecurityException) {
         Timber.e(e, "SecurityException while scheduling alarm. Do you need SCHEDULE_EXACT_ALARM?")
