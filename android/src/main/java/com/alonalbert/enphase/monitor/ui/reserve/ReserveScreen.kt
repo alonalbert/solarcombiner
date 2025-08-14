@@ -93,7 +93,7 @@ fun ReserveScreen(
         Spacer(modifier.height(16.dp))
         ChartTitle()
 
-        BatteryChart(config, batteryCapacity)
+        BatteryChart(reserveConfig, batteryCapacity)
         Spacer(modifier.height(16.dp))
         Button(
           onClick = {
