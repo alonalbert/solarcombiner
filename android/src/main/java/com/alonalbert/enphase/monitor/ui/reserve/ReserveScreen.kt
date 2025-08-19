@@ -75,7 +75,7 @@ fun ReserveScreen(
         .padding(innerPadding)
         .fillMaxSize(),
     ) {
-      var config by remember { mutableStateOf(reserveConfig) }
+      var config by remember(reserveConfig) { mutableStateOf(reserveConfig) }
 
       Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -86,14 +86,14 @@ fun ReserveScreen(
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           val weight = Modifier.weight(1f)
-          IdleLoad(value = reserveConfig.idleLoad, onValueChange = { config = reserveConfig.copy(idleLoad = it) }, modifier = weight)
-          MinReserve(value = reserveConfig.minReserve, onValueChange = { config = reserveConfig.copy(minReserve = it) }, modifier = weight)
-          SelfConsumptionTime(value = reserveConfig.chargeStart, onValueChange = { config = reserveConfig.copy(chargeStart = it) }, modifier = weight)
+          IdleLoad(value = config.idleLoad, onValueChange = { config = config.copy(idleLoad = it) }, modifier = weight)
+          MinReserve(value = config.minReserve, onValueChange = { config = config.copy(minReserve = it) }, modifier = weight)
+          SelfConsumptionTime(value = config.chargeStart, onValueChange = { config = config.copy(chargeStart = it) }, modifier = weight)
         }
         Spacer(modifier.height(16.dp))
         ChartTitle()
 
-        BatteryChart(reserveConfig, batteryCapacity)
+        BatteryChart(config, batteryCapacity)
         Spacer(modifier.height(16.dp))
         Button(
           onClick = {
