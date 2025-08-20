@@ -92,6 +92,10 @@ class AlarmReceiver : BroadcastReceiver() {
         }
 
         val config = batteryDao.getReserveConfig() ?: ReserveConfig.DEFAULT
+        if (!config.enabled) {
+          log("Reserve management is disabled")
+          return DELAY
+        }
         val reserve = ReserveCalculator.calculateReserve(
           LocalTime.now(),
           config.idleLoad,

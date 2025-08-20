@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -83,6 +84,8 @@ fun ReserveScreen(
       ) {
         HeadingTextComponent(value = stringResource(id = R.string.reserve_config))
         Spacer(modifier = Modifier.height(20.dp))
+
+        Switch(checked = config.enabled, {config = config.copy(enabled = it)})
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           val weight = Modifier.weight(1f)

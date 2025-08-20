@@ -31,7 +31,8 @@ interface BatteryDao: KeyValueDao {
     SELECT 
       (SELECT value FROM KeyValue WHERE name='idleLoad') as idleLoad, 
       (SELECT value FROM KeyValue WHERE name='minReserve') as minReserve, 
-      (SELECT value FROM KeyValue WHERE name='chargeStart') as chargeStart
+      (SELECT value FROM KeyValue WHERE name='chargeStart') as chargeStart,
+      (SELECT value FROM KeyValue WHERE name='reserveConfigEnabled') as enabled
       WHERE TRUE 
         AND idleLoad IS NOT NULL
         AND minReserve IS NOT NULL
@@ -47,6 +48,7 @@ interface BatteryDao: KeyValueDao {
     upsert("idleLoad", reserveConfig.idleLoad.toString())
     upsert("minReserve", reserveConfig.minReserve.toString())
     upsert("chargeStart", reserveConfig.chargeStart.toString())
+    upsert("reserveConfigEnabled", if (reserveConfig.enabled) "1" else "0" )
   }
 
   @Query("SELECT CAST(value AS REAL) FROM KeyValue WHERE name='batteryCapacity'")
