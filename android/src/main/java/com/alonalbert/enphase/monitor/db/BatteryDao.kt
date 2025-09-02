@@ -32,11 +32,13 @@ interface BatteryDao: KeyValueDao {
       (SELECT value FROM KeyValue WHERE name='idleLoad') as idleLoad, 
       (SELECT value FROM KeyValue WHERE name='minReserve') as minReserve, 
       (SELECT value FROM KeyValue WHERE name='chargeStart') as chargeStart,
+      (SELECT value FROM KeyValue WHERE name='chargeEnd') as chargeEnd,
       (SELECT value FROM KeyValue WHERE name='reserveConfigEnabled') as enabled
       WHERE TRUE 
         AND idleLoad IS NOT NULL
         AND minReserve IS NOT NULL
         AND chargeStart IS NOT NULL
+        AND chargeEnd IS NOT NULL
     """
   )
   fun getReserveConfigFlow(): Flow<ReserveConfig?>
@@ -48,6 +50,7 @@ interface BatteryDao: KeyValueDao {
     upsert("idleLoad", reserveConfig.idleLoad.toString())
     upsert("minReserve", reserveConfig.minReserve.toString())
     upsert("chargeStart", reserveConfig.chargeStart.toString())
+    upsert("chargeEnd", reserveConfig.chargeEnd.toString())
     upsert("reserveConfigEnabled", if (reserveConfig.enabled) "1" else "0" )
   }
 

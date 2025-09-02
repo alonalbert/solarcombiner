@@ -66,7 +66,8 @@ fun BatteryLevelChart(
       reserveConfig.idleLoad,
       batteryCapacity,
       reserveConfig.minReserve,
-      reserveConfig.chargeStart
+      reserveConfig.chargeStart,
+      reserveConfig.chargeEnd,
     )
   }
   val modelProducer = remember { CartesianChartModelProducer() }
@@ -202,7 +203,7 @@ private fun Preview() {
     runBlocking {
       modelProducer.runTransaction(
         SampleData.dayData.battery.filterNotNull().subList(0, 50),
-        ReserveCalculator.calculateDailyReserves(0.8, 20.16, 20, 9)
+        ReserveCalculator.calculateDailyReserves(0.8, 20.16, 20, 9, 14)
       )
     }
     BatteryLevelChart(modelProducer, 20.16)

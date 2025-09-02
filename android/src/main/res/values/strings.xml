@@ -21,6 +21,7 @@
   <string name="live_status">Live Status</string>
   <string name="idle_load">Idle Load (kW)</string>
   <string name="min_reserve">Min Reserve (%)</string>
-  <string name="self_consumption_time">Self Consumption Time</string>
+  <string name="charge_start">Charge Start</string>
+  <string name="charge_end">Charge End</string>
   <string name="reserve_config">Reserve Config</string>
 </resources>

@@ -36,7 +36,7 @@ object ReserveCalculator {
     batteryCapacity: Double,
     minReserve: Int,
     chargeStart: Int,
-    chargeEnd: Int = 12,
+    chargeEnd: Int,
   ): List<Int> {
     return (0..95).map {
       val time = LocalTime.of(

@@ -91,7 +91,8 @@ fun ReserveScreen(
           val weight = Modifier.weight(1f)
           IdleLoad(value = config.idleLoad, onValueChange = { config = config.copy(idleLoad = it) }, modifier = weight)
           MinReserve(value = config.minReserve, onValueChange = { config = config.copy(minReserve = it) }, modifier = weight)
-          SelfConsumptionTime(value = config.chargeStart, onValueChange = { config = config.copy(chargeStart = it) }, modifier = weight)
+          ChargeStart(value = config.chargeStart, onValueChange = { config = config.copy(chargeStart = it) }, modifier = weight)
+          ChargeEnd(value = config.chargeEnd, onValueChange = { config = config.copy(chargeEnd = it) }, modifier = weight)
         }
         Spacer(modifier.height(16.dp))
         ChartTitle()
@@ -146,16 +147,34 @@ fun MinReserve(
 }
 
 @Composable
-fun SelfConsumptionTime(
+fun ChargeStart(
   value: Int,
   onValueChange: (Int) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   PresetEditField(
-    label = stringResource(id = R.string.self_consumption_time),
+    label = stringResource(id = R.string.charge_start),
     value = "$value:00",
     onValueChange = { onValueChange(it.split(':')[0].toInt()) },
     presets = (6..12).map { "$it:00" },
+    valueValidator = { it.split(':')[0].toIntOrNull() != null },
+    keyboardType = KeyboardType.Number,
+    modifier = modifier,
+    maxDropdownHeight = 400.dp,
+  )
+}
+
+@Composable
+fun ChargeEnd(
+  value: Int,
+  onValueChange: (Int) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  PresetEditField(
+    label = stringResource(id = R.string.charge_end),
+    value = "$value:00",
+    onValueChange = { onValueChange(it.split(':')[0].toInt()) },
+    presets = (9..18).map { "$it:00" },
     valueValidator = { it.split(':')[0].toIntOrNull() != null },
     keyboardType = KeyboardType.Number,
     modifier = modifier,
@@ -170,7 +189,8 @@ private fun BatteryChart(reserveConfig: ReserveConfig, batteryCapacity: Double) 
     reserveConfig.idleLoad,
     batteryCapacity,
     reserveConfig.minReserve,
-    reserveConfig.chargeStart
+    reserveConfig.chargeStart,
+    reserveConfig.chargeEnd,
   )
   BatteryLevelChart(reserves, batteryCapacity, modifier = Modifier.height(200.dp))
 }
