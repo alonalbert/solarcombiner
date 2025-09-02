@@ -21,7 +21,10 @@ import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.cookies.cookies
+import io.ktor.client.plugins.cookies.get
 import io.ktor.client.request.accept
+import io.ktor.client.request.cookie
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -69,6 +72,11 @@ private const val LIVE_STREAM_URL = "$BASE_URL/pv/aws_sigv4/livestream.json"
 private const val DAILY_ENERGY_URL = "$BASE_URL/pv/systems/%1\$s/daily_energy?start_date=%2\$d-%3$02d-%4$02d&end_date=%2\$d-%3$02d-%4$02d"
 private const val TODAY_URL = "$BASE_URL/pv/systems/%s/today"
 private const val BATTERY_CONFIG_URL = "$BASE_URL/pv/settings/%s/battery_status.json"
+private const val XRSF_TOKEN_URL = "$BASE_URL/service/pes_management/systems/2565630/inapp?type=RMA"
+private const val XRSF_HEADER = "x-xsrf-token"
+private const val XRSF_COOKIE = "XSRF-TOKEN"
+private const val XRSF_BATTERY_PROFILE_COOKIE = "BP-XSRF-Token"
+
 private const val BAD_VALUE = 30_000
 
 private val gson = GsonBuilder()
@@ -93,6 +101,7 @@ class Enphase(
       })
     if (response.status.isSuccess()) {
       sessionId = gson.getObject(response.bodyAsText())["session_id"].asString
+      client.get(XRSF_TOKEN_URL)
     }
   }
 
@@ -170,6 +179,9 @@ class Enphase(
     val response = client.put("$BASE_URL/service/batteryConfig/api/v1/profile/$siteId") {
       contentType(Application.Json)
       setBody(SetProfileRequest("self-consumption", reserve))
+      val token = client.cookies(BASE_URL).get(XRSF_COOKIE)?.value ?: return@put
+      header(XRSF_HEADER, token)
+      cookie(XRSF_BATTERY_PROFILE_COOKIE, token)
     }
     val body = response.body<JsonObject>()
     return when (response.status.isSuccess()) {
@@ -255,6 +267,9 @@ class Enphase(
           val status = it.status
           if (!status.isSuccess()) {
             val url = it.request.url
+            if (url.toString() == XRSF_TOKEN_URL) {
+              return@validateResponse
+            }
             logger.error("Failed to load from $url: $status")
             throw EnphaseException("Failed to load from $url: $status", status.value)
           }
