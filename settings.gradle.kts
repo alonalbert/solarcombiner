@@ -14,7 +14,7 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Solar Combiner"
+rootProject.name = "Enphase Monitor"
 include(":server")
 include(":shared")
 include(":android")
