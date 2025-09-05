@@ -13,10 +13,10 @@ import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.ReserveCalculator
+import com.alonalbert.enphase.monitor.util.TimberLogger
 import com.alonalbert.enphase.monitor.util.checkNetwork
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
@@ -60,8 +60,7 @@ class AlarmReceiver : BroadcastReceiver() {
   @Inject
   lateinit var db: AppDatabase
 
-  @Inject
-  lateinit var enphaseAsync: Deferred<Enphase>
+  private val enphase = Enphase(TimberLogger())
 
   private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -103,7 +102,6 @@ class AlarmReceiver : BroadcastReceiver() {
           config.minReserve,
           config.chargeStart,
         )
-        val enphase = enphaseAsync.await()
         enphase.ensureLogin(settings.email, settings.password)
         val result = enphase.setBatteryReserve(settings.mainSiteId, reserve)
         log("Setting reserve to $reserve ($config): $result")

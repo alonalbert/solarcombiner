@@ -73,7 +73,10 @@ fun MainNavigation() {
       LiveStatusScreen()
     }
     composable("reserve") {
-      ReserveScreen({ navController.navigateUp() })
+      ReserveScreen({
+        viewModel.updateBatteryReserve(it)
+        navController.navigateUp()
+      })
     }
   }
 }

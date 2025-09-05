@@ -42,7 +42,7 @@ import com.alonalbert.enphase.monitor.ui.components.PresetEditField
 
 @Composable
 fun ReserveScreen(
-  onUpdateClicked: () -> Unit,
+  onUpdateClicked: (ReserveConfig) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val viewModel: ReserveConfigViewModel = hiltViewModel()
@@ -54,7 +54,7 @@ fun ReserveScreen(
     batteryCapacity = batteryCapacity,
     onUpdate = {
       viewModel.update(it)
-      onUpdateClicked()
+      onUpdateClicked(it)
     },
     modifier = modifier
   )

@@ -4,31 +4,16 @@ import android.app.Application
 import android.content.Context
 import com.alonalbert.enphase.monitor.TheApplication
 import com.alonalbert.enphase.monitor.db.AppDatabase
-import com.alonalbert.enphase.monitor.enphase.Enphase
-import com.alonalbert.enphase.monitor.util.TimberLogger
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.async
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
-  @Provides
-  @Singleton
-  fun providesEnphase(): Deferred<Enphase> {
-    return MainScope().async {
-      Enphase(
-        logger = TimberLogger(),
-      )
-    }
-  }
 
   @Provides
   @Singleton

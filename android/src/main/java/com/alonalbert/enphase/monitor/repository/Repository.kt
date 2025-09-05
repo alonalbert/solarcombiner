@@ -13,6 +13,7 @@ import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.Period
+import com.alonalbert.enphase.monitor.util.TimberLogger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +30,7 @@ import javax.inject.Inject
 class Repository @Inject constructor(
   val db: AppDatabase,
 ) {
-  private val enphase: Enphase = Enphase()
+  private val enphase: Enphase = Enphase(TimberLogger())
 
   fun getChartDataFlow(period: Period): Flow<ChartData> {
     return when (period) {
