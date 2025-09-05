@@ -101,7 +101,6 @@ class Enphase(
       })
     if (response.status.isSuccess()) {
       sessionId = gson.getObject(response.bodyAsText())["session_id"].asString
-      client.get(XRSF_TOKEN_URL)
     }
   }
 
@@ -176,6 +175,7 @@ class Enphase(
   }
 
   suspend fun setBatteryReserve(siteId: String, reserve: Int): String {
+    client.get(XRSF_TOKEN_URL)
     val response = client.put("$BASE_URL/service/batteryConfig/api/v1/profile/$siteId") {
       contentType(Application.Json)
       setBody(SetProfileRequest("self-consumption", reserve))
