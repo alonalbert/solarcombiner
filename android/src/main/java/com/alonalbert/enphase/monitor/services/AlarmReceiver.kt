@@ -60,8 +60,6 @@ class AlarmReceiver : BroadcastReceiver() {
   @Inject
   lateinit var db: AppDatabase
 
-  private val enphase = Enphase(TimberLogger())
-
   private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
   override fun onReceive(context: Context, intent: Intent) {
@@ -102,6 +100,7 @@ class AlarmReceiver : BroadcastReceiver() {
           config.minReserve,
           config.chargeStart,
         )
+        val enphase = Enphase(TimberLogger())
         enphase.ensureLogin(settings.email, settings.password)
         val result = enphase.setBatteryReserve(settings.mainSiteId, reserve)
         log("Setting reserve to $reserve ($config): $result")
