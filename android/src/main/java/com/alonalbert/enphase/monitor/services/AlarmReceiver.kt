@@ -100,9 +100,15 @@ class AlarmReceiver : BroadcastReceiver() {
           config.minReserve,
           config.chargeStart,
         )
+        if (reserve == batteryDao.getBatteryReserve()) {
+          log("Reserve is already set to $reserve%, skipping")
+          return DELAY
+        }
+
         val enphase = Enphase(TimberLogger())
         enphase.ensureLogin(settings.email, settings.password)
         val result = enphase.setBatteryReserve(settings.mainSiteId, reserve)
+        batteryDao.updateBatteryReserve(reserve)
         log("Setting reserve to $reserve ($config): $result")
       } catch (e: Exception) {
         log("Failed to set reserve", e)
@@ -116,7 +122,7 @@ class AlarmReceiver : BroadcastReceiver() {
     Timber.d(e, message)
     val logFile = context.cacheDir.toPath().resolve("reserve.log")
     logFile.writer(UTF_8, APPEND, CREATE).use {
-      it.write("${LocalDateTime.now().format(TIMESTAMP_FORMATTER  )}: $message\n")
+      it.write("${LocalDateTime.now().format(TIMESTAMP_FORMATTER)}: $message\n")
       e?.printStackTrace(PrintWriter(it))
     }
   }

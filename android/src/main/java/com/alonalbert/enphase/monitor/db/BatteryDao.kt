@@ -20,6 +20,13 @@ interface BatteryDao: KeyValueDao {
   )
   fun getBatteryStatusFlow(): Flow<BatteryStatus?>
 
+  @Query("SELECT CAST(value AS INTEGER) FROM KeyValue WHERE name='reserve'")
+  suspend fun getBatteryReserve(): Int
+
+  suspend fun updateBatteryReserve(value: Int) {
+    upsert("reserve", value.toString())
+  }
+
   @Transaction
   suspend fun updateBatteryStatus(batteryStatus: BatteryStatus) {
     upsert("battery", batteryStatus.battery.toString())

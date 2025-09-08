@@ -33,7 +33,8 @@ class NavigationViewModel @Inject constructor(
 
   fun updateBatteryReserve(reserveConfig: ReserveConfig) {
     viewModelScope.launch {
-      db.batteryDao().updateReserveConfig(reserveConfig)
+      val batteryDao = db.batteryDao()
+      batteryDao.updateReserveConfig(reserveConfig)
       val settings = db.settingsDao().getSettings() ?: return@launch
       val enphase = Enphase(TimberLogger())
       enphase.ensureLogin(settings.email, settings.password)
@@ -47,6 +48,7 @@ class NavigationViewModel @Inject constructor(
         reserveConfig.chargeStart,
       )
       val result = enphase.setBatteryReserve(mainSiteId, reserve)
+      batteryDao.updateBatteryReserve(reserve)
       Timber.i("Setting reserve to $reserve ($reserveConfig): $result")
     }
   }
