@@ -46,6 +46,7 @@ class NavigationViewModel @Inject constructor(
         batteryCapacity,
         reserveConfig.minReserve,
         reserveConfig.chargeStart,
+        reserveConfig.chargeEnd,
       )
       val result = enphase.setBatteryReserve(mainSiteId, reserve)
       batteryDao.updateBatteryReserve(reserve)

@@ -99,6 +99,7 @@ class AlarmReceiver : BroadcastReceiver() {
           batteryCapacity,
           config.minReserve,
           config.chargeStart,
+          config.chargeEnd,
         )
         if (reserve == batteryDao.getBatteryReserve()) {
           log("Reserve is already set to $reserve%, skipping")

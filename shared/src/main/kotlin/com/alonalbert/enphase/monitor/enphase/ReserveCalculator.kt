@@ -16,7 +16,7 @@ object ReserveCalculator {
     batteryCapacity: Double,
     minReserve: Int,
     chargeStart: Int,
-    chargeEnd: Int = 12,
+    chargeEnd: Int,
   ): Int {
     if (time.hour in (chargeStart..chargeEnd)) {
       return minReserve
