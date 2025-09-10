@@ -26,6 +26,8 @@ import java.nio.file.StandardOpenOption.APPEND
 import java.nio.file.StandardOpenOption.CREATE
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField.DAY_OF_MONTH
 import java.time.temporal.ChronoField.HOUR_OF_DAY
@@ -93,8 +95,11 @@ class AlarmReceiver : BroadcastReceiver() {
           log("Reserve management is disabled")
           return DELAY
         }
+        // TODO: Add Zone to Settings
+        val now = ZonedDateTime.now(ZoneId.of("America/Los_Angeles"))
+        val homeTime = LocalTime.of(now.hour, now.minute)
         val reserve = ReserveCalculator.calculateReserve(
-          LocalTime.now(),
+          homeTime,
           config.idleLoad,
           batteryCapacity,
           config.minReserve,
