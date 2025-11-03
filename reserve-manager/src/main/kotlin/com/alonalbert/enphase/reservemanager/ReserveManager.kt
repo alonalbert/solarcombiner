@@ -43,7 +43,7 @@ fun main(args: Array<String>) {
 
 private fun setReserve(idleLoad: Double, batteryCapacity: Double, minReserve: Int, chargeStart: Int) {
   val now = LocalTime.now(ZoneId.systemDefault())
-  val reserve = ReserveCalculator.calculateReserve(now, idleLoad, batteryCapacity, minReserve, chargeStart)
+  val reserve = ReserveCalculator.calculateReserve(now, idleLoad, batteryCapacity, minReserve, chargeStart, 15)
 
   runBlocking {
     val homeDir = Path.of(System.getProperty("user.home"))
@@ -74,8 +74,8 @@ private fun runTest(idleLoad: Double, batteryCapacity: Double, minReserve: Int, 
   (0..23).forEach { h ->
     (0..59).forEach { m ->
       val time = LocalTime.of(h, m, 0)
-      val reserve = ReserveCalculator.calculateReserve(time, idleLoad, batteryCapacity, minReserve, chargeStart)
-      val previousReserve = ReserveCalculator.calculateReserve(time.minusMinutes(1), idleLoad, batteryCapacity, minReserve, chargeStart)
+      val reserve = ReserveCalculator.calculateReserve(time, idleLoad, batteryCapacity, minReserve, chargeStart, 15)
+      val previousReserve = ReserveCalculator.calculateReserve(time.minusMinutes(1), idleLoad, batteryCapacity, minReserve, chargeStart, 15)
       if (reserve != previousReserve) {
         println("${time.format(formatter)}: $reserve%")
       }
