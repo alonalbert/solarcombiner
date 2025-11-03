@@ -319,9 +319,10 @@ private fun GsonObject?.getDoubles(key: String): List<Double> {
       else -> it.asDouble
     }
   }
-  return when (result.size < 96) {
-    true -> result + List(96 - result.size) { 0.0 }
-    false -> result
+  return when {
+    result.size < 96 -> result + List(96 - result.size) { 0.0 }
+    result.size == 96 -> result
+    else -> result.drop(result.size - 96)
   }
 }
 
@@ -336,9 +337,10 @@ private fun GsonObject?.getSoc(): List<Int?> {
       false -> it.asInt
     }
   }
-  return when (result.size < 96) {
-    true -> result + List(96 - result.size) { null }
-    false -> result
+  return when {
+    result.size < 96 -> result + List(96 - result.size) { null }
+    result.size == 96 -> result
+    else -> result.drop(result.size - 96)
   }
 }
 
