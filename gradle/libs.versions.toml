@@ -1,31 +1,31 @@
 [versions]
 agp = "8.13.0"
-androidx-activity-compose = "1.10.1"
-androidx-compose-bom = "2025.08.01"
-androidx-hilt = "1.2.0"
-androidx-lifecycle = "2.9.3"
-androidx-room = "2.7.2"
+androidx-activity-compose = "1.11.0"
+androidx-compose-bom = "2025.11.00"
+androidx-hilt = "1.3.0"
+androidx-lifecycle = "2.9.4"
+androidx-room = "2.8.3"
 appcompat-v7 = "28.0.0"
-core-splashscreen = "1.0.1"
+core-splashscreen = "1.2.0"
 datastore = "1.1.7"
 espresso-core = "3.0.2"
-gson = "2.13.1"
-hilt = "2.57.1"
+gson = "2.13.2"
+hilt = "2.57.2"
 junit4 = "4.13.2"
-kotlin = "2.2.10"
+kotlin = "2.2.21"
 kotlinx-cli = "0.3.6"
 kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.7.1"
 kotlinx-serialization = "1.9.0"
 ksp = "2.2.0-2.0.2"
-ktor = "3.2.3"
+ktor = "3.3.1"
 runner = "1.0.2"
 slf4j = "2.0.17"
-spring-boot = "3.5.5"
+spring-boot = "3.5.7"
 spring-dependency-management = "1.1.7"
 sqlite = "3.50.3.0"
 timber = "5.0.1"
-vico = "2.1.3"
+vico = "2.3.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
@@ -67,7 +67,6 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 runner = { group = "com.android.support.test", name = "runner", version.ref = "runner" }
 slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
-slf4j-nop = { group = "org.slf4j", name = "slf4j-nop", version.ref = "slf4j" }
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
