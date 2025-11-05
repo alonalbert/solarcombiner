@@ -5,7 +5,6 @@ plugins {
 
 dependencies {
   implementation(libs.gson)
-  implementation(libs.jakarta.persistence)
   implementation(libs.kotlinx.datetime)
   implementation(libs.kotlinx.serialization.core)
   implementation(libs.kotlinx.serialization.core)
@@ -15,7 +14,6 @@ dependencies {
   implementation(libs.ktor.client.core)
   implementation(libs.ktor.client.okhttp)
   implementation(libs.ktor.serialization.kotlinx.json)
-  implementation(libs.slf4j.nop)
 }
 
 java {

@@ -8,7 +8,6 @@ plugins {
 }
 
 dependencies {
-  implementation(libs.jakarta.persistence)
   implementation(libs.jakarta.validation)
   implementation(libs.kotlin.reflect)
   implementation(libs.kotlinx.cli)
@@ -33,7 +32,7 @@ java {
 }
 
 springBoot {
-  mainClass.set("com.alonalbert.pad.server.ServerKt")
+  mainClass.set("com.alonalbert.enphase.monitor.server.ServerKt")
 }
 
 kotlin {
