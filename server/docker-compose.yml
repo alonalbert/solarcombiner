@@ -1,8 +1,8 @@
 version: "3.3"
 services:
   pad:
-    image: alonalbert/solar-combiner-server
-    container_name: solar-combiner-server
+    image: alonalbert/enphase-monitor-server
+    container_name: enphase-monitor-server
     user: "1000"
     network_mode: host
     volumes:

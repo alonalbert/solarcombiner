@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 
 cd server
 
-docker build -t alonalbert/padserver . || exit
+docker build -t alonalbert/enphase-monitor-server . || exit
 
 docker-compose down || exit
 docker-compose up -d --remove-orphans
