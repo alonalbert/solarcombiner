@@ -19,4 +19,4 @@ local.properties
 /out/
 /.kotlin
 /backup/
-/database.db
+*.db
