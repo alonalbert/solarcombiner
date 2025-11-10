@@ -1,6 +1,6 @@
 version: "3.3"
 services:
-  pad:
+  enphase-monitor:
     image: alonalbert/enphase-monitor-server
     container_name: enphase-monitor-server
     user: "1000"
