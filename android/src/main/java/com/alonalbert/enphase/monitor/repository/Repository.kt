@@ -10,6 +10,7 @@ import com.alonalbert.enphase.monitor.db.DayWithExportValues
 import com.alonalbert.enphase.monitor.db.DayWithValues
 import com.alonalbert.enphase.monitor.db.EnphaseConfig
 import com.alonalbert.enphase.monitor.db.LoginInfo
+import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -103,6 +105,31 @@ class Repository @Inject constructor(
           Timber.e(e, "Failed to update battery capacity")
         }
       }
+    }
+  }
+
+  fun getReserveConfigFlow(): Flow<ReserveConfig?> {
+    return db.batteryDao().getReserveConfigFlow().onStart {
+      val loginInfo = db.loginInfoDao().get() ?: return@onStart
+      val client = Client(loginInfo.server, loginInfo.username, loginInfo.password)
+      val reserveConfig = try {
+        client.getReserveConfig()
+      } catch (e: Exception) {
+        Timber.w(e, "Failed to read Reserve Config from server")
+        return@onStart
+      }
+      db.batteryDao().updateReserveConfig(reserveConfig)
+    }
+  }
+
+  suspend fun updateReserveConfig(reserveConfig: ReserveConfig) {
+    db.batteryDao().updateReserveConfig(reserveConfig)
+    val loginInfo = db.loginInfoDao().get() ?: return
+    val client = Client(loginInfo.server, loginInfo.username, loginInfo.password)
+    try {
+      client.putReserveConfig(reserveConfig);
+    } catch (e: Exception) {
+      Timber.w(e, "Failed to write Reserve Config to server")
     }
   }
 

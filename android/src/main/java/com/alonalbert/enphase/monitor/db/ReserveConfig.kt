@@ -1,5 +1,8 @@
 package com.alonalbert.enphase.monitor.db
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ReserveConfig(
   val enabled: Boolean,
   val idleLoad: Double,

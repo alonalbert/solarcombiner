@@ -47,7 +47,7 @@ class EnergyViewModel @Inject constructor(
 
   val batteryStateState: StateFlow<BatteryState> = repository.getBatteryStateFlow().stateIn(viewModelScope, BatteryState(soc = 0, reserve = 0))
   val reserveConfigState: StateFlow<ReserveConfig> =
-    db.batteryDao().getReserveConfigFlow().filterNotNull().stateIn(viewModelScope, ReserveConfig.DEFAULT)
+    repository.getReserveConfigFlow().filterNotNull().stateIn(viewModelScope, ReserveConfig.DEFAULT)
   val batteryCapacity: StateFlow<Double> =
     db.batteryDao().getBatteryCapacityFlow().filterNotNull().stateIn(viewModelScope, 0.0)
 

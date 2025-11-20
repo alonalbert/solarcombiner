@@ -22,12 +22,12 @@ class ReserveConfigViewModel @Inject constructor(
     }
   }
 
-  val reserveConfig = db.batteryDao().getReserveConfigFlow().mapNotNull { it }.stateIn(viewModelScope, ReserveConfig.DEFAULT)
+  val reserveConfig = repository.getReserveConfigFlow().mapNotNull { it }.stateIn(viewModelScope, ReserveConfig.DEFAULT)
   val batteryCapacity = db.batteryDao().getBatteryCapacityFlow().mapNotNull { it }.stateIn(viewModelScope, 0.0)
 
   fun update(reserveConfig: ReserveConfig) {
     viewModelScope.launch {
-      db.batteryDao().updateReserveConfig(reserveConfig)
+      repository.updateReserveConfig(reserveConfig)
     }
   }
 }
