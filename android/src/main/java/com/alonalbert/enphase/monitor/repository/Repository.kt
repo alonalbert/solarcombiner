@@ -1,5 +1,6 @@
 package com.alonalbert.enphase.monitor.repository
 
+import com.alonalbert.enphase.monitor.client.Client
 import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.db.BatteryStatus
 import com.alonalbert.enphase.monitor.db.DayExportValues
@@ -8,6 +9,7 @@ import com.alonalbert.enphase.monitor.db.DayValues
 import com.alonalbert.enphase.monitor.db.DayWithExportValues
 import com.alonalbert.enphase.monitor.db.DayWithValues
 import com.alonalbert.enphase.monitor.db.EnphaseConfig
+import com.alonalbert.enphase.monitor.db.LoginInfo
 import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
@@ -31,6 +33,12 @@ class Repository @Inject constructor(
   val db: AppDatabase,
 ) {
   private val enphase: Enphase = Enphase(TimberLogger())
+
+  suspend fun updateEnphaseConfig(loginInfo: LoginInfo) {
+    val client = Client(loginInfo.server, loginInfo.username, loginInfo.password)
+    val enphaseConfig = client.getEnphaseConfig()
+    db.enphaseConfigDao().update(enphaseConfig)
+  }
 
   fun getChartDataFlow(period: Period): Flow<ChartData> {
     return when (period) {
@@ -74,20 +82,20 @@ class Repository @Inject constructor(
   }
 
   suspend fun updateStats(day: LocalDate) {
-    val settings = db.enphaseConfigDao().get() ?: return
-    enphase.ensureLogin(settings.email, settings.password)
-    updateMainStats(settings, day)
-    updateExportStats(settings, day)
-    updateBatteryState(settings)
+    val config = db.enphaseConfigDao().get() ?: return
+    enphase.ensureLogin(config.email, config.password)
+    updateMainStats(config, day)
+    updateExportStats(config, day)
+    updateBatteryState(config)
   }
 
   suspend fun updateBatteryCapacity() {
     coroutineScope {
       launch {
         try {
-          val settings = db.enphaseConfigDao().get() ?: return@launch
-          enphase.ensureLogin(settings.email, settings.password)
-          db.batteryDao().updateBatteryCapacity(enphase.getBatteryCapacity(settings.mainSiteId))
+          val config = db.enphaseConfigDao().get() ?: return@launch
+          enphase.ensureLogin(config.email, config.password)
+          db.batteryDao().updateBatteryCapacity(enphase.getBatteryCapacity(config.mainSiteId))
         } catch (e: Exception) {
           if (e is CancellationException) {
             throw e

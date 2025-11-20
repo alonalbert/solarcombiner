@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 
 @Dao
 interface LoginInfoDao: KeyValueDao {
@@ -20,6 +21,8 @@ interface LoginInfoDao: KeyValueDao {
     """
   )
   fun flow(): Flow<LoginInfo?>
+
+  suspend fun get(): LoginInfo? = flow().firstOrNull()
 
   @Transaction
   suspend fun update(loginInfo: LoginInfo) {
