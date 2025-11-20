@@ -3,7 +3,7 @@ package com.alonalbert.enphase.monitor.server
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
-private const val ENABLED = "reserve.manage.enabled"
+private const val ENABLED = "reserve.manager.enabled"
 private const val IDLE_LOAD = "reserve.manager.idle.load"
 private const val MIN = "reserve.manager.min"
 private const val START = "reserve.manager.charge.start"
