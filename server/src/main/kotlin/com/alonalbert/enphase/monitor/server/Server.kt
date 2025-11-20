@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 internal class Server(
   private val reserveManager: ReserveManager,
 ) {
-  @Scheduled(timeUnit = TimeUnit.SECONDS, fixedRate = 10)
+  @Scheduled(timeUnit = TimeUnit.SECONDS, fixedRate = 60)
   fun updateReserve() {
     runBlocking(Dispatchers.Default) {
       reserveManager.updateReserve()

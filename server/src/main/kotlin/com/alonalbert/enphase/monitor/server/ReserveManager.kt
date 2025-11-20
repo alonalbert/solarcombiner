@@ -37,7 +37,7 @@ internal class ReserveManager(
       logger.info("Reserve is already $reserve%")
       return
     }
-//      enphase.setBatteryReserve(config.mainSite, reserve)
+    enphase.setBatteryReserve(config.mainSite, reserve)
     logger.info("Reserve set to $reserve%")
     currentReserve = reserve
   }
