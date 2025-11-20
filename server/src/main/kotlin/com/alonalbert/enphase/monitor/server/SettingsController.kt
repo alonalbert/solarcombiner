@@ -1,6 +1,8 @@
 package com.alonalbert.enphase.monitor.server
 
 import jakarta.validation.Valid
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api")
 internal class SettingsController(
   private val setting: SettingRepository,
+  private val reserveManager: ReserveManager,
 ) {
   private val logger = LoggerFactory.getLogger(SettingsController::class.java)
 
@@ -32,6 +35,9 @@ internal class SettingsController(
   ): ResponseEntity<ReserveConfig> {
     setting.putReserveConfig(reserveConfig)
     logger.info("Updated $reserveConfig")
+    runBlocking(Dispatchers.Default) {
+      reserveManager.updateReserve()
+    }
     return ResponseEntity.ok(reserveConfig)
   }
 }
