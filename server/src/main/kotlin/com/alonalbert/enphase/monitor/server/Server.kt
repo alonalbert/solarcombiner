@@ -14,11 +14,13 @@ import java.util.concurrent.TimeUnit
 @PropertySource("classpath:local.properties")
 @EntityScan("com.alonalbert.enphase.monitor.server")
 @EnableScheduling
-class Server {
-
-  @Scheduled(timeUnit = TimeUnit.MINUTES, fixedRate = 1)
-  fun autoWatch() {
+internal class Server(
+  private val reserveManager: ReserveManager,
+) {
+  @Scheduled(timeUnit = TimeUnit.SECONDS, fixedRate = 10)
+  fun updateReserve() {
     runBlocking(Dispatchers.Default) {
+      reserveManager.updateReserve()
     }
   }
 }
