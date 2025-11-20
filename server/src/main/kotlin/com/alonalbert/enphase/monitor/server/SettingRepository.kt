@@ -2,6 +2,7 @@ package com.alonalbert.enphase.monitor.server
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 private const val ENABLED = "reserve.manager.enabled"
 private const val IDLE_LOAD = "reserve.manager.idle.load"
@@ -24,6 +25,7 @@ private const val EXPORT_PORT = "envoy.export.port"
 
 @Repository
 internal interface SettingRepository : JpaRepository<Setting, String> {
+  @Transactional
   fun getEnphaseConfig(): EnphaseConfig {
     val email = getString(EMAIL)
     val password = getString(PASSWORD)
@@ -38,6 +40,7 @@ internal interface SettingRepository : JpaRepository<Setting, String> {
     return EnphaseConfig(email, password, mainSite, mainSerial, mainHost, mainPort, exportSite, exportSerial, exportHost, exportPort)
   }
 
+  @Transactional
   fun getReserveConfig(): ReserveConfig {
     val enabled = getBoolean(ENABLED)
     val idleLoad = getDouble(IDLE_LOAD)
@@ -47,6 +50,7 @@ internal interface SettingRepository : JpaRepository<Setting, String> {
     return ReserveConfig(enabled, idleLoad, minReserve, chargeStart, chargeEnd)
   }
 
+  @Transactional
   fun putReserveConfig(reserveConfig: ReserveConfig) {
     val values = mapOf(
       ENABLED to reserveConfig.enabled.toString(),
