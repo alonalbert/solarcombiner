@@ -78,7 +78,7 @@ class AlarmReceiver : BroadcastReceiver() {
           log("Network connected but not validated. Might be an issue in Doze.")
           return 1.minutes
         }
-        val settings = db.settingsDao().getSettings()
+        val settings = db.settingsDao().get()
         if (settings == null) {
           log("Settings not found")
           return DELAY

@@ -21,10 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.db.LoginInfo
@@ -40,11 +39,9 @@ fun LoginScreen(
 ) {
   val viewModel: LoginViewModel = hiltViewModel()
 
-  val settings by viewModel.settings.collectAsStateWithLifecycle(null)
-  LoginScreenContent(settings) {
-    if (it.isValid()) {
-      viewModel.login(it, onLoggedIn)
-    }
+  val loginInfo by viewModel.loginInfo.collectAsStateWithLifecycle(null)
+  LoginScreenContent(loginInfo) {
+    viewModel.login(it, onLoggedIn)
   }
 }
 
@@ -53,41 +50,19 @@ fun LoginScreenContent(
   loginInfo: LoginInfo?,
   onApplyClick: (LoginInfo) -> Unit,
 ) {
-//  var loginInfo by remember { mutableStateOf(enphaseConfig) }
 
-  val emailValue = stringResourceOrDefault(R.string.email, "")
+  val serverValue = stringResourceOrDefault(R.string.server, "")
+  val usernameValue = stringResourceOrDefault(R.string.username, "")
   val passwordValue = stringResourceOrDefault(R.string.password, "")
-  val mainSiteValue = stringResourceOrDefault(R.string.main_site, "")
-  val mainSerialValue = stringResourceOrDefault(R.string.main_serial, "")
-  val mainHostValue = stringResourceOrDefault(R.string.main_host, "")
-  val mainPortValue = stringResourceOrDefault(R.string.main_port, "80")
-  val exportSiteValue = stringResourceOrDefault(R.string.export_site, "")
-  val exportSerialValue = stringResourceOrDefault(R.string.export_serial, "")
-  val exportHostValue = stringResourceOrDefault(R.string.export_host, "")
-  val exportPortValue = stringResourceOrDefault(R.string.export_port, "80")
 
-  var email by remember { mutableStateOf(emailValue) }
+  var server by remember { mutableStateOf(serverValue) }
+  var username by remember { mutableStateOf(usernameValue) }
   var password by remember { mutableStateOf(passwordValue) }
-  var mainSiteId by remember { mutableStateOf(mainSiteValue) }
-  var mainSerialNum by remember { mutableStateOf(mainSerialValue) }
-  var mainHost by remember { mutableStateOf(mainHostValue) }
-  var mainPort by remember { mutableStateOf(mainPortValue) }
-  var exportSiteId by remember { mutableStateOf(exportSiteValue) }
-  var exportSerialNum by remember { mutableStateOf(exportSerialValue) }
-  var exportHost by remember { mutableStateOf(exportHostValue) }
-  var exportPort by remember { mutableStateOf(exportPortValue) }
 
   if (loginInfo != null) {
-    email = loginInfo.email
+    server = loginInfo.server
+    username = loginInfo.username
     password = loginInfo.password
-    mainSiteId = loginInfo.mainSiteId
-    mainSerialNum = loginInfo.mainSerialNumber
-    mainHost = loginInfo.mainHost
-    mainPort = loginInfo.mainPort.toString()
-    exportSiteId = loginInfo.exportSiteId
-    exportSerialNum = loginInfo.exportSerialNumber
-    exportHost = loginInfo.exportHost
-    exportPort = loginInfo.exportPort.toString()
   }
 
   Surface(
@@ -111,11 +86,19 @@ fun LoginScreenContent(
         Spacer(modifier = Modifier.height(20.dp))
 
         TextFieldComponent(
-          text = email,
-          labelValue = stringResource(id = R.string.email_label),
+          text = server,
+          labelValue = stringResource(id = R.string.server),
+          painterResource(id = R.drawable.server),
+          onTextChanged = { server = it },
+          isError = server.isBlank()
+        )
+
+        TextFieldComponent(
+          text = username,
+          labelValue = stringResource(id = R.string.username),
           painterResource(id = R.drawable.email),
-          onTextChanged = { email = it },
-          isError = email.isBlank()
+          onTextChanged = { username = it },
+          isError = username.isBlank()
         )
 
         PasswordTextFieldComponent(
@@ -125,84 +108,25 @@ fun LoginScreenContent(
           onTextChanged = { password = it },
           isError = password.isBlank()
         )
-        TextFieldComponent(
-          text = mainSiteId,
-          labelValue = stringResource(id = R.string.main_site_label),
-          onTextChanged = { mainSiteId = it },
-          isError = mainSiteId.isBlank()
-        )
-        TextFieldComponent(
-          text = mainSerialNum,
-          labelValue = stringResource(id = R.string.main_serial_label),
-          onTextChanged = { mainSerialNum = it },
-          isError = mainSerialNum.isBlank()
-        )
-        TextFieldComponent(
-          text = mainHost,
-          labelValue = stringResource(id = R.string.main_host_label),
-          onTextChanged = { mainHost = it },
-          isError = mainHost.isBlank()
-        )
-        TextFieldComponent(
-          text = mainPort,
-          labelValue = stringResource(id = R.string.main_port_label),
-          onTextChanged = { mainPort = it },
-          isError = mainPort.toPort() <= 0,
-          keyboardType = KeyboardType.Number,
-        )
-        TextFieldComponent(
-          text = exportSiteId,
-          labelValue = stringResource(id = R.string.export_site_label),
-          onTextChanged = { exportSiteId = it },
-          isError = exportSiteId.isBlank()
-        )
-        TextFieldComponent(
-          text = exportSerialNum,
-          labelValue = stringResource(id = R.string.export_serial_label),
-          onTextChanged = { exportSerialNum = it },
-          isError = exportSerialNum.isBlank()
-        )
-        TextFieldComponent(
-          text = exportHost,
-          labelValue = stringResource(id = R.string.export_host_label),
-          onTextChanged = { exportHost = it },
-          isError = exportHost.isBlank()
-        )
-        TextFieldComponent(
-          text = exportPort,
-          labelValue = stringResource(id = R.string.export_port_label),
-          onTextChanged = { exportPort = it },
-          isError = exportPort.toPort() <= 0,
-          keyboardType = KeyboardType.Number,
-        )
 
         Spacer(modifier = Modifier.height(40.dp))
         val loginInfo =
           LoginInfo(
-            email,
+            server,
+            username,
             password,
-            mainSiteId,
-            mainSerialNum,
-            mainHost,
-            mainPort.toPort(),
-            exportSiteId,
-            exportSerialNum,
-            exportHost,
-            exportPort.toPort()
           )
         ButtonComponent(
           value = stringResource(id = R.string.login),
           onButtonClicked = {
             onApplyClick(loginInfo)
           },
-          isEnabled = loginInfo.isValid(),
+          isEnabled = loginInfo.isValid()
         )
       }
     }
   }
 }
-
-private fun String.toPort() = toIntOrNull() ?: 0
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable

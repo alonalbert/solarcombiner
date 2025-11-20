@@ -7,7 +7,7 @@ import com.alonalbert.enphase.monitor.db.DayTotals
 import com.alonalbert.enphase.monitor.db.DayValues
 import com.alonalbert.enphase.monitor.db.DayWithExportValues
 import com.alonalbert.enphase.monitor.db.DayWithValues
-import com.alonalbert.enphase.monitor.db.LoginInfo
+import com.alonalbert.enphase.monitor.db.EnphaseConfig
 import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
@@ -58,7 +58,7 @@ class Repository @Inject constructor(
         add(month.atDay(now.dayOfMonth))
       }
     }
-    val settings = db.settingsDao().getSettings() ?: return
+    val settings = db.settingsDao().get() ?: return
     val jobs = buildList {
       coroutineScope {
         daysToUpdate.forEach {
@@ -74,7 +74,7 @@ class Repository @Inject constructor(
   }
 
   suspend fun updateStats(day: LocalDate) {
-    val settings = db.settingsDao().getSettings() ?: return
+    val settings = db.settingsDao().get() ?: return
     enphase.ensureLogin(settings.email, settings.password)
     updateMainStats(settings, day)
     updateExportStats(settings, day)
@@ -85,7 +85,7 @@ class Repository @Inject constructor(
     coroutineScope {
       launch {
         try {
-          val settings = db.settingsDao().getSettings() ?: return@launch
+          val settings = db.settingsDao().get() ?: return@launch
           enphase.ensureLogin(settings.email, settings.password)
           db.batteryDao().updateBatteryCapacity(enphase.getBatteryCapacity(settings.mainSiteId))
         } catch (e: Exception) {
@@ -98,10 +98,10 @@ class Repository @Inject constructor(
     }
   }
 
-  private suspend fun updateMainStats(loginInfo: LoginInfo, day: LocalDate) {
+  private suspend fun updateMainStats(enphaseConfig: EnphaseConfig, day: LocalDate) {
     coroutineScope {
       launch {
-        val stats = enphase.getMainStats(loginInfo.mainSiteId, day)
+        val stats = enphase.getMainStats(enphaseConfig.mainSiteId, day)
         db.dayDao().updateValues(
           day,
           stats.production,
@@ -116,10 +116,10 @@ class Repository @Inject constructor(
     }
   }
 
-  private suspend fun updateExportStats(loginInfo: LoginInfo, day: LocalDate) {
+  private suspend fun updateExportStats(enphaseConfig: EnphaseConfig, day: LocalDate) {
     coroutineScope {
       launch {
-        val stats = enphase.getExportStats(loginInfo.exportSiteId, day)
+        val stats = enphase.getExportStats(enphaseConfig.exportSiteId, day)
         db.dayDao().updateExportValues(
           day,
           stats.production,
@@ -128,10 +128,10 @@ class Repository @Inject constructor(
     }
   }
 
-  private suspend fun updateBatteryState(loginInfo: LoginInfo) {
+  private suspend fun updateBatteryState(enphaseConfig: EnphaseConfig) {
     coroutineScope {
       launch {
-        val batteryState = enphase.getBatteryState(loginInfo.mainSiteId)
+        val batteryState = enphase.getBatteryState(enphaseConfig.mainSiteId)
         db.batteryDao().updateBatteryStatus(
           BatteryStatus(
             battery = batteryState.soc ?: 0,

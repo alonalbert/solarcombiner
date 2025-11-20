@@ -22,7 +22,7 @@ class LiveStatusViewModel @Inject constructor(
   private val db: AppDatabase,
   private val repository: Repository,
 ) : ViewModel() {
-  private suspend fun settings() = db.settingsDao().getSettings()
+  private suspend fun settings() = db.settingsDao().get()
 
   init {
     viewModelScope.launch {

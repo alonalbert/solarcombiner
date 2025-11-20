@@ -21,7 +21,8 @@ abstract class AppDatabase : RoomDatabase() {
   abstract fun batteryDao(): BatteryDao
   abstract fun dayDao(): DayDao
   abstract fun configDao(): KeyValueDao
-  abstract fun settingsDao(): SettingsDao
+  abstract fun settingsDao(): EnphaseConfigDao
+  abstract fun loginInfoDao(): LoginInfoDao
 
   companion object {
     fun getDatabase(context: Context, filename: String): AppDatabase {

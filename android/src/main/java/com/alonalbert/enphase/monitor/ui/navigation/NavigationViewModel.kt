@@ -24,7 +24,7 @@ class NavigationViewModel @Inject constructor(
   private val db: AppDatabase,
 ) : ViewModel() {
 
-  val loginState: StateFlow<LoginState> = db.settingsDao().getSettingsFlow().map {
+  val loginState: StateFlow<LoginState> = db.loginInfoDao().flow().map {
     when (it?.isValid()) {
       true -> LoggedIn
       else -> LoggedOut
@@ -35,7 +35,7 @@ class NavigationViewModel @Inject constructor(
     viewModelScope.launch {
       val batteryDao = db.batteryDao()
       batteryDao.updateReserveConfig(reserveConfig)
-      val settings = db.settingsDao().getSettings() ?: return@launch
+      val settings = db.settingsDao().get() ?: return@launch
       val enphase = Enphase(TimberLogger())
       enphase.ensureLogin(settings.email, settings.password)
       val mainSiteId = settings.mainSiteId

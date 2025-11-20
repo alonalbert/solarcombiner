@@ -7,12 +7,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 
 @Dao
-interface SettingsDao: KeyValueDao {
+interface EnphaseConfigDao: KeyValueDao {
   @Query(
     """
     SELECT 
       (SELECT value FROM KeyValue WHERE name='email') as email, 
-      (SELECT value FROM KeyValue WHERE name='password') as password, 
+      (SELECT value FROM KeyValue WHERE name='enphasePassword') as password, 
       (SELECT value FROM KeyValue WHERE name='mainSiteId') as mainSiteId, 
       (SELECT value FROM KeyValue WHERE name='mainSerialNumber') as mainSerialNumber, 
       (SELECT value FROM KeyValue WHERE name='mainHost') as mainHost, 
@@ -34,21 +34,21 @@ interface SettingsDao: KeyValueDao {
         AND exportPort IS NOT NULL
     """
   )
-  fun getSettingsFlow(): Flow<LoginInfo?>
+  fun flow(): Flow<EnphaseConfig?>
 
-  suspend fun getSettings(): LoginInfo? = getSettingsFlow().firstOrNull()
+  suspend fun get(): EnphaseConfig? = flow().firstOrNull()
 
   @Transaction
-  suspend fun updateSettings(loginInfo: LoginInfo) {
-    upsert("email", loginInfo.email)
-    upsert("password", loginInfo.password)
-    upsert("mainSiteId", loginInfo.mainSiteId)
-    upsert("mainSerialNumber", loginInfo.mainSerialNumber)
-    upsert("mainHost", loginInfo.mainHost)
-    upsert("mainPort", loginInfo.mainPort.toString())
-    upsert("exportSiteId", loginInfo.exportSiteId)
-    upsert("exportSerialNumber", loginInfo.exportSerialNumber)
-    upsert("exportHost", loginInfo.exportHost)
-    upsert("exportPort", loginInfo.exportPort.toString())
+  suspend fun update(enphaseConfig: EnphaseConfig) {
+    upsert("email", enphaseConfig.email)
+    upsert("enphasePassword", enphaseConfig.password)
+    upsert("mainSiteId", enphaseConfig.mainSiteId)
+    upsert("mainSerialNumber", enphaseConfig.mainSerialNumber)
+    upsert("mainHost", enphaseConfig.mainHost)
+    upsert("mainPort", enphaseConfig.mainPort.toString())
+    upsert("exportSiteId", enphaseConfig.exportSiteId)
+    upsert("exportSerialNumber", enphaseConfig.exportSerialNumber)
+    upsert("exportHost", enphaseConfig.exportHost)
+    upsert("exportPort", enphaseConfig.exportPort.toString())
   }
 }

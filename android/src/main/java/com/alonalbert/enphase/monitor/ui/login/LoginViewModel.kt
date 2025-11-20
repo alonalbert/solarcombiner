@@ -2,6 +2,7 @@ package com.alonalbert.enphase.monitor.ui.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alonalbert.enphase.monitor.client.Client
 import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.db.LoginInfo
 import com.alonalbert.enphase.monitor.util.stateIn
@@ -13,11 +14,14 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
   private val db: AppDatabase,
 ) : ViewModel() {
-  val settings = db.settingsDao().getSettingsFlow().stateIn(viewModelScope, null)
+  val loginInfo = db.loginInfoDao().flow().stateIn(viewModelScope, null)
 
   fun login(loginInfo: LoginInfo, onLoggedIn: () -> Unit) {
     viewModelScope.launch {
-      db.settingsDao().updateSettings(loginInfo)
+      val client = Client(loginInfo.server, loginInfo.username, loginInfo.password)
+      val enphaseConfig = client.getEnphaseConfig()
+      db.settingsDao().update(enphaseConfig)
+      db.loginInfoDao().update(loginInfo)
       onLoggedIn()
     }
   }

@@ -7,6 +7,7 @@ plugins {
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.hilt)
   alias(libs.plugins.ksp)
+  alias(libs.plugins.kotlin.serialization)
 }
 
 room {
@@ -77,6 +78,15 @@ dependencies {
   implementation(libs.timber)
   implementation(libs.vico.compose)
   implementation(libs.vico.compose.m3)
+
+  // Ktor
+  implementation(libs.ktor.client.android)
+  implementation(libs.ktor.client.auth)
+  implementation(libs.ktor.client.core)
+  implementation(libs.ktor.client.logging)
+  implementation(libs.ktor.serialization.kotlinx.json)
+  implementation(libs.ktor.client.content.negotiation)
+
 
   implementation(platform(libs.androidx.compose.bom))
 
