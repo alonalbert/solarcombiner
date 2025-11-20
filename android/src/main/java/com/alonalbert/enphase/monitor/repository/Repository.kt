@@ -58,7 +58,7 @@ class Repository @Inject constructor(
         add(month.atDay(now.dayOfMonth))
       }
     }
-    val settings = db.settingsDao().get() ?: return
+    val settings = db.enphaseConfigDao().get() ?: return
     val jobs = buildList {
       coroutineScope {
         daysToUpdate.forEach {
@@ -74,7 +74,7 @@ class Repository @Inject constructor(
   }
 
   suspend fun updateStats(day: LocalDate) {
-    val settings = db.settingsDao().get() ?: return
+    val settings = db.enphaseConfigDao().get() ?: return
     enphase.ensureLogin(settings.email, settings.password)
     updateMainStats(settings, day)
     updateExportStats(settings, day)
@@ -85,7 +85,7 @@ class Repository @Inject constructor(
     coroutineScope {
       launch {
         try {
-          val settings = db.settingsDao().get() ?: return@launch
+          val settings = db.enphaseConfigDao().get() ?: return@launch
           enphase.ensureLogin(settings.email, settings.password)
           db.batteryDao().updateBatteryCapacity(enphase.getBatteryCapacity(settings.mainSiteId))
         } catch (e: Exception) {

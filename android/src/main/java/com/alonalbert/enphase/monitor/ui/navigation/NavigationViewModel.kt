@@ -35,7 +35,7 @@ class NavigationViewModel @Inject constructor(
     viewModelScope.launch {
       val batteryDao = db.batteryDao()
       batteryDao.updateReserveConfig(reserveConfig)
-      val settings = db.settingsDao().get() ?: return@launch
+      val settings = db.enphaseConfigDao().get() ?: return@launch
       val enphase = Enphase(TimberLogger())
       enphase.ensureLogin(settings.email, settings.password)
       val mainSiteId = settings.mainSiteId

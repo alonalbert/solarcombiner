@@ -20,7 +20,7 @@ class LoginViewModel @Inject constructor(
     viewModelScope.launch {
       val client = Client(loginInfo.server, loginInfo.username, loginInfo.password)
       val enphaseConfig = client.getEnphaseConfig()
-      db.settingsDao().update(enphaseConfig)
+      db.enphaseConfigDao().update(enphaseConfig)
       db.loginInfoDao().update(loginInfo)
       onLoggedIn()
     }
