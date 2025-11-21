@@ -17,7 +17,6 @@ internal class ReserveManager(
   suspend fun updateReserve() {
     val reserveConfig = setting.getReserveConfig()
     if (!reserveConfig.enabled) {
-      logger.info("Reserve management is disabled")
       return
     }
     val config = setting.getEnphaseConfig()
@@ -34,7 +33,6 @@ internal class ReserveManager(
       reserveConfig.chargeEnd
     )
     if (reserve == currentReserve) {
-      logger.info("Reserve is already $reserve%")
       return
     }
     enphase.setBatteryReserve(config.mainSite, reserve)
