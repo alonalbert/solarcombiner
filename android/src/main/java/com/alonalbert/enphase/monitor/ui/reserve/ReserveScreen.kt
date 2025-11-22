@@ -31,7 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.db.ReserveConfig
@@ -52,10 +52,7 @@ fun ReserveScreen(
   ReserveScreen(
     reserveConfig = reserveConfig,
     batteryCapacity = batteryCapacity,
-    onUpdate = {
-      viewModel.update(it)
-      onUpdateClicked(it)
-    },
+    onUpdate = onUpdateClicked,
     modifier = modifier
   )
 }
@@ -85,7 +82,7 @@ fun ReserveScreen(
         HeadingTextComponent(value = stringResource(id = R.string.reserve_config))
         Spacer(modifier = Modifier.height(20.dp))
 
-        Switch(checked = config.enabled, {config = config.copy(enabled = it)})
+        Switch(checked = config.enabled, { config = config.copy(enabled = it) })
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           val weight = Modifier.weight(1f)

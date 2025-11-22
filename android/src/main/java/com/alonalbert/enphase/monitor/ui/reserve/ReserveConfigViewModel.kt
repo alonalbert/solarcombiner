@@ -14,7 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ReserveConfigViewModel @Inject constructor(
   private val repository: Repository,
-  private val db: AppDatabase,
+  db: AppDatabase,
 ) : ViewModel() {
   init {
     viewModelScope.launch {
@@ -24,10 +24,4 @@ class ReserveConfigViewModel @Inject constructor(
 
   val reserveConfig = repository.getReserveConfigFlow().mapNotNull { it }.stateIn(viewModelScope, ReserveConfig.DEFAULT)
   val batteryCapacity = db.batteryDao().getBatteryCapacityFlow().mapNotNull { it }.stateIn(viewModelScope, 0.0)
-
-  fun update(reserveConfig: ReserveConfig) {
-    viewModelScope.launch {
-      repository.updateReserveConfig(reserveConfig)
-    }
-  }
 }
