@@ -50,23 +50,25 @@ class NavigationViewModel @Inject constructor(
       val batteryDao = db.batteryDao()
       repository.updateReserveConfig(reserveConfig)
       val settings = db.enphaseConfigDao().get() ?: return@launch
-      val enphase = Enphase(TimberLogger())
-      enphase.ensureLogin(settings.email, settings.password)
-      val mainSiteId = settings.mainSiteId
-      val batteryCapacity = enphase.getBatteryCapacity(mainSiteId)
-      val reserve = ReserveCalculator.calculateReserve(
-        LocalTime.now(),
-        reserveConfig.idleLoad,
-        batteryCapacity,
-        reserveConfig.minReserve,
-        reserveConfig.chargeStart,
-        reserveConfig.chargeEnd,
-      )
-      val result = enphase.setBatteryReserve(mainSiteId, reserve)
-      batteryDao.updateBatteryReserve(reserve)
-      Timber.i("Setting reserve to $reserve ($reserveConfig): $result")
+      Enphase(TimberLogger()).use { enphase ->
+        enphase.ensureLogin(settings.email, settings.password)
+        val mainSiteId = settings.mainSiteId
+        val batteryCapacity = enphase.getBatteryCapacity(mainSiteId)
+        val reserve = ReserveCalculator.calculateReserve(
+          LocalTime.now(),
+          reserveConfig.idleLoad,
+          batteryCapacity,
+          reserveConfig.minReserve,
+          reserveConfig.chargeStart,
+          reserveConfig.chargeEnd,
+        )
+        val result = enphase.setBatteryReserve(mainSiteId, reserve)
+        batteryDao.updateBatteryReserve(reserve)
+        Timber.i("Setting reserve to $reserve ($reserveConfig): $result")
+      }
     }
   }
+
 
   sealed class LoginState {
     object LoggedIn : LoginState()

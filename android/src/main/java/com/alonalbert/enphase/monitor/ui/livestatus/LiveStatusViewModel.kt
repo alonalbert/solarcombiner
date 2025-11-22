@@ -33,10 +33,11 @@ class LiveStatusViewModel @Inject constructor(
   val batteryCapacity = db.batteryDao().getBatteryCapacityFlow().mapNotNull { it }.stateIn(viewModelScope, 0.0)
   val liveStatusFlow: StateFlow<LiveStatus> = flow {
     val settings = settings() ?: return@flow
-    val enphase = Enphase(TimberLogger())
-    enphase.ensureLogin(settings.email, settings.password)
-    enphase.streamLiveStatus(settings.email, settings.mainGateway, settings.exportGateway).collect {
-      emit(it)
+    Enphase(TimberLogger()).use { enphase ->
+      enphase.ensureLogin(settings.email, settings.password)
+      enphase.streamLiveStatus(settings.email, settings.mainGateway, settings.exportGateway).collect {
+        emit(it)
+      }
     }
   }.stateIn(viewModelScope, LiveStatus(0.0, 0.0, 0.0, 0.0, 0.0, 0, 0))
 }

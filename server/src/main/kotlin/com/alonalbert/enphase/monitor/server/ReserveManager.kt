@@ -20,23 +20,24 @@ internal class ReserveManager(
       return
     }
     val config = setting.getEnphaseConfig()
-    val enphase = Enphase(logger)
-    enphase.ensureLogin(config.email, config.password)
-    val now = LocalTime.now(ZoneId.systemDefault())
-    val batteryCapacity = enphase.getBatteryCapacity(config.mainSite)
-    val reserve = ReserveCalculator.calculateReserve(
-      now,
-      reserveConfig.idleLoad,
-      batteryCapacity,
-      reserveConfig.minReserve,
-      reserveConfig.chargeStart,
-      reserveConfig.chargeEnd
-    )
-    if (reserve == currentReserve) {
-      return
+    Enphase(logger).use { enphase ->
+      enphase.ensureLogin(config.email, config.password)
+      val now = LocalTime.now(ZoneId.systemDefault())
+      val batteryCapacity = enphase.getBatteryCapacity(config.mainSite)
+      val reserve = ReserveCalculator.calculateReserve(
+        now,
+        reserveConfig.idleLoad,
+        batteryCapacity,
+        reserveConfig.minReserve,
+        reserveConfig.chargeStart,
+        reserveConfig.chargeEnd
+      )
+      if (reserve == currentReserve) {
+        return
+      }
+      enphase.setBatteryReserve(config.mainSite, reserve)
+      logger.info("Reserve set to $reserve%")
+      currentReserve = reserve
     }
-    enphase.setBatteryReserve(config.mainSite, reserve)
-    logger.info("Reserve set to $reserve%")
-    currentReserve = reserve
   }
 }

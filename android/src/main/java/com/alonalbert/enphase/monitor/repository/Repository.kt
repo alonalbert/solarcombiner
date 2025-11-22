@@ -30,7 +30,9 @@ import timber.log.Timber
 import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class Repository @Inject constructor(
   val db: AppDatabase,
 ) {
@@ -127,7 +129,7 @@ class Repository @Inject constructor(
     val loginInfo = db.loginInfoDao().get() ?: return
     val client = Client(loginInfo.server, loginInfo.username, loginInfo.password)
     try {
-      client.putReserveConfig(reserveConfig);
+      client.putReserveConfig(reserveConfig)
     } catch (e: Exception) {
       Timber.w(e, "Failed to write Reserve Config to server")
     }
