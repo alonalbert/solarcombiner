@@ -13,8 +13,8 @@ internal class ReserveManager(
   private val setting: SettingRepository,
 ) {
   private val logger = LoggerFactory.getLogger(Server::class.java)
-  private val config = setting.getEnphaseConfig()
-  private val enphase = Enphase({ Credentials(config.email, config.password)}, logger)
+  private val config by lazy { setting.getEnphaseConfig() }
+  private val enphase by lazy { Enphase({ Credentials(config.email, config.password)}, logger) }
   private var currentReserve = -1
 
   suspend fun updateReserve() {
