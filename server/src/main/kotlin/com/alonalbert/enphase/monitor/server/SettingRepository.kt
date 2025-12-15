@@ -13,6 +13,7 @@ private const val END = "reserve.manager.charge.end"
 private const val EMAIL = "login.email"
 private const val PASSWORD = "login.password"
 
+private const val SITE_TIMEZONE = "site.timezone"
 private const val MAIN_SITE = "site.main"
 private const val MAIN_SERIAL = "envoy.main.serial"
 private const val MAIN_HOST = "envoy.main.host"
@@ -29,6 +30,7 @@ internal interface SettingRepository : JpaRepository<Setting, String> {
   fun getEnphaseConfig(): EnphaseConfig {
     val email = getString(EMAIL)
     val password = getString(PASSWORD)
+    val siteTimezone = getString(SITE_TIMEZONE)
     val mainSite = getString(MAIN_SITE)
     val mainSerial = getString(MAIN_SERIAL)
     val mainHost = getString(MAIN_HOST)
@@ -37,7 +39,7 @@ internal interface SettingRepository : JpaRepository<Setting, String> {
     val exportSerial = getString(EXPORT_SERIAL)
     val exportHost = getString(EXPORT_HOST)
     val exportPort = getInt(EXPORT_PORT)
-    return EnphaseConfig(email, password, mainSite, mainSerial, mainHost, mainPort, exportSite, exportSerial, exportHost, exportPort)
+    return EnphaseConfig(email, password, siteTimezone, mainSite, mainSerial, mainHost, mainPort, exportSite, exportSerial, exportHost, exportPort)
   }
 
   @Transactional
@@ -66,8 +68,10 @@ internal interface SettingRepository : JpaRepository<Setting, String> {
 
   private fun getInt(name: String) = getString(name).toInt()
 
+  @Suppress("SameParameterValue")
   private fun getDouble(name: String) = getString(name).toDouble()
 
+  @Suppress("SameParameterValue")
   private fun getBoolean(name: String) = getString(name).toBoolean()
 
   fun saveAll(settings: Map<String, String>) {

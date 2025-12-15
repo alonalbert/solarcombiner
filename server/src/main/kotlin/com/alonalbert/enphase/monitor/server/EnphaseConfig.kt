@@ -3,6 +3,7 @@ package com.alonalbert.enphase.monitor.server
 internal data class EnphaseConfig(
   val email: String,
   val password: String,
+  val siteTimezone: String,
   val mainSite: String,
   val mainSerial: String,
   val mainHost: String,

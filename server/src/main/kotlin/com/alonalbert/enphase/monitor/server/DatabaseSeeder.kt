@@ -1,39 +1,22 @@
 package com.alonalbert.enphase.monitor.server
 
-import org.springframework.boot.CommandLineRunner
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.Environment
 import org.springframework.core.io.support.ResourcePropertySource
+import org.springframework.stereotype.Service
 
-@Configuration
-internal class DatabaseSeeder {
+@Service
+internal class DatabaseSeeder(
+  private val environment: Environment,
+  private val settingRepository: SettingRepository,
+) {
 
-  /**
-   * Creates a CommandLineRunner bean that seeds the database with initial settings.
-   *
-   * This runner is executed on application startup. It checks if the settings
-   * already exist before inserting them to prevent creating duplicates on
-   * subsequent launches.
-   *
-   * @param settingRepository The repository for accessing setting data.
-   * @return A CommandLineRunner instance that performs the seeding logic.
-   */
-  @Bean
-  fun seedDatabase(
-    environment: Environment,
-    settingRepository: SettingRepository,
-  ): CommandLineRunner {
-    return CommandLineRunner {
-      val properties = environment.getAllProperties()
-
-      val settings = properties.filterNot { it.key.startsWith("default.") }
-      val defaultSettings = (properties - settings.keys).mapKeys { it.key.removePrefix("default.") }
-
-      settingRepository.saveAll(settings)
-      settingRepository.saveAll(defaultSettings.filterNot { settingRepository.existsById(it.key) })
-    }
+  fun seedDatabase() {
+    val properties = environment.getAllProperties()
+    val settings = properties.filterNot { it.key.startsWith("default.") }
+    val defaultSettings = (properties - settings.keys).mapKeys { it.key.removePrefix("default.") }
+    settingRepository.saveAll(settings)
+    settingRepository.saveAll(defaultSettings.filterNot { settingRepository.existsById(it.key) })
   }
 }
 

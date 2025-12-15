@@ -16,7 +16,12 @@ import java.util.concurrent.TimeUnit
 @EnableScheduling
 internal class Server(
   private val reserveManager: ReserveManager,
+  databaseSeeder: DatabaseSeeder,
 ) {
+  init {
+    databaseSeeder.seedDatabase()
+  }
+
   @Scheduled(timeUnit = TimeUnit.SECONDS, fixedRate = 60)
   fun updateReserve() {
     runBlocking(Dispatchers.Default) {
