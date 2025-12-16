@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 data class EnphaseConfig(
   val email: String,
   val password: String,
+  val siteTimezone: String,
   @SerialName("mainSite")
   val mainSiteId: String,
   @SerialName("mainSerial")

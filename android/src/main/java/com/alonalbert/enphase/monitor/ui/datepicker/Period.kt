@@ -1,10 +1,10 @@
 package com.alonalbert.enphase.monitor.ui.datepicker
 
-import java.time.LocalDate
+import com.alonalbert.enphase.monitor.util.nowAtSite
 
 sealed class Period {
 
   companion object {
-    fun today() = DayPeriod(LocalDate.now().atStartOfDay().toLocalDate())
+    fun today() = DayPeriod(nowAtSite().atStartOfDay().toLocalDate())
   }
 }

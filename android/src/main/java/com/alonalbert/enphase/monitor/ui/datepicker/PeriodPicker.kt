@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alonalbert.enphase.monitor.util.nowAtSite
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -34,7 +35,7 @@ fun PeriodPicker(
       PeriodButton(
         text = "Day",
         isSelected = period is DayPeriod,
-        onClick = { onPeriodChanged(DayPeriod(LocalDate.now())) }
+        onClick = { onPeriodChanged(DayPeriod(nowAtSite())) }
       )
       PeriodButton(
         text = "Month",

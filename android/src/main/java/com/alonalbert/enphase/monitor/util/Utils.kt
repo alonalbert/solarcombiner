@@ -22,6 +22,9 @@ import com.alonalbert.enphase.monitor.enphase.util.round2
 import com.alonalbert.enphase.monitor.enphase.util.zerofy
 import com.alonalbert.enphase.monitor.ui.theme.toInt
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 fun Double.toDisplay(
   unit: String,
@@ -70,3 +73,7 @@ fun SpannableStringBuilder.appendEnergyValue(name: String, value: Double, color:
   }
 }
 
+// TODO: Add Zone to Settings
+fun nowAtSite(): LocalDate {
+  return ZonedDateTime.now(ZoneId.of("America/Los_Angeles")).toLocalDate()
+}

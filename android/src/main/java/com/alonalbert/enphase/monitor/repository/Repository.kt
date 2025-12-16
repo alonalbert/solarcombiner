@@ -21,6 +21,7 @@ import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.Period
 import com.alonalbert.enphase.monitor.util.DatabaseCredentialsProvider
 import com.alonalbert.enphase.monitor.util.TimberLogger
+import com.alonalbert.enphase.monitor.util.nowAtSite
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -71,7 +72,7 @@ class Repository @Inject constructor(
           add(month.atDay(it))
         }
       }
-      val now = LocalDate.now()
+      val now = nowAtSite()
       if (now.month == month.month) {
         add(month.atDay(now.dayOfMonth))
       }

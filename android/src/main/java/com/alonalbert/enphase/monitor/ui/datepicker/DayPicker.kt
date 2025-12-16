@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.enphase.util.formatMedium
 import com.alonalbert.enphase.monitor.enphase.util.toEpochMillis
+import com.alonalbert.enphase.monitor.util.nowAtSite
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -87,7 +88,7 @@ fun DayPicker(
         )
       }
     }
-    val nextEnabled = day < LocalDate.now()
+    val nextEnabled = day < nowAtSite()
     IconButton(
       { onDayChanged(day.plusDays(1)) },
       enabled = nextEnabled,
@@ -104,7 +105,7 @@ fun DayPicker(
     if (nextEnabled) {
       Spacer(Modifier.width(8.dp))
       Button(
-        onClick = { onDayChanged(LocalDate.now().atStartOfDay().toLocalDate()) },
+        onClick = { onDayChanged(nowAtSite().atStartOfDay().toLocalDate()) },
         shape = RoundedCornerShape(8.dp),
         contentPadding = PaddingValues(horizontal = 32.dp),
         colors = ButtonDefaults.buttonColors(
@@ -137,7 +138,7 @@ private fun DatePickerDialog(
     selectableDates = object : SelectableDates {
       override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis in (installMillis..now)
 
-      override fun isSelectableYear(year: Int) = year in installDate.year..LocalDate.now().year
+      override fun isSelectableYear(year: Int) = year in installDate.year..nowAtSite().year
     }
   )
   DatePickerDialog(

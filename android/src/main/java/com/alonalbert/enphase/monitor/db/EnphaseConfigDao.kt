@@ -13,6 +13,7 @@ interface EnphaseConfigDao: KeyValueDao {
     SELECT 
       (SELECT value FROM KeyValue WHERE name='email') as email, 
       (SELECT value FROM KeyValue WHERE name='enphasePassword') as password, 
+      (SELECT value FROM KeyValue WHERE name='siteTimezone') as siteTimezone, 
       (SELECT value FROM KeyValue WHERE name='mainSiteId') as mainSiteId, 
       (SELECT value FROM KeyValue WHERE name='mainSerialNumber') as mainSerialNumber, 
       (SELECT value FROM KeyValue WHERE name='mainHost') as mainHost, 
@@ -24,6 +25,7 @@ interface EnphaseConfigDao: KeyValueDao {
       WHERE TRUE 
         AND email IS NOT NULL
         AND password IS NOT NULL
+        AND siteTimezone IS NOT NULL
         AND mainSiteId IS NOT NULL
         AND mainSerialNumber IS NOT NULL
         AND mainHost IS NOT NULL
@@ -42,6 +44,7 @@ interface EnphaseConfigDao: KeyValueDao {
   suspend fun update(enphaseConfig: EnphaseConfig) {
     upsert("email", enphaseConfig.email)
     upsert("enphasePassword", enphaseConfig.password)
+    upsert("siteTimezone", enphaseConfig.siteTimezone)
     upsert("mainSiteId", enphaseConfig.mainSiteId)
     upsert("mainSerialNumber", enphaseConfig.mainSerialNumber)
     upsert("mainHost", enphaseConfig.mainHost)
