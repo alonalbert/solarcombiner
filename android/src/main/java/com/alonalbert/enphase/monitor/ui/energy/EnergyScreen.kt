@@ -2,10 +2,15 @@ package com.alonalbert.enphase.monitor.ui.energy
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Power
@@ -15,11 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -47,6 +48,9 @@ import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.repository.MonthData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
+import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
+import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
+import com.alonalbert.enphase.monitor.ui.datepicker.MonthPicker
 import com.alonalbert.enphase.monitor.ui.datepicker.Period
 import com.alonalbert.enphase.monitor.ui.datepicker.PeriodPicker
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
@@ -60,6 +64,7 @@ fun EnergyScreen(
   onSettings: () -> Unit,
   onLiveStatus: () -> Unit,
   onReserve: () -> Unit,
+  showSnackbar: suspend (String) -> Unit,
 ) {
   val viewModel: EnergyViewModel = hiltViewModel()
   val lifecycleOwner = LocalLifecycleOwner.current
@@ -92,6 +97,7 @@ fun EnergyScreen(
     onSettings = onSettings,
     onLiveStatus = onLiveStatus,
     onReserve = onReserve,
+    showSnackbar = showSnackbar,
     isRefreshing = isRefreshing,
     onRefresh = { viewModel.refreshData() },
   )
@@ -111,39 +117,71 @@ fun EnergyScreen(
   onSettings: () -> Unit,
   onLiveStatus: () -> Unit,
   onReserve: () -> Unit,
+  showSnackbar: suspend (String) -> Unit,
   isRefreshing: Boolean,
   onRefresh: () -> Unit,
 ) {
-  val snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
   val pullRefreshState = rememberPullToRefreshState()
-  Scaffold(
-    topBar = { TopBar(onSettings, onReserve, onLiveStatus) },
-    snackbarHost = { SnackbarHost(snackbarHostState) },
+  PullToRefreshBox(
     modifier = Modifier.fillMaxSize(),
-  ) { innerPadding ->
-    PullToRefreshBox(
-      modifier = Modifier.fillMaxSize(),
-      state = pullRefreshState,
-      isRefreshing = isRefreshing,
-      onRefresh = onRefresh,
-    ) {
-      var showProduction by remember { mutableStateOf(true) }
-      var showConsumption by remember { mutableStateOf(true) }
-      var showStorage by remember { mutableStateOf(true) }
-      var showGrid by remember { mutableStateOf(true) }
+    state = pullRefreshState,
+    isRefreshing = isRefreshing,
+    onRefresh = onRefresh,
+  ) {
+    var showProduction by remember { mutableStateOf(true) }
+    var showConsumption by remember { mutableStateOf(true) }
+    var showStorage by remember { mutableStateOf(true) }
+    var showGrid by remember { mutableStateOf(true) }
 
-      Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(innerPadding)
-        .padding(horizontal = 8.dp)) {
-        PeriodPicker(chartData.period, today, onPeriodChanged)
+    BoxWithConstraints {
+      val scrollState = rememberScrollState()
+      Column(
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(horizontal = 8.dp)
+          .height(this.maxHeight)
+          .verticalScroll(scrollState)
+      ) {
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+          Box(modifier = Modifier.align(Alignment.CenterVertically)) {
+            PeriodPicker(chartData.period, today, {
+              onPeriodChanged(it)
+            })
+          }
+          Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+            TopBar(onSettings, onReserve, onLiveStatus)
+          }
+        }
+
+        when (val period = chartData.period) {
+          is DayPeriod -> DayPicker(period.day, today, { onPeriodChanged(DayPeriod(it)) })
+          is MonthPeriod -> MonthPicker(period.month, { onPeriodChanged(MonthPeriod(it)) })
+        }
+
         Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
           BatteryBar(batteryState.soc ?: 0, batteryCapacity, batteryState.reserve ?: 0)
         }
+
         Box(modifier = Modifier.weight(1f)) {
           when (chartData) {
-            is DayData -> DayView(chartData, reserveConfig, batteryCapacity, showProduction, showConsumption, showStorage, showGrid)
-            is MonthData -> MonthView(chartData, showProduction, showConsumption, showStorage, showGrid)
+            is DayData -> DayView(
+              chartData,
+              reserveConfig,
+              batteryCapacity,
+              showProduction,
+              showConsumption,
+              showStorage,
+              showGrid
+            )
+
+            is MonthData -> MonthView(
+              chartData,
+              showProduction,
+              showConsumption,
+              showStorage,
+              showGrid
+            )
           }
         }
         ChartSwitches(
@@ -158,12 +196,12 @@ fun EnergyScreen(
         )
       }
     }
+  }
 
-    if (snackbarMessage != null) {
-      LaunchedEffect(snackbarHostState, snackbarMessage) {
-        snackbarHostState.showSnackbar(snackbarMessage)
-        onDismissSnackbar()
-      }
+  if (snackbarMessage != null) {
+    LaunchedEffect(snackbarMessage) {
+      showSnackbar(snackbarMessage)
+      onDismissSnackbar()
     }
   }
 }
@@ -176,40 +214,29 @@ private fun TopBar(
   onReserveClick: () -> Unit,
   onLiveStatusClick: () -> Unit,
 ) {
-  TopAppBar(
-    colors = TopAppBarDefaults.topAppBarColors(
-      containerColor = MaterialTheme.colorScheme.primary,
-    ),
-    title = {
-      Text(
-        text = stringResource(R.string.app_name),
-        color = MaterialTheme.colorScheme.onPrimary
+  Row {
+    IconButton(onClick = onSettingsClick) {
+      Icon(
+        imageVector = Icons.Filled.Settings,
+        tint = MaterialTheme.colorScheme.onBackground,
+        contentDescription = stringResource(id = R.string.settings),
       )
-    },
-    actions = {
-      IconButton(onClick = onSettingsClick) {
-        Icon(
-          imageVector = Icons.Filled.Settings,
-          tint = MaterialTheme.colorScheme.onPrimary,
-          contentDescription = stringResource(id = R.string.settings),
-        )
-      }
-      IconButton(onClick = onReserveClick) {
-        Icon(
-          imageVector = Icons.Filled.Power,
-          tint = MaterialTheme.colorScheme.onPrimary,
-          contentDescription = stringResource(id = R.string.settings),
-        )
-      }
-      IconButton(onClick = onLiveStatusClick) {
-        Icon(
-          imageVector = Icons.Filled.CenterFocusWeak,
-          tint = MaterialTheme.colorScheme.onPrimary,
-          contentDescription = stringResource(id = R.string.live_status),
-        )
-      }
     }
-  )
+    IconButton(onClick = onReserveClick) {
+      Icon(
+        imageVector = Icons.Filled.Power,
+        tint = MaterialTheme.colorScheme.onBackground,
+        contentDescription = stringResource(id = R.string.settings),
+      )
+    }
+    IconButton(onClick = onLiveStatusClick) {
+      Icon(
+        imageVector = Icons.Filled.CenterFocusWeak,
+        tint = MaterialTheme.colorScheme.onBackground,
+        contentDescription = stringResource(id = R.string.live_status),
+      )
+    }
+  }
 }
 
 @Preview(
@@ -220,20 +247,25 @@ private fun TopBar(
 @Composable
 fun GreetingPreviewLight() {
   SolarCombinerTheme {
-    EnergyScreen(
-      chartData = SampleData.dayData,
-      batteryState = BatteryState(null, null),
-      reserveConfig = ReserveConfig.DEFAULT,
-      batteryCapacity = 20.16,
-      LocalDate.now(),
-      snackbarMessage = null,
-      onDismissSnackbar = {},
-      onPeriodChanged = {},
-      onSettings = {},
-      onReserve = {},
-      onLiveStatus = {},
-      isRefreshing = false,
-    ) {}
+    Scaffold {
+      Box(modifier = Modifier.padding(it)) {
+        EnergyScreen(
+          chartData = SampleData.dayData,
+          batteryState = BatteryState(null, null),
+          reserveConfig = ReserveConfig.DEFAULT,
+          batteryCapacity = 20.16,
+          LocalDate.now(),
+          snackbarMessage = null,
+          onDismissSnackbar = {},
+          onPeriodChanged = {},
+          onSettings = {},
+          onReserve = {},
+          showSnackbar = {},
+          onLiveStatus = {},
+          isRefreshing = false,
+        ) {}
+      }
+    }
   }
 }
 
@@ -247,19 +279,24 @@ fun GreetingPreviewLight() {
 @Composable
 fun GreetingPreviewDark() {
   SolarCombinerTheme {
-    EnergyScreen(
-      chartData = MonthData(YearMonth.now(), SampleData.days),
-      batteryState = BatteryState(null, null),
-      reserveConfig = ReserveConfig.DEFAULT,
-      batteryCapacity = 20.16,
-      LocalDate.now(),
-      snackbarMessage = null,
-      onDismissSnackbar = {},
-      onPeriodChanged = {},
-      onSettings = {},
-      onReserve = {},
-      onLiveStatus = {},
-      isRefreshing = false,
-    ) {}
+    Scaffold {
+      Box(modifier = Modifier.padding(it)) {
+        EnergyScreen(
+          chartData = MonthData(YearMonth.now(), SampleData.days),
+          batteryState = BatteryState(null, null),
+          reserveConfig = ReserveConfig.DEFAULT,
+          batteryCapacity = 20.16,
+          LocalDate.now(),
+          snackbarMessage = null,
+          onDismissSnackbar = {},
+          onPeriodChanged = {},
+          onSettings = {},
+          onReserve = {},
+          showSnackbar = {},
+          onLiveStatus = {},
+          isRefreshing = false,
+        ) {}
+      }
+    }
   }
 }

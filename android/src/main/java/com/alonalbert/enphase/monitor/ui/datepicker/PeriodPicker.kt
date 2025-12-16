@@ -43,10 +43,6 @@ fun PeriodPicker(
         onClick = { onPeriodChanged(MonthPeriod(YearMonth.now())) }
       )
     }
-    when (period) {
-      is DayPeriod -> DayPicker(period.day, today, { onPeriodChanged(DayPeriod(it)) })
-      is MonthPeriod -> MonthPicker(period.month, { onPeriodChanged(MonthPeriod(it)) })
-    }
   }
 }
 
