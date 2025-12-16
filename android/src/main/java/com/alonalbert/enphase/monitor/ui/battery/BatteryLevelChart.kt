@@ -6,7 +6,6 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.TabStopSpan
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -141,7 +140,7 @@ private fun BatteryLevelChart(
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),
     modelProducer = modelProducer,
-    modifier = modifier.height(120.dp),
+    modifier = modifier,
     zoomState = rememberVicoZoomState(zoomEnabled = false),
   )
 }

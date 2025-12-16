@@ -2,10 +2,10 @@ package com.alonalbert.enphase.monitor.ui.energy
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Power
@@ -122,7 +122,7 @@ fun EnergyScreen(
     modifier = Modifier.fillMaxSize(),
   ) { innerPadding ->
     PullToRefreshBox(
-      modifier = Modifier.padding(innerPadding),
+      modifier = Modifier.fillMaxSize(),
       state = pullRefreshState,
       isRefreshing = isRefreshing,
       onRefresh = onRefresh,
@@ -132,33 +132,30 @@ fun EnergyScreen(
       var showStorage by remember { mutableStateOf(true) }
       var showGrid by remember { mutableStateOf(true) }
 
-      LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
-        item {
-          PeriodPicker(chartData.period, today, onPeriodChanged)
+      Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(innerPadding)
+        .padding(horizontal = 8.dp)) {
+        PeriodPicker(chartData.period, today, onPeriodChanged)
+        Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
+          BatteryBar(batteryState.soc ?: 0, batteryCapacity, batteryState.reserve ?: 0)
         }
-        item {
-          Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
-            BatteryBar(batteryState.soc ?: 0, batteryCapacity, batteryState.reserve ?: 0)
-          }
-        }
-        item {
+        Box(modifier = Modifier.weight(1f)) {
           when (chartData) {
             is DayData -> DayView(chartData, reserveConfig, batteryCapacity, showProduction, showConsumption, showStorage, showGrid)
             is MonthData -> MonthView(chartData, showProduction, showConsumption, showStorage, showGrid)
           }
         }
-        item {
-          ChartSwitches(
-            isProductionChecked = showProduction,
-            isConsumptionChecked = showConsumption,
-            isStorageChecked = showStorage,
-            isGridChecked = showGrid,
-            onProductionChanged = { showProduction = !showProduction },
-            onConsumptionChanged = { showConsumption = !showConsumption },
-            onStorageChanged = { showStorage = !showStorage },
-            onGridChanged = { showGrid = !showGrid },
-          )
-        }
+        ChartSwitches(
+          isProductionChecked = showProduction,
+          isConsumptionChecked = showConsumption,
+          isStorageChecked = showStorage,
+          isGridChecked = showGrid,
+          onProductionChanged = { showProduction = !showProduction },
+          onConsumptionChanged = { showConsumption = !showConsumption },
+          onStorageChanged = { showStorage = !showStorage },
+          onGridChanged = { showGrid = !showGrid },
+        )
       }
     }
 
@@ -218,7 +215,7 @@ private fun TopBar(
 @Preview(
   showBackground = true,
   showSystemUi = true,
-  device = Devices.PIXEL_7_PRO
+  device = "spec:width=1080px,height=2424px,dpi=400,navigation=buttons"
 )
 @Composable
 fun GreetingPreviewLight() {

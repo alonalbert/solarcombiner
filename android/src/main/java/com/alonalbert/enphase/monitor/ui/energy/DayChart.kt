@@ -5,7 +5,6 @@ import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
 import android.text.style.TabStopSpan
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -131,8 +130,8 @@ private fun DayChart(
         layerPadding = { cartesianLayerPadding(scalableStart = 0.dp, scalableEnd = 0.dp) },
       ),
     modelProducer = modelProducer,
-    modifier = modifier.height(280.dp),
     zoomState = rememberVicoZoomState(zoomEnabled = false),
+    modifier = modifier,
   )
 }
 

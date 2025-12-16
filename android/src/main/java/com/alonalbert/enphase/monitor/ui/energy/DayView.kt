@@ -41,8 +41,22 @@ fun DayView(
       dayData.totalExport,
       onProductionClicked = { productionSplit = !productionSplit }
     )
-    DayChart(dayData, productionSplit, showProduction, showConsumption, showStorage, showGrid)
-    BatteryLevelChart(dayData.battery.filterNotNull(), batteryCapacity, reserveConfig = reserveConfig)
+    DayChart(
+      dayData,
+      productionSplit,
+      showProduction,
+      showConsumption,
+      showStorage,
+      showGrid,
+      Modifier.weight(0.75f),
+    )
+    BatteryLevelChart(
+      dayData.battery.filterNotNull(),
+      batteryCapacity,
+      Modifier.weight(0.25f),
+      reserveConfig,
+
+    )
   }
 }
 

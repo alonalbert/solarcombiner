@@ -2,7 +2,9 @@ package com.alonalbert.enphase.monitor.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,29 +57,35 @@ fun MainNavigation() {
     LoggedOut -> "login"
   }
 
-  NavHost(navController = navController, startDestination = startDestination) {
-    composable("login") {
-      LoginScreen(onLoggedIn = onLoggedIn)
-    }
-    composable("loading") {
-      LoadingScreen()
-    }
-    composable("energy") {
+  Scaffold(modifier = Modifier.fillMaxSize()) {
+    NavHost(
+      navController = navController,
+      startDestination = startDestination,
+      modifier = Modifier.padding(it).fillMaxSize(),
+    ) {
+      composable("login") {
+        LoginScreen(onLoggedIn = onLoggedIn)
+      }
+      composable("loading") {
+        LoadingScreen()
+      }
+      composable("energy") {
 
-      EnergyScreen(
-        onSettings = onSettings,
-        onLiveStatus = onLiveStatus,
-        onReserve = onReserve,
-      )
-    }
-    composable("live-status") {
-      LiveStatusScreen()
-    }
-    composable("reserve") {
-      ReserveScreen({
-        viewModel.updateReserveConfig(it)
-        navController.navigateUp()
-      })
+        EnergyScreen(
+          onSettings = onSettings,
+          onLiveStatus = onLiveStatus,
+          onReserve = onReserve,
+        )
+      }
+      composable("live-status") {
+        LiveStatusScreen()
+      }
+      composable("reserve") {
+        ReserveScreen({ reserveConfig ->
+          viewModel.updateReserveConfig(reserveConfig)
+          navController.navigateUp()
+        })
+      }
     }
   }
 }
