@@ -2,7 +2,6 @@ package com.alonalbert.enphase.monitor.ui.energy
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -47,6 +44,8 @@ import com.alonalbert.enphase.monitor.repository.ChartData
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.repository.MonthData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
+import com.alonalbert.enphase.monitor.ui.components.PullToRefresh
+import com.alonalbert.enphase.monitor.ui.components.StartEndRow
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
 import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
@@ -122,7 +121,7 @@ fun EnergyScreen(
   onRefresh: () -> Unit,
 ) {
   val pullRefreshState = rememberPullToRefreshState()
-  PullToRefreshBox(
+  PullToRefresh(
     modifier = Modifier.fillMaxSize(),
     state = pullRefreshState,
     isRefreshing = isRefreshing,
@@ -133,68 +132,60 @@ fun EnergyScreen(
     var showStorage by remember { mutableStateOf(true) }
     var showGrid by remember { mutableStateOf(true) }
 
-    BoxWithConstraints {
-      val scrollState = rememberScrollState()
-      Column(
-        modifier = Modifier
-          .fillMaxSize()
-          .padding(horizontal = 8.dp)
-          .height(this.maxHeight)
-          .verticalScroll(scrollState)
-      ) {
+    val scrollState = rememberScrollState()
+    Column(
+      modifier = Modifier
+        .height(maxHeight)
+        .padding(horizontal = 8.dp)
+        .verticalScroll(scrollState)
+    ) {
 
-        Row(modifier = Modifier.fillMaxWidth()) {
-          Box(modifier = Modifier.align(Alignment.CenterVertically)) {
-            PeriodPicker(chartData.period, today, {
-              onPeriodChanged(it)
-            })
-          }
-          Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            TopBar(onSettings, onReserve, onLiveStatus)
-          }
-        }
+      StartEndRow(
+        modifier = Modifier.fillMaxWidth(),
+        { PeriodPicker(chartData.period, today, onPeriodChanged) },
+        { TopBar(onSettings, onReserve, onLiveStatus) }
+      )
 
-        when (val period = chartData.period) {
-          is DayPeriod -> DayPicker(period.day, today, { onPeriodChanged(DayPeriod(it)) })
-          is MonthPeriod -> MonthPicker(period.month, { onPeriodChanged(MonthPeriod(it)) })
-        }
-
-        Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
-          BatteryBar(batteryState.soc ?: 0, batteryCapacity, batteryState.reserve ?: 0)
-        }
-
-        Box(modifier = Modifier.weight(1f)) {
-          when (chartData) {
-            is DayData -> DayView(
-              chartData,
-              reserveConfig,
-              batteryCapacity,
-              showProduction,
-              showConsumption,
-              showStorage,
-              showGrid
-            )
-
-            is MonthData -> MonthView(
-              chartData,
-              showProduction,
-              showConsumption,
-              showStorage,
-              showGrid
-            )
-          }
-        }
-        ChartSwitches(
-          isProductionChecked = showProduction,
-          isConsumptionChecked = showConsumption,
-          isStorageChecked = showStorage,
-          isGridChecked = showGrid,
-          onProductionChanged = { showProduction = !showProduction },
-          onConsumptionChanged = { showConsumption = !showConsumption },
-          onStorageChanged = { showStorage = !showStorage },
-          onGridChanged = { showGrid = !showGrid },
-        )
+      when (val period = chartData.period) {
+        is DayPeriod -> DayPicker(period.day, today, { onPeriodChanged(DayPeriod(it)) })
+        is MonthPeriod -> MonthPicker(period.month, { onPeriodChanged(MonthPeriod(it)) })
       }
+
+      Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
+        BatteryBar(batteryState.soc ?: 0, batteryCapacity, batteryState.reserve ?: 0)
+      }
+
+      Box(modifier = Modifier.weight(1f)) {
+        when (chartData) {
+          is DayData -> DayView(
+            chartData,
+            reserveConfig,
+            batteryCapacity,
+            showProduction,
+            showConsumption,
+            showStorage,
+            showGrid
+          )
+
+          is MonthData -> MonthView(
+            chartData,
+            showProduction,
+            showConsumption,
+            showStorage,
+            showGrid
+          )
+        }
+      }
+      ChartSwitches(
+        isProductionChecked = showProduction,
+        isConsumptionChecked = showConsumption,
+        isStorageChecked = showStorage,
+        isGridChecked = showGrid,
+        onProductionChanged = { showProduction = !showProduction },
+        onConsumptionChanged = { showConsumption = !showConsumption },
+        onStorageChanged = { showStorage = !showStorage },
+        onGridChanged = { showGrid = !showGrid },
+      )
     }
   }
 
