@@ -13,7 +13,6 @@ import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.Period
 import com.alonalbert.enphase.monitor.util.checkNetwork
-import com.alonalbert.enphase.monitor.util.nowAtSite
 import com.alonalbert.enphase.monitor.util.stateIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -27,6 +26,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.LocalDate
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -38,12 +38,12 @@ class EnergyViewModel @Inject constructor(
 ) : ViewModel() {
   private var job: Job? = null
 
-  private val periodFlow: MutableStateFlow<Period> = MutableStateFlow(DayPeriod(nowAtSite().atStartOfDay().toLocalDate()))
+  private val periodFlow: MutableStateFlow<Period> = MutableStateFlow(DayPeriod(LocalDate.now().atStartOfDay().toLocalDate()))
 
   val chartDataFlow: StateFlow<ChartData> =
     periodFlow.flatMapLatest {
       repository.getChartDataFlow(it)
-    }.stateIn(viewModelScope, DayData.empty(nowAtSite()))
+    }.stateIn(viewModelScope, DayData.empty(LocalDate.now()))
 
   val batteryStateState: StateFlow<BatteryState> = repository.getBatteryStateFlow().stateIn(viewModelScope, BatteryState(soc = 0, reserve = 0))
   val reserveConfigState: StateFlow<ReserveConfig> =
@@ -94,6 +94,8 @@ class EnergyViewModel @Inject constructor(
       refreshData()
     }
   }
+
+  fun today() = repository.today()
 
   private suspend fun withRefreshingState(block: suspend () -> Unit) {
     isRefreshingStateFlow.value = true

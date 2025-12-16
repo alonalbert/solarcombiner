@@ -17,13 +17,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.alonalbert.enphase.monitor.util.nowAtSite
 import java.time.LocalDate
 import java.time.YearMonth
 
 @Composable
 fun PeriodPicker(
   period: Period,
+  today: LocalDate,
   onPeriodChanged: (Period) -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -35,7 +35,7 @@ fun PeriodPicker(
       PeriodButton(
         text = "Day",
         isSelected = period is DayPeriod,
-        onClick = { onPeriodChanged(DayPeriod(nowAtSite())) }
+        onClick = { onPeriodChanged(DayPeriod(today)) }
       )
       PeriodButton(
         text = "Month",
@@ -44,7 +44,7 @@ fun PeriodPicker(
       )
     }
     when (period) {
-      is DayPeriod -> DayPicker(period.day, { onPeriodChanged(DayPeriod(it)) })
+      is DayPeriod -> DayPicker(period.day, today, { onPeriodChanged(DayPeriod(it)) })
       is MonthPeriod -> MonthPicker(period.month, { onPeriodChanged(MonthPeriod(it)) })
     }
   }
@@ -78,11 +78,11 @@ fun PeriodButton(
 @Preview(name = "Today")
 @Composable
 private fun PeriodPickerPreview_Day() {
-  PeriodPicker(DayPeriod(LocalDate.now()), {})
+  PeriodPicker(DayPeriod(LocalDate.now()), LocalDate.now(), {})
 }
 
 @Preview(name = "Today")
 @Composable
 private fun PeriodPickerPreview_Month() {
-  PeriodPicker(MonthPeriod(YearMonth.now()), {})
+  PeriodPicker(MonthPeriod(YearMonth.now()), LocalDate.now(), {})
 }

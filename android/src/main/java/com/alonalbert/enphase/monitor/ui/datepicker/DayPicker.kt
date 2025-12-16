@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.enphase.util.formatMedium
 import com.alonalbert.enphase.monitor.enphase.util.toEpochMillis
-import com.alonalbert.enphase.monitor.util.nowAtSite
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -48,6 +47,7 @@ import java.time.ZoneOffset.UTC
 @Composable
 fun DayPicker(
   date: LocalDate,
+  today: LocalDate,
   onDayChanged: (LocalDate) -> Unit,
   installDate: LocalDate = INSTALL_DATE,
 ) {
@@ -58,7 +58,7 @@ fun DayPicker(
   var showDatePickerDialog by remember { mutableStateOf(false) }
 
   if (showDatePickerDialog) {
-    DatePickerDialog(day, installDate, { onDayChanged(it) }, { showDatePickerDialog = false })
+    DatePickerDialog(day, today, installDate, { onDayChanged(it) }, { showDatePickerDialog = false })
   }
   Row(verticalAlignment = CenterVertically) {
     val prevEnabled = day > installDate
@@ -88,7 +88,7 @@ fun DayPicker(
         )
       }
     }
-    val nextEnabled = day < nowAtSite()
+    val nextEnabled = day < today
     IconButton(
       { onDayChanged(day.plusDays(1)) },
       enabled = nextEnabled,
@@ -105,7 +105,7 @@ fun DayPicker(
     if (nextEnabled) {
       Spacer(Modifier.width(8.dp))
       Button(
-        onClick = { onDayChanged(nowAtSite().atStartOfDay().toLocalDate()) },
+        onClick = { onDayChanged(today.atStartOfDay().toLocalDate()) },
         shape = RoundedCornerShape(8.dp),
         contentPadding = PaddingValues(horizontal = 32.dp),
         colors = ButtonDefaults.buttonColors(
@@ -127,6 +127,7 @@ fun DayPicker(
 @OptIn(ExperimentalMaterial3Api::class)
 private fun DatePickerDialog(
   initialDate: LocalDate,
+  today: LocalDate,
   installDate: LocalDate,
   onDayPicked: (LocalDate) -> Unit,
   onDialogClosed: () -> Unit,
@@ -138,7 +139,7 @@ private fun DatePickerDialog(
     selectableDates = object : SelectableDates {
       override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis in (installMillis..now)
 
-      override fun isSelectableYear(year: Int) = year in installDate.year..nowAtSite().year
+      override fun isSelectableYear(year: Int) = year in installDate.year..today.year
     }
   )
   DatePickerDialog(
@@ -168,18 +169,18 @@ private fun DatePickerDialog(
 @Preview(name = "Today")
 @Composable
 private fun DayPickerPreview_Today() {
-  DayPicker(LocalDate.now(), {})
+  DayPicker(LocalDate.now(), LocalDate.now(), {})
 }
 
 @Preview(name = "Yesterday")
 @Composable
 private fun DayPickerPreview_Yesterday() {
-  DayPicker(LocalDate.now().minusDays(1), {})
+  DayPicker(LocalDate.now().minusDays(1), LocalDate.now(), {})
 }
 
 @Preview(name = "First")
 @Composable
 private fun DayPickerPreview_First() {
-  DayPicker(LocalDate.of(2022, 4, 8), {})
+  DayPicker(LocalDate.of(2022, 4, 8), LocalDate.now(), {})
 }
 

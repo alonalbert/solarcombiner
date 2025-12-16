@@ -46,10 +46,12 @@ import com.alonalbert.enphase.monitor.repository.ChartData
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.repository.MonthData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
+import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.Period
 import com.alonalbert.enphase.monitor.ui.datepicker.PeriodPicker
 import com.alonalbert.enphase.monitor.ui.theme.SolarCombinerTheme
 import kotlinx.coroutines.delay
+import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.time.Duration.Companion.minutes
 
@@ -63,7 +65,7 @@ fun EnergyScreen(
   val lifecycleOwner = LocalLifecycleOwner.current
 
   LaunchedEffect(lifecycleOwner, viewModel) {
-    viewModel.setPeriod(Period.today())
+    viewModel.setPeriod(DayPeriod(viewModel.today()))
     lifecycleOwner.lifecycle.repeatOnLifecycle(STARTED) {
       while (true) {
         viewModel.refreshData()
@@ -83,6 +85,7 @@ fun EnergyScreen(
     batteryState = batteryState,
     reserveConfig = reserveConfig,
     batteryCapacity = batteryCapacity,
+    viewModel.today(),
     snackbarMessage = snackBarMessage,
     onDismissSnackbar = { viewModel.dismissSnackbarMessage() },
     onPeriodChanged = { viewModel.setPeriod(it) },
@@ -101,6 +104,7 @@ fun EnergyScreen(
   batteryState: BatteryState,
   reserveConfig: ReserveConfig,
   batteryCapacity: Double,
+  today: LocalDate,
   snackbarMessage: String?,
   onDismissSnackbar: () -> Unit,
   onPeriodChanged: (Period) -> Unit,
@@ -129,9 +133,8 @@ fun EnergyScreen(
       var showGrid by remember { mutableStateOf(true) }
 
       LazyColumn(modifier = Modifier.padding(horizontal = 8.dp)) {
-        val data = chartData
         item {
-          PeriodPicker(data.period, onPeriodChanged)
+          PeriodPicker(chartData.period, today, onPeriodChanged)
         }
         item {
           Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
@@ -139,9 +142,9 @@ fun EnergyScreen(
           }
         }
         item {
-          when (data) {
-            is DayData -> DayView(data, reserveConfig, batteryCapacity, showProduction, showConsumption, showStorage, showGrid)
-            is MonthData -> MonthView(data, showProduction, showConsumption, showStorage, showGrid)
+          when (chartData) {
+            is DayData -> DayView(chartData, reserveConfig, batteryCapacity, showProduction, showConsumption, showStorage, showGrid)
+            is MonthData -> MonthView(chartData, showProduction, showConsumption, showStorage, showGrid)
           }
         }
         item {
@@ -159,10 +162,9 @@ fun EnergyScreen(
       }
     }
 
-    val message = snackbarMessage
-    if (message != null) {
-      LaunchedEffect(snackbarHostState, message) {
-        snackbarHostState.showSnackbar(message)
+    if (snackbarMessage != null) {
+      LaunchedEffect(snackbarHostState, snackbarMessage) {
+        snackbarHostState.showSnackbar(snackbarMessage)
         onDismissSnackbar()
       }
     }
@@ -226,6 +228,7 @@ fun GreetingPreviewLight() {
       batteryState = BatteryState(null, null),
       reserveConfig = ReserveConfig.DEFAULT,
       batteryCapacity = 20.16,
+      LocalDate.now(),
       snackbarMessage = null,
       onDismissSnackbar = {},
       onPeriodChanged = {},
@@ -252,6 +255,7 @@ fun GreetingPreviewDark() {
       batteryState = BatteryState(null, null),
       reserveConfig = ReserveConfig.DEFAULT,
       batteryCapacity = 20.16,
+      LocalDate.now(),
       snackbarMessage = null,
       onDismissSnackbar = {},
       onPeriodChanged = {},

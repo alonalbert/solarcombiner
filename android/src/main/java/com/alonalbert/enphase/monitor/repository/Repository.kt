@@ -21,7 +21,6 @@ import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.Period
 import com.alonalbert.enphase.monitor.util.TimberLogger
-import com.alonalbert.enphase.monitor.util.nowAtSite
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -34,6 +33,8 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration
@@ -75,9 +76,9 @@ class Repository @Inject constructor(
           add(month.atDay(it))
         }
       }
-      val now = nowAtSite()
-      if (now.month == month.month) {
-        add(month.atDay(now.dayOfMonth))
+      val today = today()
+      if (today.month == month.month) {
+        add(month.atDay(today.dayOfMonth))
       }
     }
     val jobs = buildList {
@@ -113,6 +114,10 @@ class Repository @Inject constructor(
         }
       }
     }
+  }
+
+  fun today(): LocalDate {
+    return ZonedDateTime.now(ZoneId.of(enphaseConfig.siteTimezone)).toLocalDate()
   }
 
   fun getReserveConfigFlow(): Flow<ReserveConfig?> {
