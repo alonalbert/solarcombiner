@@ -3,11 +3,8 @@ package com.alonalbert.enphase.monitor.ui.livestatus
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alonalbert.enphase.monitor.db.AppDatabase
-import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.model.LiveStatus
 import com.alonalbert.enphase.monitor.repository.Repository
-import com.alonalbert.enphase.monitor.util.DatabaseCredentialsProvider
-import com.alonalbert.enphase.monitor.util.TimberLogger
 import com.alonalbert.enphase.monitor.util.stateIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -21,13 +18,11 @@ class LiveStatusViewModel @Inject constructor(
   db: AppDatabase,
   private val repository: Repository,
 ) : ViewModel() {
-  private val enphase = Enphase(DatabaseCredentialsProvider(db.enphaseConfigDao()), TimberLogger())
 
   init {
     viewModelScope.launch {
       repository.updateBatteryCapacity()
     }
-    addCloseable(enphase)
   }
 
   val batteryCapacity = db.batteryDao().getBatteryCapacityFlow().mapNotNull { it }.stateIn(viewModelScope, 0.0)

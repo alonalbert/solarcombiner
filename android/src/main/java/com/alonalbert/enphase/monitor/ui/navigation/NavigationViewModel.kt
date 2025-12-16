@@ -4,14 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alonalbert.enphase.monitor.db.AppDatabase
 import com.alonalbert.enphase.monitor.db.ReserveConfig
-import com.alonalbert.enphase.monitor.enphase.Enphase
-import com.alonalbert.enphase.monitor.enphase.ReserveCalculator
 import com.alonalbert.enphase.monitor.repository.Repository
 import com.alonalbert.enphase.monitor.ui.navigation.NavigationViewModel.LoginState.Loading
 import com.alonalbert.enphase.monitor.ui.navigation.NavigationViewModel.LoginState.LoggedIn
 import com.alonalbert.enphase.monitor.ui.navigation.NavigationViewModel.LoginState.LoggedOut
-import com.alonalbert.enphase.monitor.util.DatabaseCredentialsProvider
-import com.alonalbert.enphase.monitor.util.TimberLogger
 import com.alonalbert.enphase.monitor.util.stateIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +15,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,27 +42,9 @@ class NavigationViewModel
     return LoggedIn
   }
 
-  fun updateBatteryReserve(reserveConfig: ReserveConfig) {
+  fun updateReserveConfig(reserveConfig: ReserveConfig) {
     viewModelScope.launch {
-      val batteryDao = db.batteryDao()
       repository.updateReserveConfig(reserveConfig)
-      val enphaseConfigDao = db.enphaseConfigDao()
-      val settings = enphaseConfigDao.get() ?: return@launch
-      Enphase(DatabaseCredentialsProvider(enphaseConfigDao), TimberLogger()).use { enphase ->
-        val mainSiteId = settings.mainSiteId
-        val batteryCapacity = enphase.getBatteryCapacity(mainSiteId)
-        val reserve = ReserveCalculator.calculateReserve(
-          LocalTime.now(),
-          reserveConfig.idleLoad,
-          batteryCapacity,
-          reserveConfig.minReserve,
-          reserveConfig.chargeStart,
-          reserveConfig.chargeEnd,
-        )
-        val result = enphase.setBatteryReserve(mainSiteId, reserve)
-        batteryDao.updateBatteryReserve(reserve)
-        Timber.i("Setting reserve to $reserve ($reserveConfig): $result")
-      }
     }
   }
 

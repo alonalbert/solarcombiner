@@ -13,13 +13,13 @@ import com.alonalbert.enphase.monitor.db.LoginInfo
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.db.exportGateway
 import com.alonalbert.enphase.monitor.db.mainGateway
+import com.alonalbert.enphase.monitor.enphase.Credentials
 import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.enphase.model.LiveStatus
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.Period
-import com.alonalbert.enphase.monitor.util.DatabaseCredentialsProvider
 import com.alonalbert.enphase.monitor.util.TimberLogger
 import com.alonalbert.enphase.monitor.util.nowAtSite
 import kotlinx.coroutines.CancellationException
@@ -43,12 +43,15 @@ import kotlin.time.Duration.Companion.seconds
 class Repository @Inject constructor(
   val db: AppDatabase,
 ) : AutoCloseable {
-  private val enphase: Enphase = Enphase(DatabaseCredentialsProvider(db.enphaseConfigDao()), TimberLogger())
+  private val enphase: Enphase = Enphase({ Credentials(enphaseConfig.email, enphaseConfig.password) }, TimberLogger())
+
+  lateinit var enphaseConfig: EnphaseConfig
 
   suspend fun updateEnphaseConfig(loginInfo: LoginInfo) {
     val client = Client(loginInfo.server, loginInfo.username, loginInfo.password)
-    val enphaseConfig = client.getEnphaseConfig()
-    db.enphaseConfigDao().update(enphaseConfig)
+    val config = client.getEnphaseConfig()
+    db.enphaseConfigDao().update(config)
+    enphaseConfig = config
   }
 
   fun getChartDataFlow(period: Period): Flow<ChartData> {
@@ -77,13 +80,12 @@ class Repository @Inject constructor(
         add(month.atDay(now.dayOfMonth))
       }
     }
-    val settings = db.enphaseConfigDao().get() ?: return
     val jobs = buildList {
       coroutineScope {
         daysToUpdate.forEach {
           val job = launch {
-            updateMainStats(settings, it)
-            updateExportStats(settings, it)
+            updateMainStats(enphaseConfig, it)
+            updateExportStats(enphaseConfig, it)
           }
           add(job)
         }
@@ -93,18 +95,16 @@ class Repository @Inject constructor(
   }
 
   suspend fun updateStats(day: LocalDate) {
-    val config = db.enphaseConfigDao().get() ?: return
-    updateMainStats(config, day)
-    updateExportStats(config, day)
-    updateBatteryState(config)
+    updateMainStats(enphaseConfig, day)
+    updateExportStats(enphaseConfig, day)
+    updateBatteryState(enphaseConfig)
   }
 
   suspend fun updateBatteryCapacity() {
     coroutineScope {
       launch {
         try {
-          val config = db.enphaseConfigDao().get() ?: return@launch
-          db.batteryDao().updateBatteryCapacity(enphase.getBatteryCapacity(config.mainSiteId))
+          db.batteryDao().updateBatteryCapacity(enphase.getBatteryCapacity(enphaseConfig.mainSiteId))
         } catch (e: Exception) {
           if (e is CancellationException) {
             throw e
@@ -141,11 +141,10 @@ class Repository @Inject constructor(
   }
 
   suspend fun streamLiveStatus(delay: Duration = 1.seconds): Flow<LiveStatus> {
-    val settings = db.enphaseConfigDao().get() ?: throw IllegalStateException("Missing settings")
     return enphase.streamLiveStatus(
-      settings.email,
-      settings.mainGateway,
-      settings.exportGateway,
+      enphaseConfig.email,
+      enphaseConfig.mainGateway,
+      enphaseConfig.exportGateway,
       delay
     )
   }

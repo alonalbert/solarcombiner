@@ -63,6 +63,7 @@ fun MainNavigation() {
       LoadingScreen()
     }
     composable("energy") {
+
       EnergyScreen(
         onSettings = onSettings,
         onLiveStatus = onLiveStatus,
@@ -74,7 +75,7 @@ fun MainNavigation() {
     }
     composable("reserve") {
       ReserveScreen({
-        viewModel.updateBatteryReserve(it)
+        viewModel.updateReserveConfig(it)
         navController.navigateUp()
       })
     }
