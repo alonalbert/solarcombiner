@@ -13,6 +13,7 @@ espresso-core = "3.0.2"
 gson = "2.13.2"
 hilt = "2.57.2"
 junit4 = "4.13.2"
+json-path = "2.10.0"
 kotlin = "2.2.21"
 kotlinx-cli = "0.3.6"
 kotlinx-coroutines = "1.10.2"
@@ -56,6 +57,7 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api" }
+json-path = { module = "com.jayway.jsonpath:json-path", version.ref = "json-path" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }

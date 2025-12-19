@@ -1,3 +1,16 @@
 package com.alonalbert.enphase.monitor.emporia.model
 
-data class Channel(val deviceId: Int, val name: String, val number: Int)
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class Channel(
+  val deviceGid: Int,
+  val name: String,
+  val channelNum: String,
+  val channelMultiplier: Double,
+  val channelTypeGid: Int,
+  val parentChannelNum: String?,
+  val type: String,
+  val channelId: String,
+  val mergedChannelId: String?
+)

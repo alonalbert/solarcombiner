@@ -16,6 +16,7 @@ dependencies {
   implementation(libs.ktor.serialization.kotlinx.json)
   implementation(platform(libs.amazon.aws.bom))
   implementation(libs.amazon.cognitoidentityprovider)
+  implementation(libs.json.path)
 }
 
 java {

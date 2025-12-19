@@ -4,9 +4,12 @@ import com.alonalbert.enphase.monitor.emporia.model.Channel
 import com.alonalbert.enphase.monitor.enphase.EnphaseException
 import com.alonalbert.enphase.monitor.enphase.TrustingManager
 import com.alonalbert.enphase.monitor.enphase.util.DefaultLogger
-import com.google.gson.GsonBuilder
+import com.jayway.jsonpath.Configuration.builder
+import com.jayway.jsonpath.JsonPath
+import com.jayway.jsonpath.TypeRef
+import com.jayway.jsonpath.spi.json.GsonJsonProvider
+import com.jayway.jsonpath.spi.mapper.GsonMappingProvider
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpRedirect
 import io.ktor.client.plugins.HttpResponseValidator
@@ -22,13 +25,6 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.double
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import org.slf4j.Logger
 import java.security.SecureRandom
 import java.time.Instant
@@ -37,16 +33,21 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
 private val logger: Logger = DefaultLogger()
-private val gson = GsonBuilder()
-  .setPrettyPrinting()
-  .create()
+private val jsonPath = JsonPath.using(
+  builder()
+    .jsonProvider(GsonJsonProvider())
+    .mappingProvider(GsonMappingProvider())
+    .build()
+)
 
+private val channelsType = object : TypeRef<List<Channel>>() {}
+private val doublesType = object : TypeRef<List<Double>>() {}
 
 suspend fun main() {
   createClient().use { client ->
     client.getChannels().forEach {
-      val usage = client.getUsage(it.number)
-      println("${it.name}: $usage")
+      val usage = client.getUsage(it)
+      println("${it.name}: ${(usage * 1000).toInt()} watts")
     }
   }
 }
@@ -55,22 +56,15 @@ suspend fun HttpClient.getChannels(): List<Channel> {
   return withContext(IO) {
     val url = "https://api.emporiaenergy.com/customers/devices"
     val response = this@getChannels.get(url)
-    response.body<JsonObject>().getArray("devices").flatMap { outerDevice ->
-      outerDevice.getArray("devices").flatMap { innerDevice ->
-        val deviceId = innerDevice.getInt("deviceGid")
-        innerDevice.getArray("channels").map {
-          val name = it.getString("name")
-          val number = it.getInt("channelNum")
-          Channel(deviceId, name, number)
-        }
-      }
-    }
+    val json = response.bodyAsText()
+
+    jsonPath.parse(json).read("$.devices[*].devices[*].channels[*]", channelsType)
   }
 }
 
-suspend fun HttpClient.getUsage(branch: Int): Double {
-  val did = 470706
-  val channel = "Branch_$branch"
+suspend fun HttpClient.getUsage(channel: Channel): Double {
+  val did = channel.deviceGid
+  val channel = channel.channelId
   val end = Instant.now()
   val start = end.minus(15, MINUTES)
   val scale = "1MIN"
@@ -78,13 +72,10 @@ suspend fun HttpClient.getUsage(branch: Int): Double {
     "https://c-api.emporiaenergy.com/v1/migrated/app-api/chart-usage?deviceGid=$did&channel=$channel&start=$start&end=$end&scale=$scale&energyUnit=KilowattHours"
   return withContext(IO) {
     val response = get(url)
-    val body = response.body<JsonObject>()
-    body.getArray("usageList").sumOf {
-      it.getDouble()
-    }
+    val json = response.bodyAsText()
+    jsonPath.parse(json).read("$.usageList[*]", doublesType).sum()
   }
 }
-
 
 private fun createClient(): HttpClient {
   logger.info("Creating Enphase client")
@@ -128,8 +119,3 @@ private fun createClient(): HttpClient {
     }
   }
 }
-
-private fun JsonElement.getArray(key: String) = jsonObject.getValue(key).jsonArray
-private fun JsonElement.getString(key: String) = jsonObject.getValue(key).jsonPrimitive.content
-private fun JsonElement.getInt(key: String) = jsonObject.getValue(key).jsonPrimitive.int
-private fun JsonElement.getDouble() = jsonPrimitive.double
