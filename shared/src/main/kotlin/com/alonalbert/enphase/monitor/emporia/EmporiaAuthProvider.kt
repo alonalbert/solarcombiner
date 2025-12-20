@@ -10,9 +10,17 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthFlowType
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthRequest
 
-private val HOSTS = mapOf("api.emporiaenergy.com" to "AuthToken", "c-api.emporiaenergy.com" to "Authorization")
+private val HOSTS = mapOf(
+  "api.emporiaenergy.com" to "AuthToken",
+  "c-api.emporiaenergy.com" to "Authorization",
+)
 
-class EmporiaAuthProvider : AuthProvider {
+private const val CLIENT_ID = "4qte47jbstod8apnfic0bunmrq"
+
+class EmporiaAuthProvider(
+  private val username: String,
+  private val password: String,
+) : AuthProvider {
   private val tokensHolder = TokenHolder {
     getToken()
   }
@@ -36,27 +44,27 @@ class EmporiaAuthProvider : AuthProvider {
 
   @Deprecated("Please use sendWithoutRequest function instead", level = DeprecationLevel.ERROR)
   override val sendWithoutRequest: Boolean
-    get() = TODO("Not yet implemented")
+    get() = throw IllegalStateException()
+
+  private fun getToken(): String {
+    val cognitoClient = CognitoIdentityProviderClient.builder()
+      .region(Region.US_EAST_2)
+      .credentialsProvider(AnonymousCredentialsProvider.create())
+      .build()
+
+    val authParameters = mapOf(
+      "USERNAME" to username,
+      "PASSWORD" to password
+    )
+    val authRequest1 = InitiateAuthRequest.builder()
+      .authFlow(AuthFlowType.USER_PASSWORD_AUTH)
+      .authParameters(authParameters)
+      .clientId(CLIENT_ID)
+      .build()
+
+    val response = cognitoClient.initiateAuth(authRequest1)
+
+    return response.authenticationResult().idToken()
+  }
 }
 
-private fun getToken(): String {
-  println("===================== Calling getToken()")
-  val cognitoClient = CognitoIdentityProviderClient.builder()
-    .region(Region.US_EAST_2)
-    .credentialsProvider(AnonymousCredentialsProvider.create())
-    .build()
-
-  val authParameters = mapOf(
-    "USERNAME" to "alon.albert+emporia@gmail.com",
-    "PASSWORD" to "deerfield23342"
-  )
-  val authRequest1 = InitiateAuthRequest.builder()
-    .authFlow(AuthFlowType.USER_PASSWORD_AUTH)
-    .authParameters(authParameters)
-    .clientId("4qte47jbstod8apnfic0bunmrq")
-    .build()
-
-  val response = cognitoClient.initiateAuth(authRequest1)
-
-  return response.authenticationResult().idToken()
-}
