@@ -1,9 +1,11 @@
 package com.alonalbert.enphase.monitor.emporia
 
 import com.alonalbert.enphase.monitor.emporia.model.Channel
+import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
 import com.alonalbert.enphase.monitor.enphase.EnphaseException
 import com.alonalbert.enphase.monitor.enphase.TrustingManager
 import com.alonalbert.enphase.monitor.enphase.util.DefaultLogger
+import com.alonalbert.enphase.monitor.enphase.util.plusHours
 import com.jayway.jsonpath.Configuration.builder
 import com.jayway.jsonpath.JsonPath
 import com.jayway.jsonpath.TypeRef
@@ -23,6 +25,9 @@ import io.ktor.client.statement.request
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.slf4j.Logger
@@ -73,6 +78,23 @@ class Emporia(
       val usages = getUsages(url).filterNotNull()
       usages.takeIf { it.isNotEmpty() } ?: getUsages(url).filterNotNull()
     }
+  }
+
+  suspend fun getDailyUsage(start: Instant): List<ChannelUsage> {
+    val channels = getChannels()
+    return coroutineScope {
+      channels.map {
+        async {
+          getDailyUsage(start, it)
+        }
+      }
+    }.awaitAll()
+  }
+
+  suspend fun getDailyUsage(start: Instant, channel: Channel): ChannelUsage {
+    val usage1 = getUsage(channel, start, start.plusHours(12))
+    val usage2 = getUsage(channel, start.plusHours(12), start.plusHours(24))
+    return ChannelUsage(start, channel, usage1 + usage2)
   }
 
   private suspend fun getUsages(url: String): List<Double?> {

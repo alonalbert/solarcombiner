@@ -24,6 +24,8 @@ dependencies {
   implementation(libs.sqlite)
   implementation(libs.sqlite.dialect)
   implementation(project(":shared"))
+
+  runtimeOnly(libs.kotlinx.coroutines.reactor)
 }
 
 java {

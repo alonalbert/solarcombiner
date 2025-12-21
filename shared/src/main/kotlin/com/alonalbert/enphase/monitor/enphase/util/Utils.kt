@@ -1,5 +1,6 @@
 package com.alonalbert.enphase.monitor.enphase.util
 
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -7,6 +8,7 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.format.FormatStyle.MEDIUM
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
@@ -64,3 +66,7 @@ fun rangeOfChunk(chunk: Int): String {
 }
 
 fun timeOfMin(minute: Int): LocalTime = LocalTime.of(minute / 60, minute % 60)
+
+fun Instant.plusMinutes(num: Int): Instant = plus(num.toLong(), ChronoUnit.MINUTES)
+fun Instant.minusMinutes(num: Int): Instant = minus(num.toLong(), ChronoUnit.MINUTES)
+fun Instant.plusHours(num: Int): Instant = plus(num.toLong(), ChronoUnit.HOURS)
