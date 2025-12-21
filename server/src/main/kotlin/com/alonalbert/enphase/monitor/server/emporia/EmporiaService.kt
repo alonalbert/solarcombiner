@@ -27,7 +27,7 @@ class EmporiaService(
     }
     val start = ZonedDateTime.of(day, LocalTime.MIDNIGHT, ZoneId.of("America/Los_Angeles")).toInstant()
     val end = start.plusHours(24)
-    val usages = usageRepository.findByTimestampBetween(start, end)
+    val usages = usageRepository.getUsages(start, end)
     return usages.groupBy { it.channel.name }
       .mapValues { entry ->
         entry.value
@@ -46,7 +46,7 @@ class EmporiaService(
     val start = ZonedDateTime.of(day, LocalTime.MIDNIGHT, ZoneId.of("America/Los_Angeles")).toInstant()
     try {
       val channelUsages = emporia.getDailyUsage(start)
-      usageRepository.deleteByTimestampBetween(start, start.plusHours(24))
+      usageRepository.deleteUsages(start, start.plusHours(24))
       channelUsages.forEach {
         val first = it.first
         val channel = upsertChannel(it.channel.deviceGid, it.channel.channelId, it.channel.name, it.channel.channelMultiplier)

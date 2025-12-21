@@ -7,8 +7,14 @@ import java.time.Instant
 
 @Repository
 interface UsageRepository : JpaRepository<Usage, Long> {
-  fun findByTimestampBetween(start: Instant, end: Instant): List<Usage>
+  fun findByTimestampGreaterThanEqualAndTimestampLessThan(start: Instant, end: Instant): List<Usage>
+
+  fun getUsages(start: Instant, end: Instant) =
+    findByTimestampGreaterThanEqualAndTimestampLessThan(start, end)
 
   @Transactional
-  fun deleteByTimestampBetween(start: Instant, end: Instant)
+  fun deleteByTimestampGreaterThanEqualAndTimestampLessThan(start: Instant, end: Instant)
+
+  fun deleteUsages(start: Instant, end: Instant) =
+    deleteByTimestampGreaterThanEqualAndTimestampLessThan(start, end)
 }
