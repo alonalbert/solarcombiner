@@ -1,8 +1,6 @@
 package com.alonalbert.enphase.monitor.server
 
-import com.alonalbert.enphase.monitor.server.emporia.EmporiaService
 import jakarta.annotation.PostConstruct
-import kotlinx.coroutines.runBlocking
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.runApplication
@@ -17,16 +15,12 @@ import java.util.concurrent.TimeUnit
 @EnableScheduling
 internal class Server(
   private val reserveManager: ReserveManager,
-  private val emporiaService: EmporiaService,
   private val databaseSeeder: DatabaseSeeder,
 ) {
 
   @PostConstruct
   fun seedDatabase() {
     databaseSeeder.seedDatabase()
-    runBlocking {
-      emporiaService.synchronizeToday()
-    }
   }
 
   @Scheduled(timeUnit = TimeUnit.SECONDS, fixedRate = 60)

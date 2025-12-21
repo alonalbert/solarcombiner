@@ -92,9 +92,13 @@ class Emporia(
   }
 
   suspend fun getDailyUsage(start: Instant, channel: Channel): ChannelUsage {
-    val usage1 = getUsage(channel, start, start.plusHours(12))
-    val usage2 = getUsage(channel, start.plusHours(12), start.plusHours(24))
-    return ChannelUsage(start, channel, usage1 + usage2)
+    val usage = coroutineScope {
+      listOf(
+        async { getUsage(channel, start, start.plusHours(12)) },
+        async { getUsage(channel, start.plusHours(12), start.plusHours(24)) }
+      )
+    }.awaitAll().flatten()
+    return ChannelUsage(start, channel, usage)
   }
 
   private suspend fun getUsages(url: String): List<Double?> {
