@@ -21,7 +21,7 @@ suspend fun main() {
   val username = properties.getProperty("emporia.username")
   val password = properties.getProperty("emporia.password")
   Emporia(username, password).use { emporia ->
-    getUsages(emporia)
+//    getUsages(emporia)
     getDailyUsage(emporia, LocalDate.of(2025, 12, 20))
   }
 }
@@ -37,7 +37,8 @@ private suspend fun getUsages(emporia: Emporia) {
 
 private suspend fun getDailyUsage(emporia: Emporia, day: LocalDate) {
   val start = ZonedDateTime.of(day, LocalTime.MIDNIGHT, ZoneId.of("America/Los_Angeles")).toInstant()
-  emporia.getDailyUsage(start).forEach { dailyUsage ->
+  val usage = emporia.getDailyUsage(start)
+  usage.forEach { dailyUsage ->
     val hourlyUsage = dailyUsage.usage.toHourlySums()
     val formattedHourlyUsage = hourlyUsage.joinToString(", ") { "%.2f".format(it) }
     println("${dailyUsage.channel.name}: $formattedHourlyUsage")

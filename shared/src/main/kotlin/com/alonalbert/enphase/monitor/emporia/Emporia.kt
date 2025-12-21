@@ -1,7 +1,7 @@
 package com.alonalbert.enphase.monitor.emporia
 
-import com.alonalbert.enphase.monitor.emporia.model.Channel
-import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
+import com.alonalbert.enphase.monitor.emporia.model.EmporiaChannel
+import com.alonalbert.enphase.monitor.emporia.model.EmporiaChannelUsage
 import com.alonalbert.enphase.monitor.enphase.EnphaseException
 import com.alonalbert.enphase.monitor.enphase.TrustingManager
 import com.alonalbert.enphase.monitor.enphase.util.DefaultLogger
@@ -48,7 +48,7 @@ private val jsonPath = JsonPath.using(
     .mappingProvider(GsonMappingProvider())
     .build()
 )
-private val channelsType = object : TypeRef<List<Channel>>() {}
+private val channelsType = object : TypeRef<List<EmporiaChannel>>() {}
 
 private val doublesType = object : TypeRef<List<Double?>>() {}
 
@@ -59,7 +59,7 @@ class Emporia(
 ) : AutoCloseable {
   private val client = createClient()
 
-  suspend fun getChannels(): List<Channel> {
+  suspend fun getChannels(): List<EmporiaChannel> {
     return withContext(IO) {
       val response = client.get(DEVICES_URL)
       val json = response.bodyAsText()
@@ -69,7 +69,7 @@ class Emporia(
   }
 
   suspend fun getUsage(
-    channel: Channel,
+    channel: EmporiaChannel,
     start: Instant,
     end: Instant,
   ): List<Double> {
@@ -80,7 +80,7 @@ class Emporia(
     }
   }
 
-  suspend fun getDailyUsage(start: Instant): List<ChannelUsage> {
+  suspend fun getDailyUsage(start: Instant): List<EmporiaChannelUsage> {
     val channels = getChannels()
     return coroutineScope {
       channels.map {
@@ -91,14 +91,14 @@ class Emporia(
     }.awaitAll()
   }
 
-  suspend fun getDailyUsage(start: Instant, channel: Channel): ChannelUsage {
+  suspend fun getDailyUsage(start: Instant, channel: EmporiaChannel): EmporiaChannelUsage {
     val usage = coroutineScope {
       listOf(
         async { getUsage(channel, start, start.plusHours(12)) },
         async { getUsage(channel, start.plusHours(12), start.plusHours(24)) }
       )
     }.awaitAll().flatten()
-    return ChannelUsage(start, channel, usage)
+    return EmporiaChannelUsage(start, channel, usage)
   }
 
   private suspend fun getUsages(url: String): List<Double?> {

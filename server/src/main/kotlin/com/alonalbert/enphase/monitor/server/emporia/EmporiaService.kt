@@ -1,6 +1,7 @@
 package com.alonalbert.enphase.monitor.server.emporia
 
 import com.alonalbert.enphase.monitor.emporia.Emporia
+import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
 import com.alonalbert.enphase.monitor.enphase.util.plusHours
 import com.alonalbert.enphase.monitor.enphase.util.plusMinutes
 import org.slf4j.LoggerFactory
@@ -21,23 +22,20 @@ class EmporiaService(
 ) {
   private val logger = LoggerFactory.getLogger(EmporiaService::class.java)
 
-  suspend fun getUsage(day: LocalDate): Map<String, List<Double>> {
+  suspend fun getUsage(day: LocalDate): List<ChannelUsage> {
     if (day == LocalDate.now()) {
       synchronizeDay(day)
     }
     val start = ZonedDateTime.of(day, LocalTime.MIDNIGHT, ZoneId.of("America/Los_Angeles")).toInstant()
     val end = start.plusHours(24)
     val usages = usageRepository.getUsages(start, end)
-    return usages.groupBy { it.channel.name }
-      .mapValues { entry ->
-        entry.value
-          .sortedBy { it.timestamp }
-          .map { it.value * it.channel.multiplier }
-      }
+    return usages.groupBy { it.channel }.map { (channel, usage) ->
+      ChannelUsage(channel.name, usage.sortedBy { it.timestamp }.map { it.value })
+    }
   }
 
   @Scheduled(cron = "0 1 0 * * *")
-  suspend fun synchronizeToday() {
+  suspend fun synchronizeYesterday() {
     synchronizeDay(LocalDate.now().minusDays(1))
   }
 

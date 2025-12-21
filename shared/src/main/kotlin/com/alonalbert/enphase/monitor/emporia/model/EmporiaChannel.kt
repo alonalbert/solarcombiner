@@ -3,7 +3,7 @@ package com.alonalbert.enphase.monitor.emporia.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Channel(
+data class EmporiaChannel(
   val deviceGid: Int,
   val name: String,
   val channelNum: String,

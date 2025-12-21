@@ -1,5 +1,9 @@
 package com.alonalbert.enphase.monitor.emporia.model
 
-import java.time.Instant
+import kotlinx.serialization.Serializable
 
-data class ChannelUsage(val first: Instant, val channel: Channel, val usage: List<Double>)
+@Serializable
+data class ChannelUsage(
+  val name: String,
+  val usage: List<Double>,
+)
