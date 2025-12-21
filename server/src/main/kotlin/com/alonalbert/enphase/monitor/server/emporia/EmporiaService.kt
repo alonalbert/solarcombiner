@@ -1,7 +1,6 @@
 package com.alonalbert.enphase.monitor.server.emporia
 
 import com.alonalbert.enphase.monitor.emporia.Emporia
-import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
 import com.alonalbert.enphase.monitor.enphase.util.plusHours
 import com.alonalbert.enphase.monitor.enphase.util.plusMinutes
 import org.slf4j.LoggerFactory
@@ -13,7 +12,6 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.jvm.optionals.getOrNull
-import com.alonalbert.enphase.monitor.emporia.model.Channel as ApiChannel
 
 @Service
 class EmporiaService(
@@ -23,30 +21,19 @@ class EmporiaService(
 ) {
   private val logger = LoggerFactory.getLogger(EmporiaService::class.java)
 
-  suspend fun getUsage(day: LocalDate): List<ChannelUsage> {
+  suspend fun getUsage(day: LocalDate): Map<String, List<Double>> {
     if (day == LocalDate.now()) {
       synchronizeDay(day)
     }
     val start = ZonedDateTime.of(day, LocalTime.MIDNIGHT, ZoneId.of("America/Los_Angeles")).toInstant()
     val end = start.plusHours(24)
     val usages = usageRepository.findByTimestampBetween(start, end)
-    return usages.groupBy { it.channel }.map { (channel, usage) ->
-      ChannelUsage(
-        channel = ApiChannel(
-          deviceGid = channel.deviceId,
-          channelId = channel.channelId,
-          name = channel.name,
-          channelMultiplier = channel.multiplier,
-          channelNum = channel.channelId, // Assuming channelId is the same as channelNum
-          channelTypeGid = 0, // Not available in the entity
-          parentChannelNum = null, // Not available in the entity
-          type = "AC_SUB_CIRCUIT", // Assuming a default type
-          mergedChannelId = null // Not available in the entity
-        ),
-        first = usage.minOf { it.timestamp },
-        usage = usage.sortedBy { it.timestamp }.map { it.value }
-      )
-    }
+    return usages.groupBy { it.channel.name }
+      .mapValues { entry ->
+        entry.value
+          .sortedBy { it.timestamp }
+          .map { it.value }
+      }
   }
 
   @Scheduled(cron = "0 1 0 * * *")
