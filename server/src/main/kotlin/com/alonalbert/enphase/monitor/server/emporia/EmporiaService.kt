@@ -32,7 +32,7 @@ class EmporiaService(
       .mapValues { entry ->
         entry.value
           .sortedBy { it.timestamp }
-          .map { it.value }
+          .map { it.value * it.channel.multiplier }
       }
   }
 
