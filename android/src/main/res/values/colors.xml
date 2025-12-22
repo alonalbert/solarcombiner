@@ -17,8 +17,26 @@
   <color name="battery_reserve_end">#887acf38</color>
 
   <color name="splash_background_light">#FFFFFFFF</color>
-  <color name="splash_icon_background_light">#FFFFFFFF</color> <!-- Or a specific color -->
+  <color name="splash_icon_background_light">#FFFFFFFF</color>
 
   <color name="splash_background_dark">#FF121212</color>
-  <color name="splash_icon_background_dark">#FF121212</color> <!-- Or a specific color -->
+  <color name="splash_icon_background_dark">#FF121212</color>
+
+  <color name="channel_01">#c10020</color>
+  <color name="channel_02">#007d34</color>
+  <color name="channel_03">#ffb300</color>
+  <color name="channel_04">#00538a</color>
+  <color name="channel_05">#ff6800</color>
+  <color name="channel_06">#53377a</color>
+  <color name="channel_07">#00a2b3</color>
+  <color name="channel_08">#b32851</color>
+  <color name="channel_09">#8ea600</color>
+  <color name="channel_10">#f6768e</color>
+  <color name="channel_11">#004d40</color>
+  <color name="channel_12">#803e75</color>
+  <color name="channel_13">#d45d00</color>
+  <color name="channel_14">#5175a4</color>
+  <color name="channel_15">#4da64d</color>
+  <color name="channel_16">#6b003a</color>
+
 </resources>

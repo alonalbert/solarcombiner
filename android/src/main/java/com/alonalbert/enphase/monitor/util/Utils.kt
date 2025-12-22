@@ -69,3 +69,10 @@ fun SpannableStringBuilder.appendEnergyValue(name: String, value: Double, color:
     append("$name:\t${value.kw}\n", ForegroundColorSpan(color.toInt()), SPAN_EXCLUSIVE_EXCLUSIVE)
   }
 }
+
+fun List<Double>.withMinSize(size: Int): List<Double> {
+  if (this.size >= size) {
+    return this
+  }
+  return this + List(size - this.size) { 0.0 }
+}

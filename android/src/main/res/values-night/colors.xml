@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <color name="battery_reserve_end">#887acf38</color>
+
+  <color name="channel_01">#e6194b</color>
+  <color name="channel_02">#3cb44b</color>
+  <color name="channel_03">#ffe119</color>
+  <color name="channel_04">#4363d8</color>
+  <color name="channel_05">#f58231</color>
+  <color name="channel_06">#911eb4</color>
+  <color name="channel_07">#42d4f4</color>
+  <color name="channel_08">#f032e6</color>
+  <color name="channel_09">#bfef45</color>
+  <color name="channel_10">#fabed4</color>
+  <color name="channel_11">#469990</color>
+  <color name="channel_12">#dcbeff</color>
+  <color name="channel_13">#ffd8b1</color>
+  <color name="channel_14">#fffac8</color>
+  <color name="channel_15">#aaffc3</color>
+  <color name="channel_16">#80cdff</color>
 </resources>

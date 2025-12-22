@@ -13,6 +13,7 @@ import com.alonalbert.enphase.monitor.db.LoginInfo
 import com.alonalbert.enphase.monitor.db.ReserveConfig
 import com.alonalbert.enphase.monitor.db.exportGateway
 import com.alonalbert.enphase.monitor.db.mainGateway
+import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
 import com.alonalbert.enphase.monitor.enphase.Credentials
 import com.alonalbert.enphase.monitor.enphase.Enphase
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
@@ -42,7 +43,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @Singleton
 class Repository @Inject constructor(
-  val db: AppDatabase,
+  private val db: AppDatabase,
 ) : AutoCloseable {
   private val enphase: Enphase = Enphase({ Credentials(enphaseConfig.email, enphaseConfig.password) }, TimberLogger())
 
@@ -59,6 +60,17 @@ class Repository @Inject constructor(
     return when (period) {
       is DayPeriod -> getDayDataFlow(period.day)
       is MonthPeriod -> getMonthDataFlow(period.month)
+    }
+  }
+
+  fun getChannelDataFlow(period: Period): Flow<List<ChannelUsage>> {
+    return db.loginInfoDao().flow().map {
+      val loginInfo = it ?: return@map emptyList()
+      val client = Client(loginInfo.server, loginInfo.username, loginInfo.password)
+      when (period) {
+        is DayPeriod -> client.getChannelUsage(period.day)
+        is MonthPeriod -> emptyList()
+      }
     }
   }
 

@@ -1,8 +1,10 @@
 package com.alonalbert.enphase.monitor.ui.energy
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,11 +16,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Power
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,13 +43,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.db.ReserveConfig
+import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
 import com.alonalbert.enphase.monitor.enphase.model.BatteryState
 import com.alonalbert.enphase.monitor.repository.ChartData
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.repository.MonthData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
+import com.alonalbert.enphase.monitor.ui.channels.ChannelsChart
+import com.alonalbert.enphase.monitor.ui.channels.sampleEmporiaData
 import com.alonalbert.enphase.monitor.ui.components.PullToRefresh
-import com.alonalbert.enphase.monitor.ui.components.StartEndRow
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPicker
 import com.alonalbert.enphase.monitor.ui.datepicker.MonthPeriod
@@ -78,6 +84,7 @@ fun EnergyScreen(
     }
   }
   val chartData by viewModel.chartDataFlow.collectAsStateWithLifecycle()
+  val channelData by viewModel.channelDataFlow.collectAsStateWithLifecycle()
   val batteryState by viewModel.batteryStateState.collectAsStateWithLifecycle()
   val reserveConfig by viewModel.reserveConfigState.collectAsStateWithLifecycle()
   val batteryCapacity by viewModel.batteryCapacity.collectAsStateWithLifecycle()
@@ -86,6 +93,7 @@ fun EnergyScreen(
 
   EnergyScreen(
     chartData = chartData,
+    channelData = channelData,
     batteryState = batteryState,
     reserveConfig = reserveConfig,
     batteryCapacity = batteryCapacity,
@@ -106,6 +114,7 @@ fun EnergyScreen(
 @Composable
 fun EnergyScreen(
   chartData: ChartData,
+  channelData: List<ChannelUsage>,
   batteryState: BatteryState,
   reserveConfig: ReserveConfig,
   batteryCapacity: Double,
@@ -127,10 +136,7 @@ fun EnergyScreen(
     isRefreshing = isRefreshing,
     onRefresh = onRefresh,
   ) {
-    var showProduction by remember { mutableStateOf(true) }
-    var showConsumption by remember { mutableStateOf(true) }
-    var showStorage by remember { mutableStateOf(true) }
-    var showGrid by remember { mutableStateOf(true) }
+    var dataMode by remember { mutableStateOf(DataMode.ENPHASE) }
 
     val scrollState = rememberScrollState()
     Column(
@@ -140,52 +146,27 @@ fun EnergyScreen(
         .verticalScroll(scrollState)
     ) {
 
-      StartEndRow(
+
+      Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier.fillMaxWidth(),
-        { PeriodPicker(chartData.period, today, onPeriodChanged) },
-        { TopBar(onSettings, onReserve, onLiveStatus) }
-      )
+      ) {
+        PeriodPicker(chartData.period, today, onPeriodChanged)
+        Button(onClick = { dataMode = dataMode.next() }) {
+          Text(dataMode.name)
+        }
+        TopBar(onSettings, onReserve, onLiveStatus)
+      }
 
       when (val period = chartData.period) {
         is DayPeriod -> DayPicker(period.day, today, { onPeriodChanged(DayPeriod(it)) })
         is MonthPeriod -> MonthPicker(period.month, { onPeriodChanged(MonthPeriod(it)) })
       }
 
-      Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
-        BatteryBar(batteryState.soc ?: 0, batteryCapacity, batteryState.reserve ?: 0)
+      when (dataMode) {
+        DataMode.ENPHASE -> EnphaseData(chartData, batteryState, reserveConfig, batteryCapacity)
+        DataMode.EMPORIA -> EmporiaData(channelData)
       }
-
-      Box(modifier = Modifier.weight(1f)) {
-        when (chartData) {
-          is DayData -> DayView(
-            chartData,
-            reserveConfig,
-            batteryCapacity,
-            showProduction,
-            showConsumption,
-            showStorage,
-            showGrid
-          )
-
-          is MonthData -> MonthView(
-            chartData,
-            showProduction,
-            showConsumption,
-            showStorage,
-            showGrid
-          )
-        }
-      }
-      ChartSwitches(
-        isProductionChecked = showProduction,
-        isConsumptionChecked = showConsumption,
-        isStorageChecked = showStorage,
-        isGridChecked = showGrid,
-        onProductionChanged = { showProduction = !showProduction },
-        onConsumptionChanged = { showConsumption = !showConsumption },
-        onStorageChanged = { showStorage = !showStorage },
-        onGridChanged = { showGrid = !showGrid },
-      )
     }
   }
 
@@ -197,6 +178,70 @@ fun EnergyScreen(
   }
 }
 
+private enum class DataMode {
+  ENPHASE,
+  EMPORIA,
+  ;
+
+  fun next() = entries[(ordinal + 1) % entries.size]
+}
+
+
+@Composable
+private fun EmporiaData(
+  channelData: List<ChannelUsage>,
+) {
+  ChannelsChart(channelData)
+}
+
+@Composable
+private fun ColumnScope.EnphaseData(
+  chartData: ChartData,
+  batteryState: BatteryState,
+  reserveConfig: ReserveConfig,
+  batteryCapacity: Double,
+) {
+  var showProduction by remember { mutableStateOf(true) }
+  var showConsumption by remember { mutableStateOf(true) }
+  var showStorage by remember { mutableStateOf(true) }
+  var showGrid by remember { mutableStateOf(true) }
+
+  Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {
+    BatteryBar(batteryState.soc ?: 0, batteryCapacity, batteryState.reserve ?: 0)
+  }
+
+  Box(modifier = Modifier.weight(1f)) {
+    when (chartData) {
+      is DayData -> DayView(
+        chartData,
+        reserveConfig,
+        batteryCapacity,
+        showProduction,
+        showConsumption,
+        showStorage,
+        showGrid
+      )
+
+      is MonthData -> MonthView(
+        chartData,
+        showProduction,
+        showConsumption,
+        showStorage,
+        showGrid
+      )
+    }
+  }
+  ChartSwitches(
+    isProductionChecked = showProduction,
+    isConsumptionChecked = showConsumption,
+    isStorageChecked = showStorage,
+    isGridChecked = showGrid,
+    onProductionChanged = { showProduction = !showProduction },
+    onConsumptionChanged = { showConsumption = !showConsumption },
+    onStorageChanged = { showStorage = !showStorage },
+    onGridChanged = { showGrid = !showGrid },
+  )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -242,6 +287,7 @@ fun GreetingPreviewLight() {
       Box(modifier = Modifier.padding(it)) {
         EnergyScreen(
           chartData = SampleData.dayData,
+          sampleEmporiaData(),
           batteryState = BatteryState(null, null),
           reserveConfig = ReserveConfig.DEFAULT,
           batteryCapacity = 20.16,
@@ -274,6 +320,7 @@ fun GreetingPreviewDark() {
       Box(modifier = Modifier.padding(it)) {
         EnergyScreen(
           chartData = MonthData(YearMonth.now(), SampleData.days),
+          sampleEmporiaData(),
           batteryState = BatteryState(null, null),
           reserveConfig = ReserveConfig.DEFAULT,
           batteryCapacity = 20.16,

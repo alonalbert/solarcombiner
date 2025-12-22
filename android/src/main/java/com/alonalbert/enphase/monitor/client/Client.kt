@@ -2,6 +2,7 @@ package com.alonalbert.enphase.monitor.client
 
 import com.alonalbert.enphase.monitor.db.EnphaseConfig
 import com.alonalbert.enphase.monitor.db.ReserveConfig
+import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
@@ -22,6 +23,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.time.LocalDate
 
 class Client(
   private val server: String,
@@ -35,6 +37,8 @@ class Client(
 
   suspend fun putReserveConfig(reserveConfig: ReserveConfig)  = put("put-reserve-config", reserveConfig)
 
+  suspend fun getChannelUsage(date: LocalDate) = get<List<ChannelUsage>>("emporia/usage?date=$date")
+
   private fun httpClient() = HttpClient(Android) {
     install(Logging) {
       logger = TimberLogger
@@ -44,7 +48,7 @@ class Client(
       json()
     }
     install(HttpTimeout) {
-      requestTimeoutMillis = 5_000
+      requestTimeoutMillis = 60_000
     }
     install(Auth) {
       basic {
