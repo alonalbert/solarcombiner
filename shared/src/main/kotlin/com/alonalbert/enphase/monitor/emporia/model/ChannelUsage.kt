@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ChannelUsage(
-  val name: String,
+  val channelId: String,
+  val channelName: String,
   val usage: List<Double>,
 )
