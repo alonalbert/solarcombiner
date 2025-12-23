@@ -75,8 +75,16 @@ class Emporia(
   ): List<Double> {
     return withContext(IO) {
       val url = USAGE_URL.format(channel.deviceGid, channel.channelId, start, end)
-      val usages = getUsages(url).filterNotNull()
-      usages.takeIf { it.isNotEmpty() } ?: getUsages(url).filterNotNull()
+
+      var usages: List<Double>?
+      while (true) {
+        usages = getUsages(url).filterNotNull()
+        if (usages.isNotEmpty()) {
+          break
+        }
+        logger.info("Channel ${channel.channelId} was null, retrying")
+      }
+      usages
     }
   }
 
