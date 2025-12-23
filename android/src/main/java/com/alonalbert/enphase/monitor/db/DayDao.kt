@@ -2,22 +2,25 @@ package com.alonalbert.enphase.monitor.db
 
 import androidx.room.Dao
 import androidx.room.Insert
-import androidx.room.OnConflictStrategy
+import androidx.room.OnConflictStrategy.Companion.IGNORE
+import androidx.room.OnConflictStrategy.Companion.REPLACE
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
+import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 @Dao
 interface DayDao {
 
-  @Insert(onConflict = OnConflictStrategy.IGNORE)
+  @Insert(onConflict = IGNORE)
   suspend fun insertDay(day: Day): Long
 
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  @Insert(onConflict = REPLACE)
   suspend fun insertDayValues(values: List<DayValues>)
 
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  @Insert(onConflict = REPLACE)
   suspend fun insertDayExportValues(values: List<DayExportValues>)
 
   @Transaction
@@ -124,5 +127,55 @@ interface DayDao {
     """
   )
   suspend fun getAvailableDays(start: LocalDate, end: LocalDate): List<LocalDate>
-}
 
+  @Insert(onConflict = IGNORE)
+  suspend fun insertChannel(channel: Channel): Long
+
+  @Update
+  suspend fun updateChannel(channel: Channel)
+
+  @Query("SELECT * FROM Channel WHERE channelId = :channelId")
+  suspend fun getChannel(channelId: String): Channel?
+
+  @Query("SELECT * FROM Channel")
+  suspend fun getChannels(): List<Channel>
+
+  @Insert(onConflict = REPLACE)
+  suspend fun insertChannelUsageValues(values: List<ChannelUsageValue>)
+
+  @Transaction
+  suspend fun updateChannelUsages(date: LocalDate, channelUsages: List<ChannelUsage>) {
+    val dayId = getOrInsertDay(date)
+    channelUsages.forEach {
+      val channel = getChannel(it.channelId)
+      val id = when {
+        channel == null -> insertChannel(Channel(channelId = it.channelId, name = it.channelName))
+        channel.name == it.channelName -> channel.id
+        else -> updateChannel(channel.copy(name = it.channelName)).let { channel.id }
+      }
+      val values = it.usage.mapIndexed { index, value ->
+        ChannelUsageValue(
+          dayId = dayId,
+          channelId = id,
+          index = index,
+          value = value
+        )
+      }
+      insertChannelUsageValues(values)
+    }
+  }
+
+  @Transaction
+  @Query(
+    """
+      SELECT
+        v.channel_id AS channelId,
+        v.value AS value
+      FROM ChannelUsageValue as v
+      JOIN Day as d on v.day_id == d.id
+      WHERE date = :date
+      ORDER BY v.channel_id, v.`index`
+    """
+  )
+  fun getChannelsUsagesFlow(date: LocalDate): Flow<List<UsageValue>>
+}

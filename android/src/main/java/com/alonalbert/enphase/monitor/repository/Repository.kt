@@ -26,6 +26,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -64,13 +65,9 @@ class Repository @Inject constructor(
   }
 
   fun getChannelDataFlow(period: Period): Flow<List<ChannelUsage>> {
-    return db.loginInfoDao().flow().map {
-      val loginInfo = it ?: return@map emptyList()
-      val client = Client(loginInfo.server, loginInfo.username, loginInfo.password)
-      when (period) {
-        is DayPeriod -> client.getChannelUsage(period.day)
-        is MonthPeriod -> emptyList()
-      }
+    return when (period) {
+      is DayPeriod -> getChannelUsagesFlow(period.day)
+      is MonthPeriod -> emptyFlow()
     }
   }
 
@@ -108,9 +105,12 @@ class Repository @Inject constructor(
   }
 
   suspend fun updateStats(day: LocalDate) {
-    updateMainStats(enphaseConfig, day)
-    updateExportStats(enphaseConfig, day)
-    updateBatteryState(enphaseConfig)
+    coroutineScope {
+      launch { updateMainStats(enphaseConfig, day) }
+      launch { updateExportStats(enphaseConfig, day) }
+      launch { updateChannelUsage(day) }
+      launch { updateBatteryState(enphaseConfig) }
+    }
   }
 
   suspend fun updateBatteryCapacity() {
@@ -167,47 +167,42 @@ class Repository @Inject constructor(
   }
 
   private suspend fun updateMainStats(enphaseConfig: EnphaseConfig, day: LocalDate) {
-    coroutineScope {
-      launch {
-        val stats = enphase.getMainStats(enphaseConfig.mainSiteId, day)
-        db.dayDao().updateValues(
-          day,
-          stats.production,
-          stats.consumption,
-          stats.charge,
-          stats.discharge,
-          stats.import,
-          stats.export,
-          stats.battery,
-        )
-      }
-    }
+    val stats = enphase.getMainStats(enphaseConfig.mainSiteId, day)
+    db.dayDao().updateValues(
+      day,
+      stats.production,
+      stats.consumption,
+      stats.charge,
+      stats.discharge,
+      stats.import,
+      stats.export,
+      stats.battery,
+    )
   }
 
   private suspend fun updateExportStats(enphaseConfig: EnphaseConfig, day: LocalDate) {
-    coroutineScope {
-      launch {
-        val stats = enphase.getExportStats(enphaseConfig.exportSiteId, day)
-        db.dayDao().updateExportValues(
-          day,
-          stats.production,
-        )
-      }
-    }
+    val stats = enphase.getExportStats(enphaseConfig.exportSiteId, day)
+    db.dayDao().updateExportValues(
+      day,
+      stats.production,
+    )
+  }
+
+  private suspend fun updateChannelUsage(day: LocalDate) {
+    val loginInfo = db.loginInfoDao().get() ?: return
+    val client = Client(loginInfo.server, loginInfo.username, loginInfo.password)
+    val channelUsages = client.getChannelUsage(day)
+    db.dayDao().updateChannelUsages(day, channelUsages)
   }
 
   private suspend fun updateBatteryState(enphaseConfig: EnphaseConfig) {
-    coroutineScope {
-      launch {
-        val batteryState = enphase.getBatteryState(enphaseConfig.mainSiteId)
-        db.batteryDao().updateBatteryStatus(
-          BatteryStatus(
-            battery = batteryState.soc ?: 0,
-            reserve = batteryState.reserve ?: 0
-          )
-        )
-      }
-    }
+    val batteryState = enphase.getBatteryState(enphaseConfig.mainSiteId)
+    db.batteryDao().updateBatteryStatus(
+      BatteryStatus(
+        battery = batteryState.soc ?: 0,
+        reserve = batteryState.reserve ?: 0
+      )
+    )
   }
 
   private fun getDayDataFlow(day: LocalDate): Flow<ChartData> {
@@ -240,6 +235,17 @@ class Repository @Inject constructor(
         dayMap[it] ?: DayTotals.empty(month.atDay(it))
       }
       MonthData(month, allDays)
+    }
+  }
+
+  fun getChannelUsagesFlow(date: LocalDate): Flow<List<ChannelUsage>> {
+    val dao = db.dayDao()
+    return dao.getChannelsUsagesFlow(date).map { usageValues ->
+      val channels = dao.getChannels().associateBy { it.id }
+      usageValues.groupBy { it.channelId }.map { (channelId, values) ->
+        val channel = channels.getValue(channelId)
+        ChannelUsage(channel.channelId, channel.name, values.map { it.value })
+      }
     }
   }
 

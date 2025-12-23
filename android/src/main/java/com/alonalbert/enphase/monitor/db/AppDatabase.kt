@@ -12,8 +12,10 @@ import androidx.room.TypeConverters
     Day::class,
     DayExportValues::class,
     DayValues::class,
+    Channel::class,
+    ChannelUsageValue::class,
   ],
-  version = 1,
+  version = 2,
   exportSchema = true,
 )
 @TypeConverters(LocalDateConverter::class)

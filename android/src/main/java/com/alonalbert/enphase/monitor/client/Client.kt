@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.time.LocalDate
+import kotlin.time.Duration.Companion.seconds
 
 class Client(
   private val server: String,
@@ -48,7 +49,7 @@ class Client(
       json()
     }
     install(HttpTimeout) {
-      requestTimeoutMillis = 60_000
+      requestTimeoutMillis = 60.seconds.inWholeMilliseconds
     }
     install(Auth) {
       basic {
