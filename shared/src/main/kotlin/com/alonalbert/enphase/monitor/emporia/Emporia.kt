@@ -15,6 +15,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpRedirect
 import io.ktor.client.plugins.HttpResponseValidator
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
@@ -35,6 +36,7 @@ import java.security.SecureRandom
 import java.time.Instant
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
+import kotlin.time.Duration.Companion.seconds
 
 private const val APP_API_URL = "https://c-api.emporiaenergy.com/v1/migrated/app-api"
 private const val API_URL = "https://api.emporiaenergy.com"
@@ -68,28 +70,21 @@ class Emporia(
     }
   }
 
-  suspend fun getUsage(
+  private suspend fun getUsage(
     channel: EmporiaChannel,
     start: Instant,
     end: Instant,
   ): List<Double> {
     return withContext(IO) {
       val url = USAGE_URL.format(channel.deviceGid, channel.channelId, start, end)
-
-      var usages: List<Double>?
-      while (true) {
-        usages = getUsages(url).filterNotNull()
-        if (usages.isNotEmpty()) {
-          break
-        }
-        logger.info("Channel ${channel.channelId} was null, retrying")
-      }
-      usages
+      getUsages(url).filterNotNull()
     }
   }
 
   suspend fun getDailyUsage(start: Instant): List<EmporiaChannelUsage> {
     val channels = getChannels()
+    // Sometimes, the first run returns all nulls so discard it.
+    getDailyUsage(start, channels.first())
     return coroutineScope {
       channels.map {
         async {
@@ -99,7 +94,7 @@ class Emporia(
     }.awaitAll()
   }
 
-  suspend fun getDailyUsage(start: Instant, channel: EmporiaChannel): EmporiaChannelUsage {
+  private suspend fun getDailyUsage(start: Instant, channel: EmporiaChannel): EmporiaChannelUsage {
     val usage = coroutineScope {
       listOf(
         async { getUsage(channel, start, start.plusHours(12)) },
@@ -139,6 +134,13 @@ class Emporia(
           isLenient = true
         })
       }
+      install(HttpTimeout) {
+        val timeout = 60.seconds.inWholeMilliseconds
+        socketTimeoutMillis = timeout
+        requestTimeoutMillis = timeout
+        connectTimeoutMillis = timeout
+      }
+
       // Enable redirect for all methods
       install(HttpRedirect) {
         checkHttpMethod = false
