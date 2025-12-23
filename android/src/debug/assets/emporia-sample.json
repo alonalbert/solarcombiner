@@ -1,6 +1,7 @@
 [
   {
-    "name": "1. Kitchen lights",
+    "channelId": "Branch_1",
+    "channelName": "1. Kitchen lights",
     "usage": [
       0.0,
       0.0,
@@ -1445,7 +1446,8 @@
     ]
   },
   {
-    "name": "2. Server room (Living rm)",
+    "channelId": "Branch_2",
+    "channelName": "2. Server room (Living rm)",
     "usage": [
       0.005618948793905753,
       0.00566490958234999,
@@ -2890,7 +2892,8 @@
     ]
   },
   {
-    "name": "3. Garage laundry room",
+    "channelId": "Branch_3",
+    "channelName": "3. Garage laundry room",
     "usage": [
       0.0010749536711021706,
       0.0010734387035369873,
@@ -4335,7 +4338,8 @@
     ]
   },
   {
-    "name": "4. Family room",
+    "channelId": "Branch_4",
+    "channelName": "4. Family room",
     "usage": [
       0.00277022633573744,
       0.002710186061894452,
@@ -5780,7 +5784,8 @@
     ]
   },
   {
-    "name": "5. Bedroom 3",
+    "channelId": "Branch_5",
+    "channelName": "5. Bedroom 3",
     "usage": [
       0.0,
       0.0,
@@ -7225,7 +7230,8 @@
     ]
   },
   {
-    "name": "6. Bedroom 2 and bathroom",
+    "channelId": "Branch_6",
+    "channelName": "6. Bedroom 2 and bathroom",
     "usage": [
       0.0,
       0.0,
@@ -8670,7 +8676,8 @@
     ]
   },
   {
-    "name": "7. Dining room",
+    "channelId": "Branch_7",
+    "channelName": "7. Dining room",
     "usage": [
       0.0006417410723015113,
       0.0006462471550129078,
@@ -10115,7 +10122,8 @@
     ]
   },
   {
-    "name": "8. Ovens",
+    "channelId": "Branch_8",
+    "channelName": "8. Ovens",
     "usage": [
       0.0,
       0.0,
@@ -11560,7 +11568,8 @@
     ]
   },
   {
-    "name": "9. Master bedroom ",
+    "channelId": "Branch_9",
+    "channelName": "9. Master bedroom ",
     "usage": [
       0.00021640258978472814,
       0.00021859316832930956,
@@ -13005,7 +13014,8 @@
     ]
   },
   {
-    "name": "10. Downstairs 1",
+    "channelId": "Branch_10",
+    "channelName": "10. Downstairs 1",
     "usage": [
       0.0015110810704407865,
       0.0015073594252621686,
@@ -14450,7 +14460,8 @@
     ]
   },
   {
-    "name": "11. Kitchen",
+    "channelId": "Branch_11",
+    "channelName": "11. Kitchen",
     "usage": [
       0.0,
       0.0,
@@ -15895,7 +15906,8 @@
     ]
   },
   {
-    "name": "12. Microwave",
+    "channelId": "Branch_12",
+    "channelName": "12. Microwave",
     "usage": [
       0.0,
       0.0,
@@ -17340,7 +17352,8 @@
     ]
   },
   {
-    "name": "13. Cabin (AC)",
+    "channelId": "Branch_13",
+    "channelName": "13. Cabin [-14]",
     "usage": [
       0.00298842715383459,
       0.0030633794169249353,
@@ -18785,7 +18798,8 @@
     ]
   },
   {
-    "name": "14. AC",
+    "channelId": "Branch_14",
+    "channelName": "14. AC [x2]",
     "usage": [
       0.00021724569899506037,
       0.00021876163476043273,
@@ -20230,7 +20244,8 @@
     ]
   },
   {
-    "name": "15. Furnace Fan",
+    "channelId": "Branch_15",
+    "channelName": "15. Furnace Fan",
     "usage": [
       0.00013784502607142482,
       0.00014001759730445013,
@@ -21675,7 +21690,8 @@
     ]
   },
   {
-    "name": "16. Refrigerator ",
+    "channelId": "Branch_16",
+    "channelName": "16. Refrigerator ",
     "usage": [
       0.00016717187518543666,
       0.00017183558518798264,
