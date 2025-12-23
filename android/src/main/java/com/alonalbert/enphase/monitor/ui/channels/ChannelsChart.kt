@@ -117,8 +117,7 @@ private suspend fun CartesianChartModelProducer.runTransaction(
 }
 
 private fun List<Double>.prepare(): List<Double> {
-  return chunked(CHUNK)
-    .map { it.sum() * 60 / CHUNK }
+  return chunked(CHUNK).map { it.average() * 60 }
 }
 
 //private class DayMarkerValueFormatter(
