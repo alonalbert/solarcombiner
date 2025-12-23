@@ -4,6 +4,8 @@ import com.alonalbert.enphase.monitor.emporia.Emporia
 import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
 import com.alonalbert.enphase.monitor.enphase.util.plusHours
 import com.alonalbert.enphase.monitor.enphase.util.plusMinutes
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -21,6 +23,7 @@ class EmporiaService(
   private val emporia: Emporia
 ) {
   private val logger = LoggerFactory.getLogger(EmporiaService::class.java)
+  private val mutex = Mutex()
 
   suspend fun getUsage(day: LocalDate): List<ChannelUsage> {
     if (day == LocalDate.now()) {
@@ -42,20 +45,22 @@ class EmporiaService(
   @Transactional
   private suspend fun synchronizeDay(day: LocalDate) {
     val start = ZonedDateTime.of(day, LocalTime.MIDNIGHT, ZoneId.of("America/Los_Angeles")).toInstant()
-    try {
-      val channelUsages = emporia.getDailyUsage(start)
-      usageRepository.deleteUsages(start, start.plusHours(24))
-      channelUsages.forEach {
-        val first = it.first
-        val channel = upsertChannel(it.channel.deviceGid, it.channel.channelId, it.channel.name, it.channel.channelMultiplier)
-        val usages = it.usage.mapIndexed { i, usage ->
-          Usage(channel = channel, timestamp = first.plusMinutes(i), value = usage)
+    mutex.withLock {
+      try {
+        val channelUsages = emporia.getDailyUsage(start)
+        usageRepository.deleteUsages(start, start.plusHours(24))
+        channelUsages.forEach {
+          val first = it.first
+          val channel = upsertChannel(it.channel.deviceGid, it.channel.channelId, it.channel.name, it.channel.channelMultiplier)
+          val usages = it.usage.mapIndexed { i, usage ->
+            Usage(channel = channel, timestamp = first.plusMinutes(i), value = usage)
+          }
+          usageRepository.saveAll(usages)
         }
-        usageRepository.saveAll(usages)
+        logger.info("Emporia data synchronization task finished successfully.")
+      } catch (e: Exception) {
+        logger.error("Error during Emporia data synchronization", e)
       }
-      logger.info("Emporia data synchronization task finished successfully.")
-    } catch (e: Exception) {
-      logger.error("Error during Emporia data synchronization", e)
     }
   }
 
