@@ -25,8 +25,8 @@ import com.alonalbert.enphase.monitor.enphase.util.kw
 import com.alonalbert.enphase.monitor.enphase.util.rangeOfChunk
 import com.alonalbert.enphase.monitor.ui.energy.DecimalValueFormatter
 import com.alonalbert.enphase.monitor.ui.energy.SampleData
-import com.alonalbert.enphase.monitor.ui.energy.TimeOfDayAxisValueFormatter
 import com.alonalbert.enphase.monitor.ui.energy.rememberMarker
+import com.alonalbert.enphase.monitor.ui.energy.timeOfDayAxisValueFormatter
 import com.alonalbert.enphase.monitor.ui.theme.colorOf
 import com.alonalbert.enphase.monitor.ui.theme.toInt
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
@@ -125,7 +125,7 @@ private fun BatteryLevelChart(
         bottomAxis =
           HorizontalAxis.rememberBottom(
             label = rememberAxisLabelComponent(textSize = 10.sp),
-            valueFormatter = TimeOfDayAxisValueFormatter,
+            valueFormatter = timeOfDayAxisValueFormatter(4),
             guideline = null,
             itemPlacer = remember {
               HorizontalAxis.ItemPlacer.aligned(

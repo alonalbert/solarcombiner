@@ -115,7 +115,7 @@ private fun DayChart(
         bottomAxis =
           HorizontalAxis.rememberBottom(
             label = rememberAxisLabelComponent(textSize = 10.sp),
-            valueFormatter = TimeOfDayAxisValueFormatter,
+            valueFormatter = timeOfDayAxisValueFormatter(4),
             guideline = null,
             itemPlacer = remember {
               HorizontalAxis.ItemPlacer.aligned(

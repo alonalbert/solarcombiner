@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.sp
 import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
 import com.alonalbert.enphase.monitor.ui.energy.DecimalValueFormatter
-import com.alonalbert.enphase.monitor.ui.energy.TimeOfDayAxisValueFormatter
+import com.alonalbert.enphase.monitor.ui.energy.timeOfDayAxisValueFormatter
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
@@ -85,7 +85,7 @@ private fun ChannelsChart(
         bottomAxis =
           HorizontalAxis.rememberBottom(
             label = rememberAxisLabelComponent(textSize = 10.sp),
-            valueFormatter = TimeOfDayAxisValueFormatter,
+            valueFormatter = timeOfDayAxisValueFormatter(60 / CHUNK),
             guideline = null,
             itemPlacer = remember {
               HorizontalAxis.ItemPlacer.aligned(

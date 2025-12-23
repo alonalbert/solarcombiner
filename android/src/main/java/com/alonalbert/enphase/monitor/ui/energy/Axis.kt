@@ -5,8 +5,8 @@ import java.text.DecimalFormat
 
 val DecimalValueFormatter = CartesianValueFormatter.decimal(DecimalFormat("#.#"))
 
-val TimeOfDayAxisValueFormatter = CartesianValueFormatter { context, x, _ ->
-  when (val h = x.toInt() / 4) {
+fun timeOfDayAxisValueFormatter(pointsPerHour: Int) = CartesianValueFormatter { _, x, _ ->
+  when (val h = x.toInt() / pointsPerHour) {
     0, 24 -> "12am"
     12 -> "12pm"
     else -> (h % 12).toString()
