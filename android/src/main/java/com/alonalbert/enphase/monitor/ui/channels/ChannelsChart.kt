@@ -16,7 +16,6 @@ import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
 import com.alonalbert.enphase.monitor.ui.energy.DecimalValueFormatter
 import com.alonalbert.enphase.monitor.ui.energy.TimeOfDayAxisValueFormatter
-import com.alonalbert.enphase.monitor.util.withMinSize
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
@@ -33,11 +32,14 @@ import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis.HorizontalLabelPosition.Inside
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineFill
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineStroke
 import kotlinx.coroutines.runBlocking
+
+private const val CHUNK = 5
 
 @Composable
 fun ChannelsChart(
@@ -72,6 +74,7 @@ private fun ChannelsChart(
               )
             }
           ),
+          rangeProvider = CartesianLayerRangeProvider.fixed(minX = 0.0, maxX = 1440.0 / CHUNK)
         ),
         startAxis =
           VerticalAxis.rememberStart(
@@ -107,16 +110,15 @@ private suspend fun CartesianChartModelProducer.runTransaction(
   runTransaction {
     lineSeries {
       data.forEach { channelUsage ->
-        series(channelUsage.usage.prepare(5))
+        series(channelUsage.usage.prepare())
       }
     }
   }
 }
 
-private fun List<Double>.prepare(chunk: Int): List<Double> {
-  return chunked(chunk)
-    .map { it.sum() * 60 / chunk }
-    .withMinSize(1440 / chunk)
+private fun List<Double>.prepare(): List<Double> {
+  return chunked(CHUNK)
+    .map { it.sum() * 60 / CHUNK }
 }
 
 //private class DayMarkerValueFormatter(

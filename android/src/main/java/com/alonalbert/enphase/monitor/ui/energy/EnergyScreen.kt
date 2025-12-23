@@ -153,7 +153,7 @@ fun EnergyScreen(
       ) {
         PeriodPicker(chartData.period, today, onPeriodChanged)
         Button(onClick = { dataMode = dataMode.next() }) {
-          Text(dataMode.name)
+          Text(dataMode.next().name)
         }
         TopBar(onSettings, onReserve, onLiveStatus)
       }
@@ -188,10 +188,10 @@ private enum class DataMode {
 
 
 @Composable
-private fun EmporiaData(
+private fun ColumnScope.EmporiaData(
   channelData: List<ChannelUsage>,
 ) {
-  ChannelsChart(channelData)
+  ChannelsChart(channelData, modifier = Modifier.weight(1f))
 }
 
 @Composable
