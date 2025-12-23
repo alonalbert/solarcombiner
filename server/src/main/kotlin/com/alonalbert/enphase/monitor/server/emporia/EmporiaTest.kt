@@ -1,13 +1,10 @@
 package com.alonalbert.enphase.monitor.server.emporia
 
 import com.alonalbert.enphase.monitor.emporia.Emporia
-import com.alonalbert.enphase.monitor.enphase.util.minusMinutes
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit.MINUTES
 import java.util.Properties
 
 suspend fun main() {
@@ -21,17 +18,7 @@ suspend fun main() {
   val username = properties.getProperty("emporia.username")
   val password = properties.getProperty("emporia.password")
   Emporia(username, password).use { emporia ->
-//    getUsages(emporia)
-    getDailyUsage(emporia, LocalDate.of(2025, 12, 20))
-  }
-}
-
-private suspend fun getUsages(emporia: Emporia) {
-  emporia.getChannels().forEach {
-    val end = Instant.now().truncatedTo(MINUTES)
-    val start = end.minusMinutes(60 * 12)
-    val usage = emporia.getUsage(it, start, end)
-    println("${it.name}: ${usage.map { (it * 1000).toInt() }}")
+    getDailyUsage(emporia, LocalDate.of(2025, 12, 23))
   }
 }
 
