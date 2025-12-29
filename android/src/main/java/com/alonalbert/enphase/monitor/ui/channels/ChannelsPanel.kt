@@ -2,17 +2,18 @@ package com.alonalbert.enphase.monitor.ui.channels
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.alonalbert.enphase.monitor.R
 import com.alonalbert.enphase.monitor.emporia.model.ChannelUsage
 import com.alonalbert.enphase.monitor.ui.energy.DecimalValueFormatter
 import com.alonalbert.enphase.monitor.ui.energy.timeOfDayAxisValueFormatter
@@ -42,7 +43,7 @@ import kotlinx.coroutines.runBlocking
 private const val CHUNK = 5
 
 @Composable
-fun ChannelsChart(
+fun ChannelsPanel(
   data: List<ChannelUsage>,
   modifier: Modifier = Modifier,
 ) {
@@ -50,10 +51,27 @@ fun ChannelsChart(
     return
   }
   val modelProducer = remember { CartesianChartModelProducer() }
-  LaunchedEffect(data) {
-    modelProducer.runTransaction(data)
+
+  val switches = data.mapIndexed {i, it ->
+    SwitchInfo(i, it.channelName, it.usage.sum(), remember { mutableStateOf(true) })
   }
-  ChannelsChart(modelProducer, modifier)
+
+  LaunchedEffect(data, switches.map { it.state.value }) {
+    modelProducer.runTransaction(data, switches.map { it.state.value })
+  }
+  ChannelsPanel(modelProducer, switches, modifier)
+}
+
+@Composable
+private fun ChannelsPanel(
+  modelProducer: CartesianChartModelProducer,
+  switches: List<SwitchInfo>,
+  modifier: Modifier = Modifier,
+) {
+  Column(modifier = modifier.fillMaxSize()) {
+    ChannelsChart(modelProducer, modifier = Modifier.weight(1f))
+    ChannelSwitches(switches.sortedByDescending { it.kw }, { i, checked -> switches[i].state.value = checked })
+  }
 }
 
 @Composable
@@ -106,11 +124,16 @@ private fun ChannelsChart(
 
 private suspend fun CartesianChartModelProducer.runTransaction(
   data: List<ChannelUsage>,
+  states: List<Boolean>,
 ) {
   runTransaction {
     lineSeries {
-      data.forEach { channelUsage ->
-        series(channelUsage.usage.prepare())
+      data.zip(states).forEach { (usage, state) ->
+        val usages = when (state) {
+          true -> usage.usage.prepare()
+          false -> List(usage.usage.size / (60 / CHUNK)) { 0.0 }
+        }
+        series(usages)
       }
     }
   }
@@ -159,26 +182,6 @@ private fun List<Double>.prepare(): List<Double> {
 //}
 
 @Composable
-private fun channelColors() = listOf(
-  colorResource(R.color.channel_01),
-  colorResource(R.color.channel_02),
-  colorResource(R.color.channel_03),
-  colorResource(R.color.channel_04),
-  colorResource(R.color.channel_05),
-  colorResource(R.color.channel_06),
-  colorResource(R.color.channel_07),
-  colorResource(R.color.channel_08),
-  colorResource(R.color.channel_09),
-  colorResource(R.color.channel_10),
-  colorResource(R.color.channel_11),
-  colorResource(R.color.channel_12),
-  colorResource(R.color.channel_13),
-  colorResource(R.color.channel_14),
-  colorResource(R.color.channel_15),
-  colorResource(R.color.channel_16),
-)
-
-@Composable
 @Preview
 private fun Preview() {
   val data = sampleEmporiaData()
@@ -188,9 +191,13 @@ private fun Preview() {
       .padding(16.dp)
   ) {
     val modelProducer = CartesianChartModelProducer()
-    runBlocking {
-      modelProducer.runTransaction(data)
+
+    val switches = data.mapIndexed {i, it ->
+      SwitchInfo(i, it.channelName, it.usage.sum(), remember { mutableStateOf(true) })
     }
-    ChannelsChart(modelProducer)
+    runBlocking {
+      modelProducer.runTransaction(data, switches.map { it.state.value })
+    }
+    ChannelsPanel(modelProducer, switches)
   }
 }

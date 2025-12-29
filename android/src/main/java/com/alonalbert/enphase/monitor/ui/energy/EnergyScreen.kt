@@ -29,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
@@ -49,7 +50,7 @@ import com.alonalbert.enphase.monitor.repository.ChartData
 import com.alonalbert.enphase.monitor.repository.DayData
 import com.alonalbert.enphase.monitor.repository.MonthData
 import com.alonalbert.enphase.monitor.ui.battery.BatteryBar
-import com.alonalbert.enphase.monitor.ui.channels.ChannelsChart
+import com.alonalbert.enphase.monitor.ui.channels.ChannelsPanel
 import com.alonalbert.enphase.monitor.ui.channels.sampleEmporiaData
 import com.alonalbert.enphase.monitor.ui.components.PullToRefresh
 import com.alonalbert.enphase.monitor.ui.datepicker.DayPeriod
@@ -136,7 +137,7 @@ fun EnergyScreen(
     isRefreshing = isRefreshing,
     onRefresh = onRefresh,
   ) {
-    var dataMode by remember { mutableStateOf(DataMode.ENPHASE) }
+    var dataMode by rememberSaveable { mutableStateOf(DataMode.ENPHASE) }
 
     val scrollState = rememberScrollState()
     Column(
@@ -191,7 +192,7 @@ private enum class DataMode {
 private fun ColumnScope.EmporiaData(
   channelData: List<ChannelUsage>,
 ) {
-  ChannelsChart(channelData, modifier = Modifier.weight(1f))
+  ChannelsPanel(channelData, modifier = Modifier.weight(1f))
 }
 
 @Composable
