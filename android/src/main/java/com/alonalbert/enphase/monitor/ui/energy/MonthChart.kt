@@ -85,7 +85,6 @@ private fun MonthChart(
               rememberLineComponent(fill = fill(colorResource(R.color.grid))),
               rememberLineComponent(fill = fill(colorResource(R.color.battery))),
               rememberLineComponent(fill = fill(colorResource(R.color.consumption))),
-              rememberLineComponent(fill = fill(colorResource(R.color.grid))),
               rememberLineComponent(fill = fill(colorResource(R.color.battery))),
             ),
           columnCollectionSpacing = 0.5.dp,
@@ -138,10 +137,9 @@ private suspend fun CartesianChartModelProducer.runTransaction(
   runTransaction {
     columnSeries {
       days.seriesOrEmpty(showProduction) { it.production + it.exportProduction }
-      days.seriesOrEmpty(showGrid) { it.import }
+      days.seriesOrEmpty(showGrid) { it.import - it.export }
       days.seriesOrEmpty(showStorage) { it.discharge }
       days.seriesOrEmpty(showConsumption) { -it.consumption }
-      days.seriesOrEmpty(showGrid) { -it.export }
       days.seriesOrEmpty(showStorage) { -it.charge }
       lineSeries {
         series(List(days.size) { 0 })
@@ -170,7 +168,6 @@ private class MonthMarkerValueFormatter(
           val import = columns[1].entry.y
           val discharge = columns[2].entry.y
           val consumption = -columns[3].entry.y
-          val export = -columns[4].entry.y
           val charge = -columns[5].entry.y
 
           val dayOfMonth = target.x.toInt() + 1
@@ -179,7 +176,6 @@ private class MonthMarkerValueFormatter(
           appendEnergyValue("Imported", import, gridColor)
           appendEnergyValue("Discharged", discharge, storageColor)
           appendEnergyValue("Consumed", consumption, consumptionColor)
-          appendEnergyValue("Exported", export, gridColor)
           appendEnergyValue("Charged", charge, storageColor)
 
           setSpan(TabStopSpan.Standard(100), 0, length, SPAN_EXCLUSIVE_EXCLUSIVE)
