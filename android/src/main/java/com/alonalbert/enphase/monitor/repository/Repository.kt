@@ -129,7 +129,11 @@ class Repository @Inject constructor(
   }
 
   fun today(): LocalDate {
-    return ZonedDateTime.now(ZoneId.of(enphaseConfig.siteTimezone)).toLocalDate()
+    val zoneId = when (::enphaseConfig.isInitialized) {
+      true -> ZoneId.of(enphaseConfig.siteTimezone)
+      false -> ZoneId.systemDefault()
+    }
+    return ZonedDateTime.now(zoneId).toLocalDate()
   }
 
   fun getReserveConfigFlow(): Flow<ReserveConfig?> {
