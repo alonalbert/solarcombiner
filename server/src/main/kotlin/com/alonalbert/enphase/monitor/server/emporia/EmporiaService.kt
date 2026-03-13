@@ -33,7 +33,7 @@ class EmporiaService(
     val end = start.plusHours(24)
     val usages = usageRepository.getUsages(start, end)
     return usages.groupBy { it.channel }.map { (channel, usage) ->
-      ChannelUsage(channel.channelId, channel.name, usage.sortedBy { it.timestamp }.map { it.value })
+      ChannelUsage(channel.channelId, channel.displayName(), usage.sortedBy { it.timestamp }.map { it.value })
     }
   }
 

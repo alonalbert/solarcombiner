@@ -1,11 +1,8 @@
 package com.alonalbert.enphase.monitor.server.emporia
 
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.Table
-import jakarta.persistence.UniqueConstraint
+import jakarta.persistence.*
+
+private val ANNOTATION_REGEX = """^.* [x-]\d+$""".toRegex()
 
 @Entity
 @Table(
@@ -22,3 +19,14 @@ data class Channel(
   val name: String,
   val multiplier: Double,
 )
+
+fun Channel.displayName() = when {
+  name.matches(ANNOTATION_REGEX) -> name.substringBeforeLast(' ')
+  else -> name
+}
+
+fun main() {
+  println(Channel(0, 0, "", "foo", 1.0).displayName())
+  println(Channel(0, 0, "", "foo -14", 1.0).displayName())
+  println(Channel(0, 0, "", "foo x2", 1.0).displayName())
+}
