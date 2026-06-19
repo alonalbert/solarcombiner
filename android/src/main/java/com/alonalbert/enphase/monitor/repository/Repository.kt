@@ -54,7 +54,9 @@ class Repository @Inject constructor(
     val client = Client(loginInfo.server, loginInfo.username, loginInfo.password)
     val config = client.getEnphaseConfig()
     db.enphaseConfigDao().update(config)
-    enphaseConfig = config
+    synchronized(this) {
+      enphaseConfig = config
+    }
   }
 
   fun getChartDataFlow(period: Period): Flow<ChartData> {
@@ -129,9 +131,11 @@ class Repository @Inject constructor(
   }
 
   fun today(): LocalDate {
-    val zoneId = when (::enphaseConfig.isInitialized) {
-      true -> ZoneId.of(enphaseConfig.siteTimezone)
-      false -> ZoneId.systemDefault()
+    val zoneId = synchronized(this) {
+      when (::enphaseConfig.isInitialized) {
+        true -> ZoneId.of(enphaseConfig.siteTimezone)
+        false -> ZoneId.systemDefault()
+      }
     }
     return ZonedDateTime.now(zoneId).toLocalDate()
   }
