@@ -6,6 +6,7 @@ import com.alonalbert.enphase.monitor.enphase.model.GatewayConfig
 import com.alonalbert.enphase.monitor.enphase.model.GatewayLiveStatus
 import com.alonalbert.enphase.monitor.enphase.model.GetTokenRequest
 import com.alonalbert.enphase.monitor.enphase.model.LiveStatus
+import com.alonalbert.enphase.monitor.enphase.model.LiveStreamInfo
 import com.alonalbert.enphase.monitor.enphase.model.MainStats
 import com.alonalbert.enphase.monitor.enphase.model.SetProfileRequest
 import com.alonalbert.enphase.monitor.enphase.util.DefaultLogger
@@ -72,7 +73,7 @@ private const val BASE_URL = "https://$ENPHASE_DOMAIN"
 
 private const val LOGIN_URL = "$BASE_URL/login/login.json"
 private const val TOKEN_URL = "https://entrez.enphaseenergy.com/tokens"
-private const val LIVE_STREAM_URL = "$BASE_URL/pv/aws_sigv4/livestream.json"
+private const val LIVE_STREAM_URL = "$BASE_URL/pv/aws_sigv4/livestream.json?serial_num=%s"
 private const val DAILY_ENERGY_URL = $$"$$BASE_URL/pv/systems/%1$s/daily_energy?start_date=%2$d-%3$02d-%4$02d&end_date=%2$d-%3$02d-%4$02d"
 private const val TODAY_URL = "$BASE_URL/pv/systems/%s/today"
 private const val BATTERY_CONFIG_URL = "$BASE_URL/pv/settings/%s/battery_status.json"
@@ -187,13 +188,15 @@ class Enphase(
     return body.getValue("max_capacity").jsonPrimitive.double
   }
 
+  suspend fun getLiveStreamInfo(serialNum: String): LiveStreamInfo = client.get(LIVE_STREAM_URL.format(serialNum)).body()
+
   override fun close() {
     logger.info("Closing Enphase client")
     client.closeQuietly()
   }
 
   private suspend fun GatewayConfig.getToken(email: String): String {
-    enableLiveStatus(serialNumber)
+    getLiveStreamInfo(serialNumber)
     val token = bearerTokenStorage.get() ?: throw IllegalStateException("Not logged in")
     val response = client.post(TOKEN_URL) {
       contentType(Application.Json)
@@ -237,10 +240,6 @@ class Enphase(
   private fun GsonObject.getStats(): GsonObject? {
     val array = getAsJsonArray("stats")
     return if (array.size() < 1) null else array[0].asJsonObject
-  }
-
-  private suspend fun enableLiveStatus(serialNum: String) {
-    client.get("$LIVE_STREAM_URL?serial_num=$serialNum").bodyAsText()
   }
 
   private suspend fun loadStats(siteId: String, date: LocalDate): GsonObject? {
