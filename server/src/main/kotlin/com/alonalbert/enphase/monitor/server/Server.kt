@@ -7,7 +7,7 @@ import org.springframework.boot.runApplication
 import org.springframework.context.annotation.PropertySource
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.MINUTES
 
 @SpringBootApplication
 @PropertySource("classpath:local.properties")
@@ -23,7 +23,7 @@ internal class Server(
     databaseSeeder.seedDatabase()
   }
 
-  @Scheduled(timeUnit = TimeUnit.SECONDS, fixedRate = 60)
+  @Scheduled(timeUnit = MINUTES, fixedRate = 5)
   suspend fun updateReserve() {
     reserveManager.updateReserve()
   }

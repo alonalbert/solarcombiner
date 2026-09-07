@@ -14,7 +14,6 @@ internal class ReserveManager(
 ) {
   private val logger = LoggerFactory.getLogger(Server::class.java)
   private val config by lazy { setting.getEnphaseConfig() }
-  private val enphase by lazy { Enphase({ Credentials(config.email, config.password)}, logger) }
   private var currentReserve = -1
 
   suspend fun updateReserve() {
@@ -22,6 +21,8 @@ internal class ReserveManager(
     if (!reserveConfig.enabled) {
       return
     }
+    val enphase = Enphase({ Credentials(config.email, config.password)}, logger)
+
     val now = LocalTime.now(ZoneId.systemDefault())
     val batteryCapacity = enphase.getBatteryCapacity(config.mainSite)
     val reserve = ReserveCalculator.calculateReserve(
