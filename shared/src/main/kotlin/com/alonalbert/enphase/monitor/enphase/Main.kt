@@ -21,7 +21,8 @@ suspend fun main() {
   Enphase({ Credentials(email, password) }).use { enphase ->
     val siteId = properties.getProperty("site.main") ?: throw IllegalStateException("Missing site id")
 
-    val response = enphase.getLiveStreamInfo("202507001901")
-    println(response)
+    enphase.setBatteryReserve(siteId, 20)
+//    val response = enphase.getLiveStreamInfo("202507001901")
+//    println(response)
   }
 }

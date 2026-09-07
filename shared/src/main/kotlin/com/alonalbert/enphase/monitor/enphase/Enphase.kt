@@ -166,12 +166,16 @@ class Enphase(
   }
 
   suspend fun setBatteryReserve(siteId: String, reserve: Int): String {
+    getBatteryCapacity(siteId) // issue some request so we can get XSRF cookie
     client.get(XSRF_TOKEN_URL)
     val response = client.put("$BASE_URL/service/batteryConfig/api/v1/profile/$siteId") {
       contentType(Application.Json)
       setBody(SetProfileRequest("self-consumption", reserve))
-      val token = client.cookies(BASE_URL)[XSRF_COOKIE]?.value ?: return@put
+      val token = client.cookies(BASE_URL)[XSRF_COOKIE]?.value
       logger.info("Using XSRF: $token")
+      if (token == null) {
+        return@put
+      }
       header(XSRF_HEADER, token)
       cookie(XSRF_BATTERY_PROFILE_COOKIE, token)
     }

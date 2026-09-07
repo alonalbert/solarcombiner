@@ -116,7 +116,7 @@ class Emporia(
   }
 
   private fun createClient(): HttpClient {
-    logger.info("Creating Enphase client")
+    logger.info("Creating Emporia client")
     return HttpClient(OkHttp) {
       HttpResponseValidator {
         validateResponse {
