@@ -204,7 +204,7 @@ private fun ColumnScope.EnphaseData(
 ) {
   var showProduction by remember { mutableStateOf(true) }
   var showConsumption by remember { mutableStateOf(true) }
-  var showStorage by remember { mutableStateOf(false) }
+  var showStorage by remember { mutableStateOf(true) }
   var showGrid by remember { mutableStateOf(true) }
 
   Box(contentAlignment = Center, modifier = Modifier.fillMaxWidth()) {

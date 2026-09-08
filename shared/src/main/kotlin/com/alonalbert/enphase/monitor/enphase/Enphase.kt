@@ -10,6 +10,7 @@ import com.alonalbert.enphase.monitor.enphase.model.LiveStreamInfo
 import com.alonalbert.enphase.monitor.enphase.model.MainStats
 import com.alonalbert.enphase.monitor.enphase.model.SetProfileRequest
 import com.alonalbert.enphase.monitor.enphase.util.DefaultLogger
+import com.alonalbert.enphase.monitor.enphase.util.asKtorLogger
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonNull
@@ -27,6 +28,8 @@ import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.cookies.cookies
 import io.ktor.client.plugins.cookies.get
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.accept
 import io.ktor.client.request.cookie
 import io.ktor.client.request.forms.submitForm
@@ -258,6 +261,11 @@ class Enphase(
   private fun createClient(): HttpClient {
     logger.info("Creating Enphase client")
     return HttpClient(OkHttp) {
+      install(Logging) {
+        logger = this@Enphase.logger.asKtorLogger()
+        this.level = LogLevel.INFO
+      }
+
       HttpResponseValidator {
         validateResponse {
           val status = it.status
